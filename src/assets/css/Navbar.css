@@ -1,0 +1,232 @@
+/* Navbar */
+.navbar {
+    background: linear-gradient(40deg, #9b2c5d, #fe6b8b);
+    color: white;
+    width: 100%;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 1000;
+    padding: 10px;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.navbar-brand {
+    font-size: 1.5rem;
+    font-weight: bold;
+    text-align: center;
+    flex-grow: 1;
+}
+
+.db-btn {
+    background-color: #355395;
+    color: white;
+    border-radius: 5px;
+    margin-left: 10px;
+    padding: 8px 15px;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.db-btn:hover {
+    background-color: #fe6b8b;
+    transform: translateY(-2px);
+}
+
+/* 햄버거 버튼 */
+.hamburger-btn {
+    border: none;
+    background-color: transparent;
+    color: white;
+    font-size: 32px;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.hamburger-btn:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+    /* 호버 시 배경색 */
+}
+
+/* 사이드 메뉴 */
+.side-menu {
+    position: fixed;
+    top: 0;
+    padding-top: 80px;
+    height: 100%;
+    /* Navbar 높이 아래에 위치 */
+    left: -250px;
+    /* 숨김 상태 (화면 밖) */
+    width: 250px;
+    background-color: #f4f4f4;
+    overflow-y: auto;
+    transition: transform 0.3s ease-in-out;
+    z-index: 999;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.2);
+    display: flex;
+    flex-direction: column;
+    /* 메뉴 내용과 Footer를 분리 */
+    justify-content: space-between;
+    /* Footer를 아래로 고정 */
+}
+
+.side-menu.open {
+    transform: translateX(250px);
+    /* 화면 안으로 슬라이드 */
+}
+
+.menu-content {
+    padding: 20px 0;
+    font-size: 18px;
+    font-weight: bold;
+    color: #333;
+}
+
+.menu-content ul {
+    list-style: none;
+    padding: 0;
+}
+
+.menu-content ul li {
+    margin: 10px 0;
+    font-size: 16px;
+    color: #555;
+}
+
+.small-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #e0e0e0;
+    border: none;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    font-size: 14px;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    padding: 0;
+}
+
+.small-btn:hover {
+    background-color: #d6d6d6;
+    transform: scale(1.1);
+}
+
+.small-btn:active {
+    background-color: #cccccc;
+    transform: scale(0.95);
+}
+
+/* Footer (입력창과 추가 버튼) */
+.menu-footer {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    /* 입력창과 버튼 간격 */
+    padding: 10px;
+    background-color: transparent;
+    /* 배경 제거 */
+    border: none;
+    /* Border 제거 */
+}
+
+.menu-input {
+    flex: 1;
+    padding: 5px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+/* 추가 버튼 스타일 */
+.menu-add-btn {
+    height: 90%;
+    padding: 6px 15px;
+    background-color: #ccc;
+    color: #333;
+    border: 1px solid #aaa;
+    border-radius: 0;
+    padding: 2px 10px;
+    font-size: 13px;
+    cursor: pointer;
+    text-align: center;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.menu-add-btn:hover {
+    background-color: #bbb;
+    transform: translateY(-1px);
+}
+
+.filelink {
+    all: unset;
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+
+/* 플로팅 버튼 컨테이너 */
+.floating-container {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    display: flex;
+    flex-direction: column-reverse;
+    align-items: flex-end;
+    z-index: 1000;
+}
+
+/* 플로팅 버튼 */
+.floating-action {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    background-color: #355395;
+    color: white;
+    width: 180px;
+    height: 50px;
+    margin-bottom: 10px;
+    border-radius: 25px;
+    padding: 0 15px;
+    border: none;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    font-size: 16px;
+}
+
+.floating-action i {
+    font-size: 20px;
+    /* 아이콘 크기 */
+    margin-right: 10px;
+    /* 아이콘과 텍스트 간격 */
+}
+
+.floating-action span {
+    white-space: nowrap;
+    /* 텍스트가 줄바꿈되지 않도록 설정 */
+}
+
+.floating-action:hover {
+    background-color: #2c3e70;
+    /* 호버 시 버튼 색상 변경 */
+    transform: translateY(-2px);
+    /* 살짝 올라가는 효과 */
+}
+
+/* 작은 화면에서 버튼 크기 조정 */
+@media (max-width: 576px) {
+    .floating-action {
+        width: 150px;
+        height: 45px;
+        font-size: 14px;
+    }
+
+    .floating-action i {
+        font-size: 18px;
+    }
+}
