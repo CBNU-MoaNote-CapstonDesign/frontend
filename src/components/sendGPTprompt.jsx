@@ -3,10 +3,13 @@ import { convertToExcalidrawElements } from "@excalidraw/excalidraw"
 import { serializeAsJSON } from "@excalidraw/excalidraw"
 import axios from 'axios';
 
+// 환경 변수에서 백엔드 URL 가져오기
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+
 export async function sendGPTprompt(prompt, handleResponse, handleError) {
     try {
         const res = await axios.post(
-            'http://localhost:8080/api/proxy', // 스프링 부트 프록시 서버 주소
+            `${BACKEND_URL}/api/proxy`, // 환경 변수를 사용하여 백엔드 URL 설정
             {
                 model: 'gpt-4',
                 messages: [
@@ -38,11 +41,8 @@ export async function sendGPTprompt(prompt, handleResponse, handleError) {
         const excalidrawElements = convertToExcalidrawElements(elements);
         const contents = serializeAsJSON(excalidrawElements, {}, files);
 
-
         handleResponse(contents);
     } catch (err) {
         handleError(err);
-    } finally {
-
     }
 }
