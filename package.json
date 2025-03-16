@@ -1,47 +1,4 @@
 {
-<<<<<<< HEAD
-  "name": "my-app",
-  "version": "0.1.0",
-  "private": true,
-  "dependencies": {
-    "@excalidraw/excalidraw": "^0.17.6",
-    "@excalidraw/mermaid-to-excalidraw": "^1.1.2",
-    "@testing-library/jest-dom": "^5.17.0",
-    "@testing-library/react": "^13.4.0",
-    "@testing-library/user-event": "^13.5.0",
-    "axios": "^1.7.9",
-    "bootstrap": "^5.3.3",
-    "bootstrap-icons": "^1.11.3",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
-    "react-markdown": "^9.0.0",
-    "react-scripts": "5.0.1",
-    "web-vitals": "^2.1.4"
-  },
-  "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject"
-  },
-  "eslintConfig": {
-    "extends": [
-      "react-app",
-      "react-app/jest"
-    ]
-  },
-  "browserslist": {
-    "production": [
-      ">0.2%",
-      "not dead",
-      "not op_mini all"
-    ],
-    "development": [
-      "last 1 chrome version",
-      "last 1 firefox version",
-      "last 1 safari version"
-    ]
-=======
   "name": "moanote-front",
   "version": "0.1.0",
   "private": true,
@@ -49,34 +6,28 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
-    "clean": "gts clean",
-    "compile": "tsc",
-    "fix": "gts fix",
-    "prepare": "npm run compile",
-    "pretest": "npm run compile",
-    "posttest": "npm run lint"
+    "lint": "next lint"
   },
   "dependencies": {
-    "next": "15.2.1",
+    "@excalidraw/excalidraw": "^0.18.0",
+    "@excalidraw/mermaid-to-excalidraw": "^1.1.2",
+    "axios": "^1.8.3",
+    "bootstrap": "^5.3.3",
+    "bootstrap-icons": "^1.11.3",
+    "next": "15.2.2",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "react-markdown": "^10.1.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
-    "@eslint/js": "^9.22.0",
     "@tailwindcss/postcss": "^4",
-    "@types/node": "^22.7.5",
+    "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "eslint": "^9.22.0",
-    "eslint-config-next": "15.2.1",
-    "eslint-plugin-react": "^7.37.4",
-    "globals": "^16.0.0",
-    "gts": "^6.0.2",
+    "eslint": "^9",
+    "eslint-config-next": "15.2.2",
     "tailwindcss": "^4",
-    "typescript": "^5",
-    "typescript-eslint": "^8.26.0"
->>>>>>> 2a4c9d3 ([initial] migration to intellij project with NEXT.js)
+    "typescript": "^5"
   }
 }

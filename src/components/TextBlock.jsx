@@ -86,7 +86,9 @@ function TextBlock({ id, initialContents, hookContentsUpdate, removeBlock, inser
                 <div style={{padding:0, margin:0, width:"100%"}}
                         onClick={() => setIsEditible(!isEditible)}
                 >
-                    <Markdown className="content-box">{contents}</Markdown>
+                    <div className="content-box">
+                        <Markdown>{contents}</Markdown>
+                    </div>
                 </div>
             )}
         </div>
