@@ -1,12 +1,10 @@
-"use client";
-
-import dynamic from "next/dynamic";
-
-// `App` 컴포넌트를 동적으로 불러오기 (SSR 비활성화)
-const App = dynamic(() => import("../components/App"), {
-  ssr: false, // 서버 사이드 렌더링 비활성화
-});
-
-export default function Home() {
-  return <App />;
+export default function Login() {
+  return (
+      <div>
+        <form className="flex flex-col gap-2 max-w-sm mx-auto p-4" action={"/main"}>
+          <input type="text" name="username" placeholder="Username" className="border p-2 rounded" required/>
+          <input type="password" name="password" placeholder="Password" className="border p-2 rounded" required/>
+          <button type="submit" className="bg-blue-500 text-white p-2 rounded">Login</button>
+        </form>
+      </div>)
 }
