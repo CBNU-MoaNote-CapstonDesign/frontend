@@ -6,8 +6,8 @@ export default function DocumentLayout({
   children: React.ReactNode;
 }>){
   return <div className={"flex flex-col h-screen"}>
-    <TopBar title={"test"}/>
-    <div className={"flex-1 w-full bg-gray-200"}>
+    <TopBar />
+    <div className={"flex-1 w-full bg-gray-200 m-0 p-5"}>
       {children}
     </div>
   </div>

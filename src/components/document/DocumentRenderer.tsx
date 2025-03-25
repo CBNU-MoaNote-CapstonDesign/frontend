@@ -4,6 +4,7 @@ import {useEffect, useState} from "react";
 import {MoaText} from "@/types/document";
 import {MarkdownEditor} from "@/components/document/MarkdownEditor";
 import {MarkdownRenderer} from "@/components/document/MarkdownRenderer";
+import DocumentTitle from "@/components/document/DocumentTitle";
 
 export default function DocumentRenderer({uuid}: { uuid: string }) {
   const [document, setDocument] = useState<MoaText | null>(null);
@@ -51,7 +52,8 @@ export default function DocumentRenderer({uuid}: { uuid: string }) {
   }
 
   return (
-    <div className={"w-max"}>
+    <div className={"w-full"} key={uuid}>
+      <DocumentTitle uuid={uuid}/>
       {
         isEditing ?
           <MarkdownEditor initialContent={document?.content} updateBlur={endEditing} updateContent={setContent}/>
