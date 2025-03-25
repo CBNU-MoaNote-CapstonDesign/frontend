@@ -2,7 +2,7 @@ import {NextRequest, NextResponse} from 'next/server';
 import {testData} from '@/__mocks__/data';
 
 export async function GET(request: NextRequest, {params}: { params: { uuid: string } }) {
-  const {uuid} = params;
+  const {uuid} = await params;
 
   const accessToken = request.cookies.get('accessToken')?.value;
 
