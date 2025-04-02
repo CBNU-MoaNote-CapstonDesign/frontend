@@ -1,5 +1,6 @@
 import {MoaText} from "@/types/document";
 import {User} from "@/types/user";
+import {Diagram} from "@/types/diagram";
 
 export const testData: Array<MoaText> = [
   {
@@ -36,4 +37,14 @@ export const testUser: Array<User> = [
     uuid: "83942e5e-0399-4c08-bab5-b775938a2951",
     name: "son"
   },
+];
+
+export const testDiagram: Array<Diagram> = [
+  {
+    uuid: "23942d5e-0399-4c08-bab5-b175938a2951",
+    title: "테스트 Diagram 1",
+    elements: [
+      
+    ]
+  }
 ];
