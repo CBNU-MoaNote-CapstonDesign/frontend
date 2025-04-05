@@ -1,66 +1,53 @@
-"use client"
+"use client";
 
-import {useEffect, useState} from "react";
+import {useState} from "react";
 import {MoaText} from "@/types/document";
 import {MarkdownEditor} from "@/components/document/MarkdownEditor";
 import {MarkdownRenderer} from "@/components/document/MarkdownRenderer";
 import DocumentTitle from "@/components/document/DocumentTitle";
+import toast from "react-hot-toast";
+import useDocumentSync from "@/hooks/useDocumentSync";
 
 export default function DocumentRenderer({uuid}: { uuid: string }) {
-  const [document, setDocument] = useState<MoaText | null>(null);
-  const [isEditing, setEditing] = useState<boolean>(false);
+  const [document, setDocument] = useState<MoaText>({title: uuid, uuid: uuid, content: "편집하려면 여기 클릭"}); // 현재 문서 내용
+  const [isEditing, setEditing] = useState<boolean>(false); // 현재 편집중인가?
 
-  const setContent = (content: string) => {
-    if (document) {
-      const newDocument: MoaText = {
-        uuid: document.uuid,
-        title: document.title,
-        content: content,
-      }
+  const startEditing = () => setEditing(true);
+  const endEditing = () => setEditing(false);
+
+  // 다른데서 전파한 사항을 업데이트 하는거
+  const update =
+    (content: string) => {
+        setDocument({title: document.title, uuid: document.uuid, content: content});
+    }
+
+  const {publish} = useDocumentSync(uuid, update);
+
+  // 로컬 변경사항을 보내는거
+  const send =
+    (content: string) => {
+      const newDocument = {title: document.title, uuid: document.uuid, content: content};
       setDocument(newDocument);
+      publish(content);
     }
-  }
-
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL + "/api/doc/" + uuid;
-
-  useEffect(() => {
-    try {
-      fetch(apiUrl).then((res) => {
-        if (res.status == 400) {
-          throw new Error(`Login required ${res.status}`);
-        }
-
-        if (!res.ok) {
-          throw new Error(`Failed Document Fetching ${res.status}`);
-        }
-
-        res.json().then((json) => {
-          setDocument(json as MoaText);
-        })
-      });
-    } catch {
-      // TODO : 문서를 불러올 수 없습니다. 화면에 띄우기. 별도의 error messagebox 를 만들어야 할 거 같음
-    }
-  }, [uuid]);
-
-  const startEditing = () => {
-    setEditing(true);
-  }
-
-  const endEditing = () => {
-    setEditing(false);
-  }
 
   return (
     <div className={"w-full"} key={uuid}>
       <DocumentTitle uuid={uuid}/>
-      {
-        isEditing ?
-          <MarkdownEditor initialContent={document?.content} updateBlur={endEditing} updateContent={setContent}/>
-          :
-          <MarkdownRenderer content={document?.content} startEditing={startEditing}/>
-      }
+      {isEditing ? (
+        <MarkdownEditor
+          initialContent={document?.content}
+          updateBlur={endEditing}
+          updateContent={(content) => {
+            send(content);
+          }}
+        />
+      ) : (
+        <MarkdownRenderer
+          content={document?.content}
+          startEditing={startEditing}
+        />
+      )}
     </div>
   );
 }
-
