@@ -23,7 +23,9 @@ export default function RootLayout({
             rel="stylesheet"/>
     </head>
     <body className={"noto-sans bg-white"}>
-    <Toaster/>
+    <Toaster
+      position="bottom-right"
+    />
     <TopBar />
     {children}
     </body>
