@@ -1,10 +1,10 @@
 import Image from "next/image";
 
-export default function TopBar() {
-  return <nav className="fixed w-full">
-    <div className="flex w-full justify-between h-[64px]">
-      <a href={"/main"} className={"flex ms-auto p-2"}>
-        <Image src={"/logo.png"} alt={""} className="h-full w-auto" width={383} height={110}/>
+export default function MoaLogo() {
+  return <nav className="fixed right-0 top-0">
+    <div className="">
+      <a href={"/main"} className={"p-2 block"}>
+        <Image src={"/logo.png"} alt={""} className="h-[48px] w-auto" width={383} height={110}/>
       </a>
       {/* 오른쪽 햄버거 버튼 */}
       {/*<button className="text-white text-2xl focus:outline-none">*/}
