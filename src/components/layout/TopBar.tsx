@@ -1,20 +1,20 @@
+import Image from "next/image";
+
 export default function TopBar() {
-  return <nav className="w-full bg-[#9B2C5D] text-white">
-    <div className="flex items-center justify-between px-4 py-2">
-      {/* 왼쪽 햄버거 버튼 */}
-      <button className="text-white text-2xl focus:outline-none">
-        ☰
-      </button>
+  return <nav className="fixed w-full">
+    <div className="flex w-full justify-between h-[64px]">
+      <a href={"/main"} className={"flex ms-auto p-2"}>
+        <Image src={"/logo.png"} alt={""} className="h-full w-auto" width={383} height={110}/>
+      </a>
+      {/* 오른쪽 햄버거 버튼 */}
+      {/*<button className="text-white text-2xl focus:outline-none">*/}
+      {/*  ☰*/}
+      {/*</button>*/}
 
       {/*/!* 문서 이름 *!/*/}
       {/*<a className="font-bold ps-3 text-left text-white text-lg" href="#">*/}
       {/*  {title}*/}
       {/*</a>*/}
-
-      {/* 우측 MOANOTE 로고 */}
-      <div className="bg-black/50 text-white font-bold text-xl px-3 py-1 rounded">
-        MOANOTE
-      </div>
     </div>
   </nav>
 }
