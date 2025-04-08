@@ -26,7 +26,7 @@ export default function RootLayout({
     <Toaster
       position="bottom-right"
     />
-    <TopBar />
+    <MoaLogo />
     {children}
     </body>
     </html>
