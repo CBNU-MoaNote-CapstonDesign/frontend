@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import React from "react";
 import {Toaster} from "react-hot-toast";
-import TopBar from "@/components/layout/TopBar";
+import MoaLogo from "@/components/layout/MoaLogo";
 
 export const metadata: Metadata = {
   title: "모아노트",
