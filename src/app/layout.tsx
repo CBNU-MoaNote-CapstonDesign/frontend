@@ -23,11 +23,11 @@ export default function RootLayout({
             rel="stylesheet"/>
     </head>
     <body className={"noto-sans bg-white"}>
-    <Toaster/>
-    <MoaLogo />
-    <div className={"pt-[64px]"}>
-      {children}
-    </div>
+    <Toaster
+      position="bottom-right"
+    />
+    <TopBar />
+    {children}
     </body>
     </html>
   );
