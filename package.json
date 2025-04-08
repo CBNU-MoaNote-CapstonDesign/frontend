@@ -9,15 +9,17 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@excalidraw/excalidraw": "^0.17.6",
+    "@excalidraw/excalidraw": "^0.18.0",
     "@excalidraw/mermaid-to-excalidraw": "^1.1.2",
+    "@stomp/stompjs": "^7.1.0",
     "axios": "^1.8.3",
-    "next": "^15.2.4",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
+    "next": "15.2.2",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
     "react-hot-toast": "^2.5.2",
-    "react-icons": "^5.5.0",
     "react-markdown": "^10.1.0",
+    "stompjs": "^2.3.3",
+    "react-icons": "^5.5.0",
     "react-textarea-autosize": "^8.5.9"
   },
   "devDependencies": {

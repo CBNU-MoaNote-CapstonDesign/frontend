@@ -1,4 +1,5 @@
 import {useEffect, useRef, useState} from "react";
+//import toast from "react-hot-toast";
 
 /**
  * 마크다운 에디터
@@ -13,7 +14,8 @@ export function MarkdownEditor({initialContent, updateContent = null, updateBlur
   updateContent?: null | ((content: string) => void),
   updateBlur?: null | (() => void)
 }) {
-  const [cursor, setCursor] = useState(0);
+
+  const [, setCursor] = useState(0);
   const [content, setContent] = useState(initialContent ? initialContent : "");
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -21,7 +23,6 @@ export function MarkdownEditor({initialContent, updateContent = null, updateBlur
     const el = textAreaRef.current;
     if (el)
       setCursor(el.selectionStart);
-    console.log(cursor);
   }
 
   useEffect(() => {
@@ -48,10 +49,8 @@ export function MarkdownEditor({initialContent, updateContent = null, updateBlur
       <textarea
         className="w-full"
         value={content ? content : ""}
-        onInput={handleChange}
         onBlur={handleBlur}
-        onChange={() => {
-        }}
+        onChange={handleChange}
         onSelect={handleCursor}
         ref={textAreaRef}
         autoFocus={true}/>
