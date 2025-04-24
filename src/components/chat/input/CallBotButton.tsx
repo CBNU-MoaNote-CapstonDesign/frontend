@@ -22,11 +22,10 @@ export default function CallBotButton({chat, uuid}: { chat: string, uuid: string
   const handleClick = () => {
     if (me) {
       send({
-        content: chat,
-        sender: me.uuid,
-        uuid: "-",
-        type: 'request-bot'
-      })
+        messageContent: chat,
+        messageType: "request-bot",
+        senderId: me.uuid
+      });
     }
   }
 

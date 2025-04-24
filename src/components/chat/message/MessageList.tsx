@@ -1,18 +1,18 @@
 "use client"
 import useChatSync from "@/hooks/useChatSync";
 import {useEffect, useState} from "react";
-import {Message} from "@/types/chat";
+import {ChatMessage} from "@/types/chat";
 import {User} from "@/types/user";
 import SentMessage from "@/components/chat/message/SentMessage";
 import ReceivedMessage from "@/components/chat/message/ReceivedMessage";
 import BotMessage from "@/components/chat/message/BotMessage";
 import useUserInfo from "@/hooks/useUserInfo";
 
-function MessageBuilder({message}: { message: Message }) {
+function MessageBuilder({message}: { message: ChatMessage }) {
   const [me, setMe] = useState<User | null>(null);
   const [sender, setSender] = useState<User | null>(null);
 
-  useUserInfo(message.sender, (user) => {
+  useUserInfo(message.senderId, (user) => {
     setSender(user);
   });
 
@@ -30,25 +30,27 @@ function MessageBuilder({message}: { message: Message }) {
   if (!me || !sender)
     return <></>
 
-  if (message.type === 'user') {
-    if (me.uuid === message.sender)
-      return <SentMessage name={me.name} content={message.content} time={""} isBotRequest={false}/>
+  console.log(message);
+  // 보낸 메시지, 받은 메시지 등등 분류
+  if (message.messageType === 'chat') {
+    if (me.uuid === message.senderId)
+      return <SentMessage name={me.name} content={message.messageContent} time={""} isBotRequest={false}/>
     else
-      return <ReceivedMessage name={sender.name} content={message.content} time={""} isBotRequest={false}/>
-  } else if (message.type === 'request-bot') {
-    if (me.uuid === message.sender)
-      return <SentMessage name={me.name} content={message.content} time={""} isBotRequest={true}/>
+      return <ReceivedMessage name={sender.name} content={message.messageContent} time={""} isBotRequest={false}/>
+  } else if (message.messageType === 'request-bot') {
+    if (me.uuid === message.senderId)
+      return <SentMessage name={me.name} content={message.messageContent} time={""} isBotRequest={true}/>
     else
-      return <ReceivedMessage name={sender.name} content={message.content} time={""} isBotRequest={true}/>
+      return <ReceivedMessage name={sender.name} content={message.messageContent} time={""} isBotRequest={true}/>
   } else {
-    return <BotMessage name={"Moa Bot"} content={message.content} time={""}/>
+    return <BotMessage name={"Moa Bot"} content={message.messageContent} time={""}/>
   }
 }
 
 export default function MessageList({uuid}: { uuid: string }) {
-  const [messages, setMessages] = useState<Array<Message>>([]);
+  const [messages, setMessages] = useState<Array<ChatMessage>>([]);
 
-  const update = (messages: Array<Message>) => {
+  const update = (messages: Array<ChatMessage>) => {
     setMessages(messages);
   }
 
@@ -57,7 +59,7 @@ export default function MessageList({uuid}: { uuid: string }) {
   return <div>
     {
       messages.map((message) => {
-        return <MessageBuilder key={message.uuid} message={message}/>;
+        return <MessageBuilder key={message.chatId} message={message}/>;
       })
     }
   </div>

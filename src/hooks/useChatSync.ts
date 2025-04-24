@@ -3,7 +3,7 @@
  * 2. send 할 때는 프론트는 오직 content 만 보내도록 하고, uuid, sender, date, time 은 백엔드에서 처리하도록 설계 (보안 이슈)
  */
 import {useEffect, useRef} from 'react';
-import {Message} from '@/types/chat';
+import {SendMessage, ChatMessage} from '@/types/chat';
 import {Client} from '@stomp/stompjs';
 import toast from "react-hot-toast";
 
@@ -12,14 +12,14 @@ const SERVER_WS_URL = process.env.NEXT_PUBLIC_SERVER_WS_URL;
 /**
  * WebSocket과 STOMP를 이용한 실시간 채팅 동기화
  * @param uuid 문서 uuid
- * @param update stomp가 입력될 경우 content를 콜백하는 코드
+ * @param update stomp에 새로운 채팅이 들어왔을 때 업데이트 하는 함수
  * @constructor
  */
-const useChatSync = (uuid: string, update?: (messages: Array<Message>) => void) => {
+const useChatSync = (uuid: string, update?: (messages: Array<ChatMessage>) => void) : ((message: SendMessage)=>(void)) => {
     const clientRef = useRef<Client | null>(null);
-    const messagesRef = useRef<Array<Message>>([]);
+    const messagesRef = useRef<Array<ChatMessage>>([]);
 
-    const receive = (message: Message) => {
+    const receive = (message: ChatMessage) => {
       if (messagesRef.current) {
         // ... 으로 복제해야 React에서 감지하고 변경 가능
         messagesRef.current = [...messagesRef.current, message];
@@ -27,10 +27,10 @@ const useChatSync = (uuid: string, update?: (messages: Array<Message>) => void) 
       }
     }
 
-    const send = (message: Message) => {
+    const send = (message: SendMessage) => {
       if (clientRef.current && clientRef.current.connected) {
         clientRef.current.publish({
-          destination: `/edit/${uuid}`,
+          destination: `/app/chat/channel/${uuid}`,
           body: JSON.stringify(message),
         });
       }
@@ -41,7 +41,7 @@ const useChatSync = (uuid: string, update?: (messages: Array<Message>) => void) 
         brokerURL: `${SERVER_WS_URL}/docs`,
         reconnectDelay: 5000,
         onConnect: () => {
-          client.subscribe(`/topic/docs/${uuid}`, message => {
+          client.subscribe(`/topic/chat/channel/${uuid}`, message => {
             try {
               const body = JSON.parse(message.body);
               receive(body);

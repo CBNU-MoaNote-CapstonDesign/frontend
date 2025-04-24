@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import {Client} from '@stomp/stompjs';
 import toast from "react-hot-toast";
+import debugToast from "@/libs/debugToast";
 
 const SERVER_WS_URL = process.env.NEXT_PUBLIC_SERVER_WS_URL;
 
@@ -14,24 +15,27 @@ const useDocumentSync = (uuid:string, update:(content: string)=>void) => {
   const timestampRef = useRef<number>(0);
   const clientRef = useRef<Client | null>(null);
 
-  const sync = (received:{timestamp:number, content: string}) => {
-    if (received.timestamp > timestampRef.current) {
-      update(received.content);
-      timestampRef.current = received.timestamp;
-      // toast(`received`, {position:"bottom-right"});
-      // toast(`received l[${timestampRef.current}] r[${received.timestamp}] ${received.content}`, {position:"bottom-right"});
+  const sync = (received:{stateId:string, timeStamp: number, value:{content:string}}) => {
+    if (received.timeStamp > timestampRef.current) {
+      update(received.value.content);
+      timestampRef.current = received.timeStamp;
+
+      debugToast(`received l[${timestampRef.current}] r[${received.timeStamp}] ${received.value.content}`, {position:"bottom-right"});
     }
   };
 
   const publish = (content: string) => {
     if (clientRef.current && clientRef.current.connected) {
+
+      const id = '12341234';
+
       const updatedTimestamp = timestampRef.current + 1;
       clientRef.current.publish({
-        destination: `/edit/${uuid}`,
-        body: JSON.stringify({timestamp: updatedTimestamp, content}),
+        destination: `/app/docs/edit/${uuid}`,
+        body: JSON.stringify({stateId:id, timeStamp: updatedTimestamp, value:{content:content}}),
       });
       timestampRef.current = updatedTimestamp;
-      // toast(`publish`, {position:"bottom-right"});
+      debugToast(`publish l[${timestampRef.current}]`, {position:"bottom-right"});
     }
   };
 
@@ -40,22 +44,25 @@ const useDocumentSync = (uuid:string, update:(content: string)=>void) => {
       brokerURL: `${SERVER_WS_URL}/docs`,
       reconnectDelay: 5000,
       onConnect: () => {
+        if (process.env.DEBUG==='true')
+          toast("연결시도 끝");
         client.subscribe(`/topic/docs/${uuid}`, message => {
           try {
             const body = JSON.parse(message.body);
             sync(body);
           } catch {
             // body not fit
+            toast.error("받은 정보의 body가 불충분함");
           }
         });
       },
       onWebSocketError: (event) => {
-        toast("서버와의 연결이 실패하였습니다.",{position:"bottom-right"})
+        toast.error("서버와의 연결이 실패하였습니다.",{position:"bottom-right"});
         console.error('WebSocket error:', event);
       },
 
       onStompError: (frame) => {
-        toast("서버와 통신 도중 에러 발생",{position:"bottom-right"});
+        toast.error("서버와 통신 도중 에러 발생",{position:"bottom-right"});
         console.error('Broker error:', frame.headers['message']);
       },
     });

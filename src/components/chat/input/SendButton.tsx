@@ -4,7 +4,7 @@ import {useEffect, useState} from "react";
 import {User} from "@/types/user";
 import useChatSync from "@/hooks/useChatSync";
 
-export default function CallBotButton({chat, uuid}: { chat: string, uuid: string }) {
+export default function SendButton({chat, uuid}: { chat: string, uuid: string }) {
   const [me, setMe] = useState<User | null>(null);
 
   useEffect(() => {
@@ -23,11 +23,10 @@ export default function CallBotButton({chat, uuid}: { chat: string, uuid: string
   const handleClick = () => {
     if (me) {
       send({
-        content: chat,
-        sender: me.uuid,
-        uuid: "-",
-        type: 'user'
-      })
+        messageContent: chat,
+        messageType: "chat",
+        senderId: me.uuid
+      });
     }
   }
   return (<button className={"bg-[#0051A2] flex items-center justify-center rounded-xl w-full h-full cursor-pointer border"} onClick={handleClick}>
