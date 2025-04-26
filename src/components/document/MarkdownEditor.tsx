@@ -1,4 +1,5 @@
 import {useEffect, useRef, useState} from "react";
+import TextareaAutosize from "react-textarea-autosize";
 //import toast from "react-hot-toast";
 
 /**
@@ -46,8 +47,10 @@ export function MarkdownEditor({initialContent, updateContent = null, updateBlur
 
   return (
     <div className="w-full">
-      <textarea
-        className="w-full"
+      <TextareaAutosize
+        className="w-full border p-2 rounded-xl"
+        minRows={5}
+        placeholder={"Type Document Here..."}
         value={content ? content : ""}
         onBlur={handleBlur}
         onChange={handleChange}

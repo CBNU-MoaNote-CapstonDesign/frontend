@@ -32,7 +32,7 @@ export default function DocumentRenderer({uuid}: { uuid: string }) {
     }
 
   return (
-    <div className={"w-full"} key={uuid}>
+    <div className={"flex flex-col w-full"} key={uuid}>
       <DocumentTitle uuid={uuid}/>
       {isEditing ? (
         <MarkdownEditor
