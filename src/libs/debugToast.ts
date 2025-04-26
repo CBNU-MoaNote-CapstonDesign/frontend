@@ -1,6 +1,6 @@
 import toast, {ToastOptions} from "react-hot-toast";
 
-const debug = process.env.DEBUG === 'true';
+const debug = process.env.NEXT_PUBLIC_DEBUG === 'false';
 
 /**
  * NEXT_PUBLIC_DEBUG = true 일 때 react-hot-toast toast 알람 호출
