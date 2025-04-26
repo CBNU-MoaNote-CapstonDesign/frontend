@@ -6,7 +6,7 @@ import debugToast from "@/libs/debugToast";
 const SERVER_WS_URL = process.env.NEXT_PUBLIC_SERVER_WS_URL;
 
 /**
- * WebSocket과 STOMP를 이용한 실시간 문서 동기화, LLW 알고리즘
+ * WebSocket과 STOMP를 이용한 실시간 문서 동기화, LWW 알고리즘
  * @param uuid 문서 uuid
  * @param update stomp가 입력될 경우 content를 콜백하는 코드
  * @constructor
