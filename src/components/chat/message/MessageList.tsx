@@ -30,7 +30,6 @@ function MessageBuilder({message}: { message: ChatMessage }) {
   if (!me || !sender)
     return <></>
 
-  console.log(message);
   // 보낸 메시지, 받은 메시지 등등 분류
   if (message.messageType === 'chat') {
     if (me.uuid === message.senderId)

@@ -37,6 +37,10 @@ export const testUser: Array<User> = [
     uuid: "83942e5e-0399-4c08-bab5-b775938a2951",
     name: "son"
   },
+  {
+    uuid: "moa-bot-id",
+    name: "Moa Bot"
+  }
 ];
 
 export const testDiagram: Array<Diagram> = [
