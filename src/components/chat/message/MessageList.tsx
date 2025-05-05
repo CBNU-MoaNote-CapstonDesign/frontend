@@ -1,6 +1,6 @@
 "use client"
 import useChatSync from "@/hooks/useChatSync";
-import {useEffect, useState} from "react";
+import {useEffect, useRef, useState} from "react";
 import {ChatMessage} from "@/types/chat";
 import {User} from "@/types/user";
 import SentMessage from "@/components/chat/message/SentMessage";
@@ -8,7 +8,7 @@ import ReceivedMessage from "@/components/chat/message/ReceivedMessage";
 import BotMessage from "@/components/chat/message/BotMessage";
 import useUserInfo from "@/hooks/useUserInfo";
 
-function MessageBuilder({message}: { message: ChatMessage }) {
+function MessageBuilder({message}: { message: ChatMessage}) {
   const [me, setMe] = useState<User | null>(null);
   const [sender, setSender] = useState<User | null>(null);
 
@@ -30,7 +30,6 @@ function MessageBuilder({message}: { message: ChatMessage }) {
   if (!me || !sender)
     return <></>
 
-  console.log(message);
   // 보낸 메시지, 받은 메시지 등등 분류
   if (message.messageType === 'chat') {
     if (me.uuid === message.senderId)
@@ -48,7 +47,13 @@ function MessageBuilder({message}: { message: ChatMessage }) {
 }
 
 export default function MessageList({uuid}: { uuid: string }) {
+    const ref =  useRef<HTMLDivElement>(null);
   const [messages, setMessages] = useState<Array<ChatMessage>>([]);
+
+  useEffect(()=>{
+      if (ref.current)
+          ref.current.scrollIntoView();
+  },[messages]);
 
   const update = (messages: Array<ChatMessage>) => {
     setMessages(messages);
@@ -58,8 +63,11 @@ export default function MessageList({uuid}: { uuid: string }) {
 
   return <div>
     {
-      messages.map((message) => {
-        return <MessageBuilder key={message.chatId} message={message}/>;
+      messages.map((message,index) => {
+        if (index === messages.length-1) {
+            return <div key={message.chatId} ref={ref}><MessageBuilder message={message}/></div>;
+        }
+        return <div key={message.chatId}><MessageBuilder message={message}/></div>;
       })
     }
   </div>
