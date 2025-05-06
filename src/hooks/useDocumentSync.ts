@@ -15,7 +15,6 @@ const SERVER_WS_URL = process.env.NEXT_PUBLIC_SERVER_WS_URL;
 const useDocumentSync = (user:User, uuid:string, update:(content: string)=>void) => {
   const timestampRef = useRef<number>(0);
   const clientRef = useRef<Client | null>(null);
-  // TODO@ : 이 부분은 나중에 서버에서 받아온 uuid로 바꿔야함
   const docsSubWith = {
     'docId': uuid,
     'userId': user.id,
