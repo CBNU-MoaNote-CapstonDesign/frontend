@@ -44,7 +44,7 @@ const useDocumentSync = (user:User, uuid:string, update:(content: string)=>void)
       onConnect: () => {
         if (process.env.DEBUG==='true')
           toast("연결시도 끝");
-        client.subscribe(`/app/docs/${docsSubWith.docId}`, message => {
+        client.subscribe(`/app/docs/participate/${docsSubWith.docId}`, message => {
           try {
             const body = JSON.parse(message.body);
             sync(body);
@@ -53,6 +53,15 @@ const useDocumentSync = (user:User, uuid:string, update:(content: string)=>void)
             toast.error("받은 정보의 body가 불충분함");
           }
         }, {'participantUserId': docsSubWith['userId']});
+        client.subscribe(`/topic/docs/${docsSubWith.docId}`, (message) => {
+          try {
+              const body = JSON.parse(message.body);
+              sync(body);
+          } catch {
+              // body not fit
+              toast.error("받은 정보의 body가 불충분함");
+          }
+        });
       },
       onWebSocketError: (event) => {
         toast.error("서버와의 연결이 실패하였습니다.",{position:"bottom-right"});
