@@ -3,20 +3,22 @@ import { useEffect, useRef } from 'react';
 import {Client} from '@stomp/stompjs';
 import toast from "react-hot-toast";
 import debugToast from "@/libs/debugToast";
+
 const SERVER_WS_URL = process.env.NEXT_PUBLIC_SERVER_WS_URL;
 /**
  * WebSocket과 STOMP를 이용한 실시간 문서 동기화, LWW 알고리즘
+ * @param user 현재 문서를 편집하는 유저
  * @param uuid 문서 uuid
  * @param update stomp가 입력될 경우 content를 콜백하는 코드
  * @constructor
  */
-const useDocumentSync = (uuid:string, update:(content: string)=>void) => {
+const useDocumentSync = (user:User, uuid:string, update:(content: string)=>void) => {
   const timestampRef = useRef<number>(0);
   const clientRef = useRef<Client | null>(null);
   // TODO@ : 이 부분은 나중에 서버에서 받아온 uuid로 바꿔야함
   const docsSubWith = {
-    'docId': '01968596-a431-70eb-890f-69af4abadaca',
-    'userId': '01968596-a3fe-7ccf-ba92-84013b35657a'
+    'docId': uuid,
+    'userId': user.id,
   };
   const sync = (received:{stateId:string, timeStamp: number, value:{content:string}}) => {
     if (received.timeStamp > timestampRef.current) {

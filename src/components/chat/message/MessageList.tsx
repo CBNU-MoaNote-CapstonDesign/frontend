@@ -2,11 +2,10 @@
 import useChatSync from "@/hooks/useChatSync";
 import {useEffect, useRef, useState} from "react";
 import {ChatMessage} from "@/types/chat";
-import {User} from "@/types/user";
 import SentMessage from "@/components/chat/message/SentMessage";
 import ReceivedMessage from "@/components/chat/message/ReceivedMessage";
 import BotMessage from "@/components/chat/message/BotMessage";
-import {fetchCurrentUser} from "@/libs/user";
+import {fetchCurrentUser} from "@/libs/client/user";
 
 function MessageBuilder({message}: { message: ChatMessage}) {
   const [me, setMe] = useState<User | null>(null);
