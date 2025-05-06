@@ -1,4 +1,8 @@
-export interface User {
-    id: string,
-    name: string,
+export {};
+
+declare global {
+    interface User {
+        id: string,
+        name: string,
+    }
 }
