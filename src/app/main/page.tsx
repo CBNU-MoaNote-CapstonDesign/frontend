@@ -1,6 +1,6 @@
 import Profile from "@/components/layout/Profile";
-import {fetchCurrentUserServerSide} from "@/libs/user";
-import {fetchNotesServerSide} from "@/libs/note";
+import {fetchCurrentUserServerSide} from "@/libs/server/user";
+import {fetchNotesServerSide} from "@/libs/server/note";
 
 export default async function Main() {
   const user = await fetchCurrentUserServerSide();
