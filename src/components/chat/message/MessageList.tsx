@@ -6,38 +6,28 @@ import {User} from "@/types/user";
 import SentMessage from "@/components/chat/message/SentMessage";
 import ReceivedMessage from "@/components/chat/message/ReceivedMessage";
 import BotMessage from "@/components/chat/message/BotMessage";
-import useUserInfo from "@/hooks/useUserInfo";
+import {fetchCurrentUser} from "@/libs/user";
 
 function MessageBuilder({message}: { message: ChatMessage}) {
   const [me, setMe] = useState<User | null>(null);
   const [sender, setSender] = useState<User | null>(null);
 
-  useUserInfo(message.senderId, (user) => {
+  fetchCurrentUser().then((user) => {
+    setMe(user);
     setSender(user);
-  });
-
-  useEffect(() => {
-    fetch("/api/auth/me", {
-      method: "GET",
-      credentials: "include",
-    }).then((res) => {
-      res.json().then((data) => {
-        setMe(data);
-      })
-    });
-  }, []);
+  })
 
   if (!me || !sender)
     return <></>
 
   // 보낸 메시지, 받은 메시지 등등 분류
   if (message.messageType === 'chat') {
-    if (me.uuid === message.senderId)
+    if (me.id === message.senderId)
       return <SentMessage name={me.name} content={message.messageContent} time={""} isBotRequest={false}/>
     else
       return <ReceivedMessage name={sender.name} content={message.messageContent} time={""} isBotRequest={false}/>
   } else if (message.messageType === 'request-bot') {
-    if (me.uuid === message.senderId)
+    if (me.id === message.senderId)
       return <SentMessage name={me.name} content={message.messageContent} time={""} isBotRequest={true}/>
     else
       return <ReceivedMessage name={sender.name} content={message.messageContent} time={""} isBotRequest={true}/>

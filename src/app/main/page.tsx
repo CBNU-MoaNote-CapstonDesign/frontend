@@ -1,28 +1,16 @@
-import {testData} from "@/__mocks__/data";
-import {User} from "@/types/user";
-import {cookies} from "next/headers";
 import Profile from "@/components/layout/Profile";
+import {fetchCurrentUserServerSide} from "@/libs/user";
+import {fetchNotesServerSide} from "@/libs/note";
 
 export default async function Main() {
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL + "/api/auth/me";
-  const documents = testData;
-
-  const cookieStore = await cookies();
-  const accessToken = cookieStore.get('accessToken')?.value;
-
-  let user: User | null = null;
-
-  if (accessToken) {
-    const res = await fetch(apiUrl, {
-      headers: {
-        Cookie: `accessToken=${accessToken}`
-      },
-      cache: 'no-store'
-    });
-    if (res.ok) {
-      user = await res.json();
-    }
+  const user = await fetchCurrentUserServerSide();
+  if (!user) {
+    return <div>
+      로그인 필요
+    </div>
   }
+
+  const notes = await fetchNotesServerSide(user.id);
 
   return (
     <div className={"w-full p-5 flex"}>
@@ -43,10 +31,10 @@ export default async function Main() {
             <div className={"w-[120px] text-center"}>Last Modified</div>
           </li>
           {
-            documents.map((document) =>
-              <li className={"w-full"} key={document.uuid}>
-                <a className={"flex py-2 w-full overflow-ellipsis transition-all hover:bg-gray-50 hover:shadow duration-300"} href={"/doc/" + document.uuid}>
-                  <div className={"flex flex-1 ps-2"}>{document.title}</div>
+            notes.map((note) =>
+              <li className={"w-full"} key={note.id}>
+                <a className={"flex py-2 w-full overflow-ellipsis transition-all hover:bg-gray-50 hover:shadow duration-300"} href={"/doc/" + note.id}>
+                  <div className={"flex flex-1 ps-2"}>{note.id /* TODO: note에 title나오면 title로 변경*/}</div>
                   <div className={"w-[80px] px-2"}>Kim</div>
                   <div className={"w-[120px] text-center"}> </div>
                 </a>

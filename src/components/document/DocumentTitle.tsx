@@ -1,7 +1,7 @@
 'use client'
 
 import {useState} from "react";
-import {MoaTextMeta} from "@/types/document";
+import {NoteMeta} from "@/types/note";
 
 export default function DocumentTitle({uuid}: { uuid: string }) {
   const [title, setTitle] = useState<string>("");
@@ -10,7 +10,7 @@ export default function DocumentTitle({uuid}: { uuid: string }) {
   fetch(apiURL).then(
     (res) => {
       res.json().then((json) => {
-        const meta = json as MoaTextMeta;
+        const meta = json as NoteMeta;
         setTitle(meta.title);
       })
     }
