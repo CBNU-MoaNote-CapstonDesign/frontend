@@ -3,7 +3,12 @@ import "./globals.css";
 import React from "react";
 import {Toaster} from "react-hot-toast";
 
-import Home from "@/components/layout/Home";
+import TopNavigationBar from "@/components/layout/Home/TopNavigationBar";
+import Main from "@/components/layout/Home/Main"
+import BasicIntroduce from "@/components/layout/Home/BasicIntroduce"
+import MoaAIIntroduce from "@/components/layout/Home/MoaAIIntroduce"
+import Final from "@/components/layout/Home/Final"
+import ContactLink from "@/components/layout/Home/ContactLink"
 
 export const metadata: Metadata = {
   title: "모아노트",
@@ -24,9 +29,16 @@ export default function RootLayout({
       </head>
 
       <body className={"noto-sans bg-white"}>
-        <Toaster position="bottom-right"/>
-        <Home />
+        <div className="flex flex-col justify-start items-center w-full relative gap-[59px] bg-[#f0f8fe]">
+          <Toaster position="bottom-right"/>
+          <TopNavigationBar />
+          <Main />
+          <BasicIntroduce />
+          <MoaAIIntroduce />
+          <Final />
+          <ContactLink />
         {/* {children} */}
+        </div>
       </body>
     </html>
   );
