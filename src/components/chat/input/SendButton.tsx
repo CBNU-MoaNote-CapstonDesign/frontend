@@ -25,7 +25,7 @@ export default function SendButton({chat, uuid}: { chat: string, uuid: string })
       send({
         messageContent: chat,
         messageType: "chat",
-        senderId: me.uuid
+        senderId: me.id
       });
     }
   }

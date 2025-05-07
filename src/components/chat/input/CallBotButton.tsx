@@ -24,7 +24,7 @@ export default function CallBotButton({chat, uuid}: { chat: string, uuid: string
       send({
         messageContent: chat,
         messageType: "request-bot",
-        senderId: me.uuid
+        senderId: me.id
       });
     }
   }
