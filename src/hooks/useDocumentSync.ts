@@ -26,6 +26,11 @@ const useDocumentSync = (user:User, uuid:string, update:(content: string)=>void)
       debugToast(`received l[${timestampRef.current}] r[${received.timeStamp}] ${received.value.content}`, {position:"bottom-right"});
     }
   };
+  const init = (received:{stateId:string, timeStamp: number, value:{content:string}}) => {
+    update(received.value.content);
+    timestampRef.current = received.timeStamp;
+    debugToast(`received l[${timestampRef.current}] r[${received.timeStamp}] ${received.value.content}`, {position:"bottom-right"});
+  };
   const publish = (content: string) => {
     if (clientRef.current && clientRef.current.connected) {
       const updatedTimestamp = timestampRef.current + 1;
@@ -47,7 +52,7 @@ const useDocumentSync = (user:User, uuid:string, update:(content: string)=>void)
         client.subscribe(`/app/docs/participate/${docsSubWith.docId}`, message => {
           try {
             const body = JSON.parse(message.body);
-            sync(body);
+            init(body);
           } catch {
             // body not fit
             toast.error("받은 정보의 body가 불충분함");

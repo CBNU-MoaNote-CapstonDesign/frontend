@@ -8,7 +8,7 @@ import DocumentTitle from "@/components/document/DocumentTitle";
 import useDocumentSync from "@/hooks/useDocumentSync";
 
 export default function DocumentRenderer({user, uuid}: { user:User, uuid: string }) {
-  const [document, setDocument] = useState<Note>({title: uuid, id: uuid, content: "편집하려면 여기 클릭"}); // 현재 문서 내용
+  const [document, setDocument] = useState<Note>({title: uuid, id: uuid, content: ""}); // 현재 문서 내용
   const [isEditing, setEditing] = useState<boolean>(false); // 현재 편집중인가?
 
   const startEditing = () => setEditing(true);
