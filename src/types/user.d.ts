@@ -1,5 +1,8 @@
-export interface User {
-    uuid: string,
-    name: string,
-    email?: string,
+export {};
+
+declare global {
+    interface User {
+        id: string,
+        name: string,
+    }
 }

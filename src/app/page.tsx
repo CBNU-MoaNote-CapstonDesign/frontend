@@ -1,13 +1,22 @@
-export default function Login() {
-  return (
-    <div>
-      <form className="flex flex-col gap-2 max-w-sm mx-auto p-4"
-            method="POST"
-            action="/api/auth/login">
-        <input type="text" name="redirect" value="/main" hidden readOnly/>
-        <input type="text" name="username" placeholder="Username" className="border p-2 rounded" required/>
-        <input type="password" name="password" placeholder="Password" className="border p-2 rounded" required/>
-        <button type="submit" className="bg-blue-500 text-white p-2 rounded">Login</button>
-      </form>
-    </div>)
+import {fetchCurrentUserServerSide} from "@/libs/server/user";
+import {redirect} from "next/navigation";
+
+const LOGIN_URL = process.env.NEXT_PUBLIC_LOGIN_URL;
+
+export default async function RootPage() {
+
+  const user = await fetchCurrentUserServerSide();
+
+  if (!user) {
+    // 미로그인시 백엔드 로그인 페이지로 이동
+    if (LOGIN_URL)
+      redirect(LOGIN_URL);
+  } else {
+    // 로그인 되어있으면 /main 으로 이동
+    redirect("/main");
+  }
+
+  return <div>
+
+  </div>;
 }

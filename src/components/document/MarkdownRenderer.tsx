@@ -10,7 +10,7 @@ export function MarkdownRenderer({content, startEditing}: {
 
   return (
     <div
-      className="prose"
+      className="flex prose flex-col min-h-[300px] w-full border p-2 rounded-xl !max-w-none"
       onClick={handleClick}
     >
       <Markdown>{content ? content : ""}</Markdown>
