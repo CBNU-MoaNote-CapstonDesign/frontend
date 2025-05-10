@@ -1,3 +1,4 @@
+import invariant from 'tiny-invariant';
 import {useEffect, useRef, useState} from "react";
 import TextareaAutosize from "react-textarea-autosize";
 //import toast from "react-hot-toast";
@@ -25,6 +26,7 @@ export function MarkdownEditor({initialContent, updateContent = null, updateBlur
 
   const handleSelect = () => {
     const el = textAreaRef.current;
+    invariant(el, "textAreaRef is null");
     if (el) {
       setCursor(el.selectionStart);
       cursorHandler(el.selectionStart);
