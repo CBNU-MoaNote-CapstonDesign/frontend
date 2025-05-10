@@ -10,6 +10,7 @@ import useDocumentSync from "@/hooks/useDocumentSync";
 export default function DocumentRenderer({user, uuid}: { user:User, uuid: string }) {
   const [document, setDocument] = useState<Note>({title: uuid, id: uuid, content: ""}); // 현재 문서 내용
   const [isEditing, setEditing] = useState<boolean>(false); // 현재 편집중인가?
+  const [cursorPosition, setCursorPosition] = useState<number>(0); // 커서 위치
 
   const startEditing = () => setEditing(true);
   const endEditing = () => setEditing(false);
@@ -40,6 +41,8 @@ export default function DocumentRenderer({user, uuid}: { user:User, uuid: string
           updateContent={(content) => {
             send(content);
           }}
+          lastCursorPosition={cursorPosition}
+          cursorHandler={setCursorPosition}
         />
       ) : (
         <MarkdownRenderer
