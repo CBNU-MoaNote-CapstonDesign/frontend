@@ -15,17 +15,36 @@ const SERVER_WS_URL = process.env.NEXT_PUBLIC_SERVER_WS_URL;
  * @param update stomp에 새로운 채팅이 들어왔을 때 업데이트 하는 함수
  * @constructor
  */
-const useChatSync = (uuid: string, update?: (messages: Array<ChatMessage>) => void) : ((message: SendMessage)=>(void)) => {
+const useChatSync = (uuid: string, update?: (messages: Array<ChatMessage>) => void): ((message: SendMessage) => (void)) => {
     const clientRef = useRef<Client | null>(null);
     const messagesRef = useRef<Array<ChatMessage>>([]);
 
     const receive = (message: ChatMessage) => {
       if (messagesRef.current) {
-        // ... 으로 복제해야 React에서 감지하고 변경 가능
-        messagesRef.current = [...messagesRef.current, message];
-        if (update) update(messagesRef.current);
+        // 기존 메시지 목록
+        const current = messagesRef.current;
+
+        // 동일 chatId 가진 메시지가 있는지 확인
+        const existingIndex = current.findIndex(m => m.chatId === message.chatId);
+
+        let updatedMessages;
+
+        if (existingIndex !== -1) {
+          // 이미 존재 → 해당 위치를 새로운 메시지로 대체
+          updatedMessages = [
+            ...current.slice(0, existingIndex),
+            message,
+            ...current.slice(existingIndex + 1)
+          ];
+        } else {
+          // 존재하지 않음 → 맨 뒤에 추가
+          updatedMessages = [...current, message];
+        }
+
+        messagesRef.current = updatedMessages;
+        if (update) update(updatedMessages);
       }
-    }
+    };
 
     const send = (message: SendMessage) => {
       if (clientRef.current && clientRef.current.connected) {

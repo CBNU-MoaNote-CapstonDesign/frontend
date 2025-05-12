@@ -14,7 +14,7 @@ export default async function DocumentPage({params}: { params: { uuid: string } 
         user &&
           <DocumentRenderer uuid={uuid} user={user}/>
       }
-      {/*<ChatMenu uuid={uuid}/>*/}
+      <ChatMenu uuid={uuid}/>
     </div>
   );
 }
