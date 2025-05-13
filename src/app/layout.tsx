@@ -8,7 +8,7 @@ import Main from "@/components/layout/Home/Main"
 import BasicIntroduce from "@/components/layout/Home/BasicIntroduce"
 import MoaAIIntroduce from "@/components/layout/Home/MoaAIIntroduce"
 import Final from "@/components/layout/Home/Final"
-import ContactLink from "@/components/layout/Home/ContactLink"
+import ContactLinkBar from "@/components/layout/Home/ContactLinkBar"
 
 export const metadata: Metadata = {
 	title: "모아노트",
@@ -36,7 +36,7 @@ export default function RootLayout({
 					<BasicIntroduce />
 					<MoaAIIntroduce />
 					<Final />
-					<ContactLink />
+					<ContactLinkBar />
 
 					{/* {children} */}
 				</div>

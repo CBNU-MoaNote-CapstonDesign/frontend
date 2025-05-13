@@ -1,5 +1,5 @@
-import {fetchCurrentUserServerSide} from "@/libs/server/user";
-import {redirect} from "next/navigation";
+import { fetchCurrentUserServerSide } from "@/libs/server/user";
+import { redirect } from "next/navigation";
 
 const LOGIN_URL = process.env.NEXT_PUBLIC_LOGIN_URL;
 
