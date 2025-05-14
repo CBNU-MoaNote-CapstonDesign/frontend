@@ -1,22 +1,21 @@
-import { fetchCurrentUserServerSide } from "@/libs/server/user";
-import { redirect } from "next/navigation";
+import TopNavigationBar from "@/components/layout/Home/TopNavigationBar";
+import Main from "@/components/layout/Home/Main"
+import BasicIntroduce from "@/components/layout/Home/BasicIntroduce"
+import MoaAIIntroduce from "@/components/layout/Home/MoaAIIntroduce"
+import Final from "@/components/layout/Home/Final"
+import ContactLinkBar from "@/components/layout/Home/ContactLinkBar"
 
-const LOGIN_URL = process.env.NEXT_PUBLIC_LOGIN_URL;
-
-export default async function RootPage() {
-
-  const user = await fetchCurrentUserServerSide();
-
-  if (!user) {
-    // 미로그인시 백엔드 로그인 페이지로 이동
-    if (LOGIN_URL)
-      redirect(LOGIN_URL);
-  } else {
-    // 로그인 되어있으면 /main 으로 이동
-    redirect("/main");
-  }
-
-  return <div>
-
-  </div>;
+export default function RootPage() {
+  return (
+    <div>
+      <div className="flex flex-col justify-start items-center w-full relative gap-[59px] bg-[#f0f8fe]">
+        <TopNavigationBar />
+        <Main />
+        <BasicIntroduce />
+        <MoaAIIntroduce />
+        <Final />
+        <ContactLinkBar />
+      </div>
+    </div>
+  );
 }
