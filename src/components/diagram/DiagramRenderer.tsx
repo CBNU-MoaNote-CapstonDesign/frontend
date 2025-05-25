@@ -1,5 +1,6 @@
 "use client"
 import dynamic from "next/dynamic";
+import {OrderedExcalidrawElement} from "@excalidraw/excalidraw/element/types";
 
 const ExcalidrawWrapper = dynamic(
   async () => (await import("./ExcalidrawWrapper")).default,
@@ -8,10 +9,17 @@ const ExcalidrawWrapper = dynamic(
   },
 );
 
-export default function DiagramRenderer({uuid}:{uuid:string}) {
+export default function DiagramRenderer({uuid, elements = null}: {
+  uuid: string,
+  elements: null | OrderedExcalidrawElement[]
+}) {
   return (
     <div className={"w-full h-full"} key={uuid}>
-      <ExcalidrawWrapper />
+      {
+        elements === null ?
+          <ExcalidrawWrapper/> :
+          <ExcalidrawWrapper elements={elements}/>
+      }
     </div>
   );
 }
