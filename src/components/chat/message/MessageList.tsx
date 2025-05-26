@@ -7,6 +7,11 @@ import ReceivedMessage from "@/components/chat/message/ReceivedMessage";
 import BotMessage from "@/components/chat/message/BotMessage";
 import {fetchCurrentUser} from "@/libs/client/user";
 
+/**
+ * 메시지 리스트에 올릴 채팅 메시지를 만드는 함수
+ * @param message
+ * @constructor
+ */
 function MessageBuilder({message}: { message: ChatMessage}) {
   const [me, setMe] = useState<User | null>(null);
   const [sender, setSender] = useState<User | null>(null);
