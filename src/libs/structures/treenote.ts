@@ -1,5 +1,5 @@
 import {TreeNode} from "@/types/treenode";
-import {EditAction} from "@/types/action";
+import {CRDTOperation} from "@/types/crdtOperation";
 import invariant from "tiny-invariant";
 
 
@@ -32,6 +32,7 @@ export class TreeNote {
   idToNode: Map<string, TreeNode>;
   root: TreeNode;
   size: number;
+  operationHistories: CRDTOperation[][] = [[]];
 
   constructor(uuid: string, id: string, title: string, content: string, root: TreeNode, size: number = 1,
               indexToChild: Map<number, TreeNode>, idToNode: Map<string, TreeNode>) {
@@ -179,10 +180,26 @@ export class TreeNote {
     if (previousNode.rightChildren.length == 0) {
       newNode.parent = previousNode;
       this.onInsertAction(newNode, previousNode, "right");
+      this.operationHistories[this.operationHistories.length - 1].push({
+        type: "INSERT",
+        nodeId: newNode.id,
+        value: newNode.value as string,
+        parentId: newNode.parent.id,
+        side: "RIGHT",
+        byWho: this.uuid
+      });
     } else {
       invariant(successor, "successor is undefined");
       newNode.parent = successor;
       this.onInsertAction(newNode, successor, "left");
+      this.operationHistories[this.operationHistories.length - 1].push({
+        type: "INSERT",
+        nodeId: newNode.id,
+        value: newNode.value as string,
+        parentId: newNode.parent.id,
+        side: "LEFT",
+        byWho: this.uuid
+      });
     }
 
 
@@ -196,14 +213,23 @@ export class TreeNote {
         rightChildren: [],
         key: this.indexToChild.size + 1 // 해당 key 는 의미를 가지지 않음
       };
-      this.onInsertAction(nextNode, newNode, "right");
       newNode = nextNode;
+      invariant(newNode.parent, "newNode.parent is undefined");
+      this.onInsertAction(newNode, newNode.parent, "right");
+      this.operationHistories[this.operationHistories.length - 1].push({
+        type: "INSERT",
+        nodeId: newNode.id,
+        value: newNode.value as string,
+        parentId: newNode.parent.id,
+        side: "RIGHT",
+        byWho: this.uuid
+      });
     }
   }
 
   onInsertAction(newNode: TreeNode, parent: TreeNode, side: "left" | "right") {
     this.size++;
-
+    this.idToNode.set(newNode.id, newNode);
     const sideArray = side === "left" ? parent.leftChildren : parent.rightChildren;
 
     let i = 0;
@@ -223,6 +249,11 @@ export class TreeNote {
       const nodeToRemove = this.getNodeByIndex(i);
       invariant(nodeToRemove, "nodeToRemove is undefined");
       this.onRemoveAction(nodeToRemove);
+      this.operationHistories[this.operationHistories.length - 1].push({
+        type: "REMOVE",
+        nodeId: nodeToRemove.id,
+        byWho: this.uuid
+      });
     }
   }
 
@@ -240,6 +271,7 @@ export class TreeNote {
    * remove 와 insert action 을 수행하였다면 실제로 적용하기 위해서는 이 메소드를 호출해야 함
    */
   traversal() {
+    this.operationHistories.push([]);
     const contentBuffer: string[] = [];
     this.indexToChild = new Map<number, TreeNode>();
     this.indexToChild.set(-1, this.root);
@@ -284,24 +316,26 @@ export class TreeNote {
     this.content = contentBuffer.join("");
   }
 
-  onAction(action: EditAction) {
-    if (action.type === "insert") {
-      const parentNode = this.idToNode.get(action.parentNodeId as string);
-      invariant(parentNode, "parentNode is undefined");
-      invariant(action.newNodeSide, "action.newNodeSide is undefined");
-
+  onAction(action: CRDTOperation) {
+    if (action.type === "INSERT") {
+      const parentNode = this.idToNode.get(action.parentId as string);
+      if (parentNode === undefined) {
+        return;
+      }
       const newNode: TreeNode = {
-        id: action.newNodeId as string,
-        value: action.newNodeValue as string,
+        id: action.nodeId as string,
+        value: action.value as string,
         parent: parentNode,
         leftChildren: [],
         rightChildren: [],
         key: 0
       }
-      this.onInsertAction(newNode, parentNode, action.newNodeSide);
+      this.onInsertAction(newNode, parentNode, action.side === "LEFT" ? "left" : "right");
     } else {
-      const nodeToRemove = this.idToNode.get(action.targetNodeId as string);
-      invariant(nodeToRemove, "nodeToRemove is undefined");
+      const nodeToRemove = this.idToNode.get(action.nodeId as string);
+      if (nodeToRemove === undefined) {
+        return;
+      }
       this.onRemoveAction(nodeToRemove);
     }
   }

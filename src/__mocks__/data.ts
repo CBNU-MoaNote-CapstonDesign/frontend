@@ -1,5 +1,4 @@
 import {Note} from "@/types/note";
-import {User} from "@/types/user";
 import {Diagram} from "@/types/diagram";
 
 export const testData: Array<Note> = [
