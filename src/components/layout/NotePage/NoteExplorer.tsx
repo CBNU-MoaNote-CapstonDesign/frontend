@@ -1,11 +1,6 @@
-// 'use client';
+import { Note } from "@/types/note";
 
-import { fetchCurrentUserServerSide } from "@/libs/server/user";
-import { fetchNotesServerSide } from "@/libs/server/note";
-
-export default async function NoteExplorer() {
-    const user = await fetchCurrentUserServerSide();
-    const notes = await fetchNotesServerSide(user.id);
+export default async function NoteExplorer({ user, notes }: { user: User; notes: Note[] }) {
 
     return (
         <aside
@@ -31,10 +26,10 @@ export default async function NoteExplorer() {
                 </button>
             </div>
 
-            {/* 노트 불러와서 표시하는 기능 */}
+            {/* 노트 목록 표시 */}
             <div className="flex-1 overflow-y-auto px-2 py-4 space-y-2">
                 {notes && notes.length > 0 ? (
-                    notes.map((note: any) => (
+                    notes.map((note) => (
                         <div
                             key={note.id}
                             className="
@@ -49,6 +44,8 @@ export default async function NoteExplorer() {
                                 transition
                             "
                         >
+                            {/* 노트 제목을 따로 저장하는 DB 칼럼이 필요함 */}
+                            {/* 현재 백엔드 노트 DB에 title 칼럼은 없으므로, 노트 목록 화면에 노트 제목은 빈칸으로 표시됨 */}
                             <span className="text-base font-medium text-[#222] truncate">{note.title}</span>
                             <svg
                                 width={24}

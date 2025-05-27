@@ -1,8 +1,7 @@
-'use client';
-
 import TitleBlock from "@/components/layout/NotePage/TitleBlock";
 import TextBlock from "@/components/layout/NotePage/TextBlock";
 import DesignBlock from "@/components/layout/NotePage/DesignBlock";
+import AIChatBot from "@/components/layout/NotePage/AIChatBot";
 
 export default function NoteUI() {
     return (
@@ -26,6 +25,7 @@ export default function NoteUI() {
                 <TitleBlock />
                 <TextBlock />
                 <DesignBlock />
+                <AIChatBot />
             </div>
         </main>
     );

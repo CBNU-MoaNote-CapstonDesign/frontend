@@ -1,14 +1,15 @@
-'use client';
+import { Note } from "@/types/note";
 
-export default function TopNavigationBar() {
-    // 예시 공유 편집자 프로필 배열 (실제 데이터로 대체 가능)
+export default async function TopNavigationBar({ user, notes }: { user: User; notes: Note[] }) {
+
+    // 예시 공유 편집자 프로필 배열
     const sharedUsers = [
         "/profile_img/shared_profileA.png",
         "/profile_img/shared_profileB.png",
         "/profile_img/shared_profileC.png",
         "/profile_img/shared_profileD.png",
     ];
-    // 예시 본인 프로필 (실제 데이터로 대체 가능)
+    // 예시 본인 프로필
     const myProfile = "/profile_img/my_profile.png";
 
     return (
@@ -25,7 +26,7 @@ export default function TopNavigationBar() {
                 </span>
             </div>
 
-            {/* 중앙 블록: 문서 제목 및 블록 타입 */}
+            {/* 문서 제목 및 블록 타입 */}
             <div className="flex-1 flex flex-col items-center">
                 <span className="text-lg md:text-xl font-semibold text-[#333] mb-1 truncate max-w-[60vw]">
                     현재 문서 제목
@@ -68,7 +69,7 @@ export default function TopNavigationBar() {
                 </div>
             </div>
 
-            {/* 공유자 프로필 */}
+            {/* 공유자 프로필 + 초대 버튼 */}
             <div className="flex items-center gap-3 mr-8 cursor-pointer">
                 {sharedUsers.map((src, idx) => (
                     <img
@@ -79,6 +80,13 @@ export default function TopNavigationBar() {
                         style={{ zIndex: 10 - idx }}
                     />
                 ))}
+                {/* 초대 버튼 */}
+                <button
+                    className="w-10 h-10 flex items-center justify-center rounded-full bg-[#e0f8ff] border-2 border-dashed border-[#69F179] text-[#69F179] text-2xl font-bold shadow-sm hover:bg-[#dbeafe] transition cursor-pointer"
+                    title="사용자 초대"
+                >
+                    +
+                </button>
             </div>
 
             {/* 더보기 버튼 및 본인 프로필 */}

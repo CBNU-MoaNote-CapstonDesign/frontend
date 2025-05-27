@@ -1,6 +1,4 @@
-'use client';
-
-export default function DesignBlock() {
+export default async function DesignBlock() {
     return (
         <div className="w-full min-h-[260px] bg-white rounded-xl shadow px-8 py-8 flex flex-col gap-6 items-center relative">
             <div className="flex justify-between w-full max-w-3xl mx-auto">
