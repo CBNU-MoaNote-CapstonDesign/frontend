@@ -16,11 +16,11 @@ export function TreeMarkdownEditor({initialContent = null, updateContent = null,
   initialContent: string | null | undefined,
   updateContent?: null | ((content: string) => void),
   updateBlur?: null | (() => void),
-  lastCursorPosition?: number | null | undefined,
-  cursorHandler?: null | ((cursor: number) => void)
+  lastCursorPosition?: CursorPosition | null | undefined,
+  cursorHandler?: null | ((cursor: CursorPosition) => void)
 }) {
 
-  const [cursorPosition, setCursor] = useState(lastCursorPosition ? lastCursorPosition : 0);
+  const [cursorPosition, setCursor] = useState<CursorPosition>(lastCursorPosition ? lastCursorPosition : {start: 0, end: 0});
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
 
   const handleSelect = () => {
@@ -30,13 +30,12 @@ export function TreeMarkdownEditor({initialContent = null, updateContent = null,
       return;
     setCursor(el.selectionStart);
     if (cursorHandler)
-      cursorHandler(el.selectionStart);
+      cursorHandler({start: el.selectionStart, end: el.selectionEnd});
   }
 
   useEffect(() => {
     if (textAreaRef.current) {
-      textAreaRef.current.focus();
-      textAreaRef.current.setSelectionRange(cursorPosition, cursorPosition);
+      textAreaRef.current.setSelectionRange(cursorPosition.start, cursorPosition.end);
     }
   }, [cursorPosition, textAreaRef]);
 

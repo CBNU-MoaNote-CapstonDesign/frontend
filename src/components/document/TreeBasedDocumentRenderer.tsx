@@ -9,14 +9,14 @@ import {TreeNote} from "@/libs/structures/treenote";
 import getDiff from "@/libs/simpledDiff";
 import {CRDTOperation} from "@/types/crdtOperation";
 import useFugueDocumentSync from "@/hooks/useFugueDocumentSync";
+import {CursorPosition} from "@/types/cursor";
 
-export default function DocumentRenderer({user, uuid}: { user:User, uuid: string }) {
+export default function DocumentRenderer({user, uuid}: { user: User, uuid: string }) {
   // TODO 임시 데이터
   const [treeNote, setTreeNote] = useState<TreeNote>(TreeNote.fromString(user.id, uuid, "initial title", "initial content"));
-
   const [document, setDocument] = useState<Note>({title: treeNote.title, id: treeNote.id, content: treeNote.content}); // 현재 문서 내용
   const [isEditing, setEditing] = useState<boolean>(false); // 현재 편집중인가?
-  const [cursorPosition, setCursorPosition] = useState<number>(0); // 커서 위치
+  const [cursorPosition, setCursorPosition] = useState<CursorPosition>({start: 0, end: 0}); // 커서 위치
   const startEditing = () => setEditing(true);
   const endEditing = () => setEditing(false);
 
@@ -45,11 +45,9 @@ export default function DocumentRenderer({user, uuid}: { user:User, uuid: string
     };
 
 
-  const [{broadcast}, ] = useState(useFugueDocumentSync(uuid, update));
+  const [{broadcast},] = useState(useFugueDocumentSync(uuid, update));
 
-
-
-  // 로컬 변경사항을 보내는거
+// 로컬 변경사항을 보내는거
   const send =
     (actions: CRDTOperation[]) => {
       console.log("Send ", actions);
