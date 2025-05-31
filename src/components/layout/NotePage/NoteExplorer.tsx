@@ -45,8 +45,8 @@ export default async function NoteExplorer({ user, notes }: { user: User; notes:
                             "
                         >
                             {/* 노트 제목을 따로 저장하는 DB 칼럼이 필요함 */}
-                            {/* 현재 백엔드 노트 DB에 title 칼럼은 없으므로, 노트 목록 화면에 노트 제목은 빈칸으로 표시됨 */}
-                            <span className="text-base font-medium text-[#222] truncate">{note.title}</span>
+                            {/* 현재 백엔드 노트 DB에 title 칼럼은 없으므로, 일단은 노트 DB id 값으로 표시되게 만듦 */}
+                            <span className="text-base font-medium text-[#222] truncate">{note.id}</span>
                             <svg
                                 width={24}
                                 height={24}
