@@ -53,12 +53,12 @@ export function TreeMarkdownEditor({
   }, [cursorPosition, textAreaRef]);
 
   useEffect(() => {
-    if (textAreaRef && textAreaRef.current) {
-      requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      if (textAreaRef && textAreaRef.current) {
         console.log('useEffect textAreaRef', textAreaRef.current?.selectionStart, textAreaRef.current?.selectionEnd);
         textAreaRef.current?.setSelectionRange(cursorPosition?.start.key as number + 1, cursorPosition?.end.key as number + 1);
-      });
-    }
+      }
+    });
   }, [initialContent]);
 
   const handleChange = () => {
