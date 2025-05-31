@@ -62,7 +62,7 @@ export class TreeNote {
       successor: null,
       leftChildren: [],
       rightChildren: [],
-      key: 0
+      key: -1
     };
     let curr = _root;
     _indexToChild.set(-1, _root);
@@ -298,8 +298,8 @@ export class TreeNote {
         lastVisit = top.node;
         if (top.node.value !== null && top.node.value !== undefined) {
           contentBuffer.push(top.node.value);
-          this.indexToChild.set(this.indexToChild.size - 1, top.node);
           top.node.key = this.indexToChild.size - 1;
+          this.indexToChild.set(top.node.key, top.node);
         }
         top.state = "right";
         top.index = 0;

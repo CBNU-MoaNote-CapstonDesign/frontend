@@ -1,4 +1,6 @@
+import {TreeNode} from "@/types/treenode";
+
 export interface CursorPosition {
-    start: number;
-    end: number;
+    start: TreeNode;
+    end: TreeNode;
 }

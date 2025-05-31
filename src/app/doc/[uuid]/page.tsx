@@ -1,4 +1,4 @@
-import DocumentRenderer from "@/components/document/DocumentRenderer";
+import TreeBasedDocumentRenderer from "@/components/document/TreeBasedDocumentRenderer";
 import HamburgerMenu from "@/components/layout/HamburgerMenu";
 import ChatMenu from "@/components/chat/ChatMenu";
 import {fetchCurrentUserServerSide} from "@/libs/server/user";
@@ -12,7 +12,7 @@ export default async function DocumentPage({params}: { params: { uuid: string } 
       <HamburgerMenu title={"문서 목록"}/>
       {
         user &&
-          <DocumentRenderer uuid={uuid} user={user}/>
+          <TreeBasedDocumentRenderer uuid={uuid} user={user}/>
       }
       <ChatMenu uuid={uuid}/>
     </div>
