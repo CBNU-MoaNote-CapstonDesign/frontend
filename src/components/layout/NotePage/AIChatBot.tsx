@@ -24,7 +24,7 @@ export default function AIChatBot() {
             aria-label="모아 AI 챗봇 열기"
         >
             <img
-                src="icon/chatbot.png"
+                src="/icon/chatbot.png"
                 alt="모아 AI"
                 className="w-10 h-10 object-contain"
             />

@@ -1,18 +1,21 @@
 import { Note } from "@/types/note";
+import { useRouter } from "next/navigation";
 
 interface NoteExplorerProps {
   user: User;
   notes: Note[];
   selectedNoteId: string;
-  onSelectNote: (id: string) => void;
+  // onSelectNote: (id: string) => void;
 }
 
 export default function NoteExplorer({
   user,
   notes,
   selectedNoteId,
-  onSelectNote,
+  // onSelectNote,
 }: NoteExplorerProps) {
+  const router = useRouter();
+
   return (
     <aside
       className="
@@ -53,7 +56,8 @@ export default function NoteExplorer({
                 transition
                 ${selectedNoteId === note.id ? "bg-[#dbeafe] font-bold" : "bg-white hover:bg-[#dbeafe]"}
               `}
-              onClick={() => onSelectNote(note.id)}
+              // onClick={() => onSelectNote(note.id)}
+              onClick={() => router.push(`/doc/${note.id}`)} // 링크 이동
             >
               {/* 노트 제목이 아지 없으므로 ID로 표시 */}
               <span className="text-base font-medium text-[#222] truncate">
