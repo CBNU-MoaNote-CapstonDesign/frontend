@@ -27,7 +27,7 @@ export default function MainPageClient({ user, notes }: MainPageClientProps) {
           selectedNoteId={selectedNoteId}
           onSelectNote={setSelectedNoteId}
         />
-        <NoteUI note={selectedNote} />
+        <NoteUI user={user} note={selectedNote} />
       </div>
     </div>
   );
