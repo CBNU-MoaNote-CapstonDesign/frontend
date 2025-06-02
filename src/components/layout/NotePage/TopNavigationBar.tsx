@@ -152,7 +152,7 @@ export default function TopNavigationBar({ user, notes }: { user: User; notes: N
                 >
                     <span className="text-2xl font-bold text-[#444] cursor-pointer">…</span>
                 </button>
-                <Profile name={user ? user.name : ""} />
+                <Profile name={user?.name || ""} />
             </div>
         </header>
     );
