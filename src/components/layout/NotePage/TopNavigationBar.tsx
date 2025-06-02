@@ -11,9 +11,12 @@ interface InviteUser {
   permission: Permission;
 }
 
-export default function TopNavigationBar({ user, notes }: { user: User; notes: Note[] }) {
+export default function TopNavigationBar({ user, notes, selectedNoteId }: { user: User; notes: Note[]; selectedNoteId: string }) {
     const [inviteOpen, setInviteOpen] = useState(false);
     const [sharedUsers, setSharedUsers] = useState<InviteUser[]>([]);
+
+    // 현재 선택된 노트
+    const currentNote = notes.find(note => note.id === selectedNoteId);
 
     /* 아래 주석처리된 handleInvite 함수는 초대한 사용자 이름과 권한 정보를 백엔드에 전송하는 로직 */
     /* 백엔드에서 초대한 사용자의 정보는 아래와 같은 JSON 형식으로 받게 된다. */
@@ -70,7 +73,8 @@ export default function TopNavigationBar({ user, notes }: { user: User; notes: N
             {/* 문서 제목 및 블록 타입 */}
             <div className="flex-1 flex flex-col items-center">
                 <span className="text-lg md:text-xl font-semibold text-[#333] mb-1 truncate max-w-[60vw]">
-                    현재 문서 제목
+                    {/* 현재 문서 제목 DB 칼럼에 없으므로 currentNote.id로 대체 */}
+                    {currentNote ? /* currentNote.title */currentNote.id : "문서 없음"}
                 </span>
                 <div className="flex gap-4">
                     <span
