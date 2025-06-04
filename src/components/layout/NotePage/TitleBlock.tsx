@@ -1,3 +1,5 @@
+// 더이상 사용하지 않는 컴포넌트
+// 대신 components/document/DocumentTitle.tsx 사용
 'use client';
 
 export default function TitleBlock({ title }: { title: string }) {

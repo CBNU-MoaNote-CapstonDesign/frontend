@@ -4,7 +4,6 @@ import {useEffect, useState} from "react";
 import {Note} from "@/types/note";
 import {MarkdownEditor} from "@/components/document/MarkdownEditor";
 import {MarkdownRenderer} from "@/components/document/MarkdownRenderer";
-import DocumentTitle from "@/components/document/DocumentTitle";
 import useDocumentSync from "@/hooks/useDocumentSync";
 
 export default function DocumentRenderer({user, uuid}: { user:User, uuid: string }) {
@@ -45,8 +44,28 @@ export default function DocumentRenderer({user, uuid}: { user:User, uuid: string
   }, [document.content, document.id, document.title, send]);
 
   return (
-    <div className={"flex flex-col w-full"} key={uuid}>
-      <DocumentTitle title={document.title}/>
+    <div
+      className={`
+        w-full
+        bg-white
+        rounded-xl
+        shadow
+        px-8
+        py-5
+        flex
+        flex-col
+        items-start
+        transition
+        duration-150
+        mb-2
+        ${!isEditing ? "hover:bg-[#dbeafe] cursor-pointer" : ""}
+      `}
+      style={{
+        border: "none",
+        boxShadow: "0 2px 8px 0 rgba(105, 241, 121, 0.10)",
+      }}
+      key={uuid}
+    >
       {isEditing ? (
         <MarkdownEditor
           initialContent={document.content}

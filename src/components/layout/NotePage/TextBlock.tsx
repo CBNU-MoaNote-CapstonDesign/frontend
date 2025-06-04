@@ -1,3 +1,6 @@
+// 더이상 사용하지 않는 컴포넌트
+// 대신 components/document/DocumentRenderer.tsx 사용
+
 'use client';
 
 import { useEffect, useState } from "react";
