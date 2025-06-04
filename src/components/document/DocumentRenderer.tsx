@@ -4,7 +4,6 @@ import {useEffect, useState} from "react";
 import {Note} from "@/types/note";
 import {MarkdownEditor} from "@/components/document/MarkdownEditor";
 import {MarkdownRenderer} from "@/components/document/MarkdownRenderer";
-import DocumentTitle from "@/components/document/DocumentTitle";
 import useDocumentSync from "@/hooks/useDocumentSync";
 
 export default function DocumentRenderer({user, uuid}: { user:User, uuid: string }) {
@@ -45,24 +44,36 @@ export default function DocumentRenderer({user, uuid}: { user:User, uuid: string
   }, [document.content, document.id, document.title, send]);
 
   return (
-    <div className={"flex flex-col w-full"} key={uuid}>
-      <DocumentTitle title={document.title}/>
+    <div
+      className={`
+        w-full bg-white rounded-xl shadow px-8 py-5 flex items-start transition duration-150
+        ${!isEditing ? "hover:bg-[#dbeafe] cursor-pointer" : ""}
+      `}
+      key={uuid}
+    >
       {isEditing ? (
-        <MarkdownEditor
-          initialContent={document.content}
-          updateBlur={endEditing}
-          updateContent={(content) => {
-            setNeedSend(true);
-            setDocument({...document, content});
-          }}
-          lastCursorPosition={cursorPosition}
-          cursorHandler={setCursorPosition}
-        />
+        <div className="w-full">
+          <MarkdownEditor
+            initialContent={document.content}
+            updateBlur={endEditing}
+            updateContent={(content) => {
+              setNeedSend(true);
+              setDocument({...document, content});
+            }}
+            lastCursorPosition={cursorPosition}
+            cursorHandler={setCursorPosition}
+          />
+        </div>
       ) : (
-        <MarkdownRenderer
-          content={document?.content}
-          startEditing={startEditing}
-        />
+        <div
+          className="w-full break-words whitespace-pre-line"
+          onClick={startEditing}
+        >
+          <MarkdownRenderer
+            content={document?.content}
+            startEditing={startEditing}
+          />
+        </div>
       )}
     </div>
   );

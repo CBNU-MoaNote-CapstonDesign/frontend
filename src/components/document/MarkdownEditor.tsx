@@ -56,15 +56,17 @@ export function MarkdownEditor({initialContent = null, updateContent = null, upd
   return (
     <div className="w-full">
       <TextareaAutosize
-        className="w-full border p-2 rounded-xl"
+        className="w-full p-2 rounded-xl"
         minRows={5}
-        placeholder={"Type Document Here..."}
+        placeholder={"여기에 마크다운 형식 텍스트를 입력하세요"}
         value={initialContent ? initialContent : ""}
         onBlur={handleBlur}
         onChange={handleChange}
         onSelect={handleSelect}
         ref={textAreaRef}
-        autoFocus={true}/>
+        autoFocus={true}
+        style={{ resize: "none" }} // 크기 조절 기능 제거
+      />
     </div>
   );
 }
