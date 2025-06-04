@@ -46,7 +46,6 @@ export default function NoteExplorer({
             flex flex-col
             w-full max-w-xs
             h-[calc(100vh-6rem)]
-            mt-24
             bg-[#e0f2ff]
             shadow-md
             rounded-r-2xl

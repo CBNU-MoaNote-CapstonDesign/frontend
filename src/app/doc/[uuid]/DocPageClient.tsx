@@ -19,7 +19,7 @@ export default function DocPageClient({
   return (
     <div className="flex flex-col justify-start w-full relative gap-[59px] bg-[#f0f8fe]">
       <TopNavigationBar user={user} notes={notes} selectedNoteId={selectedNoteId} />
-      <div className="flex flex-row w-full">
+      <div className="flex flex-row w-full pt-24">
         <NoteExplorer
           user={user}
           notes={notes}

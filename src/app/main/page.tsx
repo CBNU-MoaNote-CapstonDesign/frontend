@@ -11,5 +11,6 @@ export default async function MainPage() {
 
   const notes = await fetchNotesServerSide(user.id);
 
-  return <MainPageClient user={user} notes={notes ?? []} />;
+  // selectedNoteId를 빈 문자열로 전달
+  return <MainPageClient user={user} notes={notes ?? []} selectedNoteId={""} />;
 }
