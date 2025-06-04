@@ -4,6 +4,9 @@ import { useRef, useState } from "react";
 import { RxHamburgerMenu } from "react-icons/rx";
 import { BsChevronLeft } from "react-icons/bs"; // 화살표 아이콘 추가
 
+import AddMenu from "./AddMenu";
+import FolderAddModal from "./FolderAddModal";
+
 interface NoteExplorerProps {
   user: User;
   notes: Note[];
@@ -17,12 +20,23 @@ export default function NoteExplorer({
 }: NoteExplorerProps) {
   const router = useRouter();
   const [open, setOpen] = useState(true);
+  const [showAddMenu, setShowAddMenu] = useState(false);
+  const [showFolderModal, setShowFolderModal] = useState(false);
+  const [folderName, setFolderName] = useState("");
+  const [selectedNoteIds, setSelectedNoteIds] = useState<string[]>([]);
   const asideRef = useRef<HTMLDivElement>(null);
 
   // 햄버거 버튼 클릭 시 NoteExplorer 열기
   const handleOpen = () => setOpen(true);
   // 닫기 버튼 클릭 시 NoteExplorer 닫기
   const handleClose = () => setOpen(false);
+  // 폴더 추가 모달 열기
+  const openFolderModal = () => setShowFolderModal(true);
+  // 폴더 추가 핸들러
+  const handleAddFolder = () => {
+    // 폴더 추가 로직
+    setShowFolderModal(false);
+  };
 
   return (
     <>
@@ -69,12 +83,26 @@ export default function NoteExplorer({
 
           <div className="flex items-center justify-between px-6 py-4 border-b border-[#b6d6f2] bg-[#e0f2ff]">
             <span className="text-xl font-bold text-[#186370] tracking-tight">내 노트</span>
-            <button
-              className="px-3 py-1 rounded-lg bg-[#186370] text-white text-sm font-semibold hover:bg-[#1e7a8a] transition cursor-pointer"
-              title="노트 추가"
-            >
-              +
-            </button>
+            {/* + 버튼 부분 */}
+            <div className="relative">
+              <button
+                className="px-3 py-1 rounded-lg bg-[#186370] text-white text-sm font-semibold hover:bg-[#1e7a8a] transition cursor-pointer flex items-center gap-1"
+                title="노트/폴더 추가"
+                onClick={() => setShowAddMenu((v) => !v)}
+              >
+                +
+              </button>
+              {showAddMenu && (
+                <AddMenu
+                  onAddNote={() => {
+                    setShowAddMenu(false);
+                    // 노트 추가 기능은 아직 미구현
+                  }}
+                  onAddFolder={openFolderModal}
+                  onClose={() => setShowAddMenu(false)}
+                />
+              )}
+            </div>
           </div>
 
           {/* 노트 목록 표시 */}
@@ -116,6 +144,19 @@ export default function NoteExplorer({
               </div>
             )}
           </div>
+
+          {/* 폴더 추가 모달 부분 */}
+          {showFolderModal && (
+            <FolderAddModal
+              notes={notes}
+              folderName={folderName}
+              setFolderName={setFolderName}
+              selectedNoteIds={selectedNoteIds}
+              setSelectedNoteIds={setSelectedNoteIds}
+              onCancel={() => setShowFolderModal(false)}
+              onAdd={handleAddFolder}
+            />
+          )}
         </aside>
       )}
     </>
