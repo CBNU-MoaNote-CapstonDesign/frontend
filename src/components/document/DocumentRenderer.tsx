@@ -46,42 +46,34 @@ export default function DocumentRenderer({user, uuid}: { user:User, uuid: string
   return (
     <div
       className={`
-        w-full
-        bg-white
-        rounded-xl
-        shadow
-        px-8
-        py-5
-        flex
-        flex-col
-        items-start
-        transition
-        duration-150
-        mb-2
+        w-full bg-white rounded-xl shadow px-8 py-5 flex items-start transition duration-150
         ${!isEditing ? "hover:bg-[#dbeafe] cursor-pointer" : ""}
       `}
-      style={{
-        border: "none",
-        boxShadow: "0 2px 8px 0 rgba(105, 241, 121, 0.10)",
-      }}
       key={uuid}
     >
       {isEditing ? (
-        <MarkdownEditor
-          initialContent={document.content}
-          updateBlur={endEditing}
-          updateContent={(content) => {
-            setNeedSend(true);
-            setDocument({...document, content});
-          }}
-          lastCursorPosition={cursorPosition}
-          cursorHandler={setCursorPosition}
-        />
+        <div className="w-full">
+          <MarkdownEditor
+            initialContent={document.content}
+            updateBlur={endEditing}
+            updateContent={(content) => {
+              setNeedSend(true);
+              setDocument({...document, content});
+            }}
+            lastCursorPosition={cursorPosition}
+            cursorHandler={setCursorPosition}
+          />
+        </div>
       ) : (
-        <MarkdownRenderer
-          content={document?.content}
-          startEditing={startEditing}
-        />
+        <div
+          className="w-full break-words whitespace-pre-line"
+          onClick={startEditing}
+        >
+          <MarkdownRenderer
+            content={document?.content}
+            startEditing={startEditing}
+          />
+        </div>
       )}
     </div>
   );

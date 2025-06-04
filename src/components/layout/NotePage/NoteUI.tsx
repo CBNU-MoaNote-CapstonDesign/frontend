@@ -1,12 +1,8 @@
 import DocumentTitle from "@/components/document/DocumentTitle";
 import DocumentRenderer from "@/components/document/DocumentRenderer";
 
-/* 더이상 사용하지 않는 컴포넌트
-* import TitleBlock from "@/components/layout/NotePage/TitleBlock";
-* import TextBlock from "@/components/layout/NotePage/TextBlock";
-* import DesignBlock from "@/components/layout/NotePage/DesignBlock";
-* import AIChatBot from "@/components/layout/NotePage/AIChatBot";
-*/
+// TODO: AI 챗 봇 UI 통합하기
+// import ChatMenu from "@/components/chat/ChatMenu";
 
 import { Note } from "@/types/note";
 
@@ -43,10 +39,9 @@ export default function NoteUI({ user, note }: { user: User; note?: Note }) {
         <DocumentTitle title={note.id} />
         <DocumentRenderer user={user} uuid={note.id} />
 
-        {/* 더이상 사용하지 않는 컴포넌트 */}
-        {/* <TitleBlock title={note.id} /> */}
-        {/* <DesignBlock /> */}
-        {/* <AIChatBot /> */}
+        {/* TODO: AI 챗 봇 UI 통합하기 */}
+        {/* <ChatMenu uuid={note.id} /> */}
+
       </div>
     </main>
   );
