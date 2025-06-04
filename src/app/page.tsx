@@ -2,7 +2,7 @@ import TopNavigationBar from "@/components/layout/Home/TopNavigationBar";
 import Main from "@/components/layout/Home/Main"
 import BasicIntroduce from "@/components/layout/Home/BasicIntroduce"
 import MoaAIIntroduce from "@/components/layout/Home/MoaAIIntroduce"
-import Final from "@/components/layout/Home/Final"
+import Footer from "@/components/layout/Home/Footer";
 import ContactLinkBar from "@/components/layout/Home/ContactLinkBar"
 
 export default function RootPage() {
@@ -13,7 +13,7 @@ export default function RootPage() {
         <Main />
         <BasicIntroduce />
         <MoaAIIntroduce />
-        <Final />
+        <Footer />
         <ContactLinkBar />
       </div>
     </div>

@@ -12,7 +12,7 @@ function SeeMoreButton({ text, onClick }: { text: string, onClick: () => void })
     );
 }
 
-export default function Final() {
+export default function Footer() {
     const router = useRouter();
 
     // 더 알아보기 버튼 클릭 시 /seemore으로 이동(/more 페이지 미구현)
