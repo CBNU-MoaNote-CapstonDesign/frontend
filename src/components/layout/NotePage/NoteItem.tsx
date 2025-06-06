@@ -1,3 +1,5 @@
+import { Note } from "@/types/note";
+
 export default function NoteItem({
   note,
   selected,
