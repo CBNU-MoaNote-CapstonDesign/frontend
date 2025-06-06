@@ -1,6 +1,6 @@
 import { Note } from "@/types/note";
 import { useRouter } from "next/navigation";
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { RxHamburgerMenu } from "react-icons/rx";
 import { BsChevronLeft, BsChevronDown, BsChevronRight, BsFolderFill } from "react-icons/bs";
 
@@ -17,6 +17,7 @@ interface Folder {
   id: string;
   name: string;
   noteIds: string[];
+  parentId?: string | null; // ← 이 줄 추가!
 }
 
 export default function NoteExplorer({
@@ -32,6 +33,8 @@ export default function NoteExplorer({
   const [selectedNoteIds, setSelectedNoteIds] = useState<string[]>([]);
   const [folders, setFolders] = useState<Folder[]>([]);
   const [folderOpen, setFolderOpen] = useState<Record<string, boolean>>({});
+  const [parentFolderId, setParentFolderId] = useState<string | null>(null);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const asideRef = useRef<HTMLDivElement>(null);
 
   // 햄버거 버튼 클릭 시 NoteExplorer 열기
@@ -45,10 +48,19 @@ export default function NoteExplorer({
     setShowFolderModal(true);
     setFolderName("");
     setSelectedNoteIds([]);
+    setParentFolderId(null);
   };
 
   // 폴더 추가 핸들러
   const handleAddFolder = () => {
+    // 이미 다른 폴더에 포함된 노트가 있는지 검사
+    const alreadyInFolder = selectedNoteIds.find(noteId =>
+      folders.some(folder => folder.noteIds.includes(noteId))
+    );
+    if (alreadyInFolder) {
+      setErrorMsg("이미 다른 폴더에 포함된 노트입니다.");
+      return;
+    }
     if (!folderName.trim() || selectedNoteIds.length === 0) return;
     const newId = `${Date.now()}`;
     setFolders([
@@ -57,13 +69,21 @@ export default function NoteExplorer({
         id: newId,
         name: folderName,
         noteIds: selectedNoteIds,
+        parentId: parentFolderId ?? null,
       },
     ]);
     setFolderOpen((prev) => ({ ...prev, [newId]: true }));
     setShowFolderModal(false);
     setFolderName("");
     setSelectedNoteIds([]);
+    setParentFolderId(null);
+    setErrorMsg(null);
   };
+
+  // 폴더 추가 모달이 열릴 때 에러 메시지 초기화
+  useEffect(() => {
+    if (showFolderModal) setErrorMsg(null);
+  }, [showFolderModal]);
 
   // 노트가 폴더에 포함되어 있는지 확인
   const isNoteInFolder = (noteId: string) =>
@@ -76,6 +96,68 @@ export default function NoteExplorer({
       [folderId]: !prev[folderId],
     }));
   };
+
+  function renderFolders(parentId: string | null) {
+    return folders
+      .filter(folder => (folder.parentId ?? null) === parentId)
+      .map(folder => (
+        <div key={folder.id} className="mb-2 ml-2">
+          <div
+            className="flex items-center gap-2 px-2 py-1 font-semibold text-[#186370] bg-[#e0e7ff] rounded cursor-pointer select-none"
+            onClick={() => handleToggleFolder(folder.id)}
+          >
+            {folderOpen[folder.id] ? (
+              <BsChevronDown className="w-4 h-4" />
+            ) : (
+              <BsChevronRight className="w-4 h-4" />
+            )}
+            <BsFolderFill className="w-5 h-5" />
+            <span>{folder.name}</span>
+          </div>
+          {folderOpen[folder.id] && (
+            <div className="ml-6 mt-1 space-y-1">
+              {/* 하위 폴더 */}
+              {renderFolders(folder.id)}
+              {/* 폴더에 속한 노트 */}
+              {folder.noteIds.map(noteId => {
+                const note = notes.find(n => n.id === noteId);
+                if (!note) return null;
+                return (
+                  <div
+                    key={note.id}
+                    className={`
+                      group
+                      flex items-center justify-between
+                      px-4 py-3
+                      rounded-xl
+                      shadow
+                      cursor-pointer
+                      transition
+                      ${selectedNoteId === note.id ? "bg-[#dbeafe] font-bold" : "bg-white hover:bg-[#dbeafe]"}
+                    `}
+                    onClick={() => router.push(`/doc/${note.id}`)}
+                  >
+                    <span className="text-base font-medium text-[#222] truncate">
+                      {note.id}
+                    </span>
+                    <svg
+                      width={24}
+                      height={24}
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="ml-2 opacity-0 group-hover:opacity-100 transition"
+                    >
+                      <path d="M9 6l6 6-6 6" stroke="#186370" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      ));
+  }
 
   return (
     <>
@@ -146,65 +228,12 @@ export default function NoteExplorer({
 
           {/* 폴더 구조로 노트 목록 표시 */}
           <div className="flex-1 overflow-y-auto px-2 py-4 space-y-2">
-            {/* 폴더 목록 */}
-            {folders.map((folder) => (
-              <div key={folder.id} className="mb-2">
-                <div
-                  className="flex items-center gap-2 px-2 py-1 font-semibold text-[#186370] bg-[#e0e7ff] rounded cursor-pointer select-none"
-                  onClick={() => handleToggleFolder(folder.id)}
-                >
-                  {folderOpen[folder.id] ? (
-                    <BsChevronDown className="w-4 h-4" />
-                  ) : (
-                    <BsChevronRight className="w-4 h-4" />
-                  )}
-                  <BsFolderFill className="w-5 h-5" />
-                  <span>{folder.name}</span>
-                </div>
-                {folderOpen[folder.id] && (
-                  <div className="ml-6 mt-1 space-y-1">
-                    {folder.noteIds.map((noteId) => {
-                      const note = notes.find((n) => n.id === noteId);
-                      if (!note) return null;
-                      return (
-                        <div
-                          key={note.id}
-                          className={`
-                            group
-                            flex items-center justify-between
-                            px-4 py-3
-                            rounded-xl
-                            shadow
-                            cursor-pointer
-                            transition
-                            ${selectedNoteId === note.id ? "bg-[#dbeafe] font-bold" : "bg-white hover:bg-[#dbeafe]"}
-                          `}
-                          onClick={() => router.push(`/doc/${note.id}`)}
-                        >
-                          <span className="text-base font-medium text-[#222] truncate">
-                            {note.id}
-                          </span>
-                          <svg
-                            width={24}
-                            height={24}
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            xmlns="http://www.w3.org/2000/svg"
-                            className="ml-2 opacity-0 group-hover:opacity-100 transition"
-                          >
-                            <path d="M9 6l6 6-6 6" stroke="#186370" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                          </svg>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-            ))}
+            {/* 폴더 트리 렌더링 */}
+            {renderFolders(null)}
             {/* 폴더에 속하지 않은 노트 목록 */}
             {notes
-              .filter((note) => !folders.some((folder) => folder.noteIds.includes(note.id)))
-              .map((note) => (
+              .filter(note => !folders.some(folder => folder.noteIds.includes(note.id)))
+              .map(note => (
                 <div
                   key={note.id}
                   className={`
@@ -240,12 +269,16 @@ export default function NoteExplorer({
           {showFolderModal && (
             <FolderAddModal
               notes={notes}
+              folders={folders}
+              parentFolderId={parentFolderId}
+              setParentFolderId={setParentFolderId}
               folderName={folderName}
               setFolderName={setFolderName}
               selectedNoteIds={selectedNoteIds}
               setSelectedNoteIds={setSelectedNoteIds}
               onCancel={() => setShowFolderModal(false)}
               onAdd={handleAddFolder}
+              errorMsg={errorMsg}
             />
           )}
         </aside>
