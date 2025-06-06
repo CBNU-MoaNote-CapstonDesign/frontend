@@ -2,7 +2,7 @@ import { Note } from "@/types/note";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import { RxHamburgerMenu } from "react-icons/rx";
-import { BsChevronLeft } from "react-icons/bs"; // 화살표 아이콘 추가
+import { BsChevronLeft, BsChevronDown, BsChevronRight, BsFolderFill } from "react-icons/bs";
 
 import AddMenu from "./AddMenu";
 import FolderAddModal from "./FolderAddModal";
@@ -11,6 +11,12 @@ interface NoteExplorerProps {
   user: User;
   notes: Note[];
   selectedNoteId: string;
+}
+
+interface Folder {
+  id: string;
+  name: string;
+  noteIds: string[];
 }
 
 export default function NoteExplorer({
@@ -24,18 +30,51 @@ export default function NoteExplorer({
   const [showFolderModal, setShowFolderModal] = useState(false);
   const [folderName, setFolderName] = useState("");
   const [selectedNoteIds, setSelectedNoteIds] = useState<string[]>([]);
+  const [folders, setFolders] = useState<Folder[]>([]);
+  const [folderOpen, setFolderOpen] = useState<Record<string, boolean>>({});
   const asideRef = useRef<HTMLDivElement>(null);
 
   // 햄버거 버튼 클릭 시 NoteExplorer 열기
   const handleOpen = () => setOpen(true);
   // 닫기 버튼 클릭 시 NoteExplorer 닫기
   const handleClose = () => setOpen(false);
+
   // 폴더 추가 모달 열기
-  const openFolderModal = () => setShowFolderModal(true);
+  const openFolderModal = () => {
+    setShowAddMenu(false);
+    setShowFolderModal(true);
+    setFolderName("");
+    setSelectedNoteIds([]);
+  };
+
   // 폴더 추가 핸들러
   const handleAddFolder = () => {
-    // 폴더 추가 로직
+    if (!folderName.trim() || selectedNoteIds.length === 0) return;
+    const newId = `${Date.now()}`;
+    setFolders([
+      ...folders,
+      {
+        id: newId,
+        name: folderName,
+        noteIds: selectedNoteIds,
+      },
+    ]);
+    setFolderOpen((prev) => ({ ...prev, [newId]: true }));
     setShowFolderModal(false);
+    setFolderName("");
+    setSelectedNoteIds([]);
+  };
+
+  // 노트가 폴더에 포함되어 있는지 확인
+  const isNoteInFolder = (noteId: string) =>
+    folders.some((folder) => folder.noteIds.includes(noteId));
+
+  // 폴더 토글 핸들러
+  const handleToggleFolder = (folderId: string) => {
+    setFolderOpen((prev) => ({
+      ...prev,
+      [folderId]: !prev[folderId],
+    }));
   };
 
   return (
@@ -105,10 +144,67 @@ export default function NoteExplorer({
             </div>
           </div>
 
-          {/* 노트 목록 표시 */}
+          {/* 폴더 구조로 노트 목록 표시 */}
           <div className="flex-1 overflow-y-auto px-2 py-4 space-y-2">
-            {notes && notes.length > 0 ? (
-              notes.map((note) => (
+            {/* 폴더 목록 */}
+            {folders.map((folder) => (
+              <div key={folder.id} className="mb-2">
+                <div
+                  className="flex items-center gap-2 px-2 py-1 font-semibold text-[#186370] bg-[#e0e7ff] rounded cursor-pointer select-none"
+                  onClick={() => handleToggleFolder(folder.id)}
+                >
+                  {folderOpen[folder.id] ? (
+                    <BsChevronDown className="w-4 h-4" />
+                  ) : (
+                    <BsChevronRight className="w-4 h-4" />
+                  )}
+                  <BsFolderFill className="w-5 h-5" />
+                  <span>{folder.name}</span>
+                </div>
+                {folderOpen[folder.id] && (
+                  <div className="ml-6 mt-1 space-y-1">
+                    {folder.noteIds.map((noteId) => {
+                      const note = notes.find((n) => n.id === noteId);
+                      if (!note) return null;
+                      return (
+                        <div
+                          key={note.id}
+                          className={`
+                            group
+                            flex items-center justify-between
+                            px-4 py-3
+                            rounded-xl
+                            shadow
+                            cursor-pointer
+                            transition
+                            ${selectedNoteId === note.id ? "bg-[#dbeafe] font-bold" : "bg-white hover:bg-[#dbeafe]"}
+                          `}
+                          onClick={() => router.push(`/doc/${note.id}`)}
+                        >
+                          <span className="text-base font-medium text-[#222] truncate">
+                            {note.id}
+                          </span>
+                          <svg
+                            width={24}
+                            height={24}
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="ml-2 opacity-0 group-hover:opacity-100 transition"
+                          >
+                            <path d="M9 6l6 6-6 6" stroke="#186370" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                          </svg>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            ))}
+            {/* 폴더에 속하지 않은 노트 목록 */}
+            {notes
+              .filter((note) => !folders.some((folder) => folder.noteIds.includes(note.id)))
+              .map((note) => (
                 <div
                   key={note.id}
                   className={`
@@ -137,12 +233,7 @@ export default function NoteExplorer({
                     <path d="M9 6l6 6-6 6" stroke="#186370" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
                 </div>
-              ))
-            ) : (
-              <div className="flex flex-col items-center justify-center h-full text-[#888]">
-                <span className="text-lg font-medium">노트가 없습니다.</span>
-              </div>
-            )}
+              ))}
           </div>
 
           {/* 폴더 추가 모달 부분 */}
