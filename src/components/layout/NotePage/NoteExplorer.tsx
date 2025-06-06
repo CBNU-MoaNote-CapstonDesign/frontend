@@ -4,8 +4,10 @@ import { useRef, useState, useEffect } from "react";
 import { RxHamburgerMenu } from "react-icons/rx";
 import { BsChevronLeft, BsChevronDown, BsChevronRight, BsFolderFill, BsPencil } from "react-icons/bs";
 
+import FolderTree from "./FolderTree";
 import AddMenu from "./AddMenu";
 import FolderAddModal from "./FolderAddModal";
+import FolderEditModal from "./FolderEditModal";
 
 interface NoteExplorerProps {
   user: User;
@@ -282,41 +284,16 @@ export default function NoteExplorer({
 
           {/* 폴더 구조로 노트 목록 표시 */}
           <div className="flex-1 overflow-y-auto px-2 py-4 space-y-2">
-            {/* 폴더 트리 렌더링 */}
-            {renderFolders(null)}
-            {/* 폴더에 속하지 않은 노트 목록 */}
-            {notes
-              .filter(note => !folders.some(folder => folder.noteIds.includes(note.id)))
-              .map(note => (
-                <div
-                  key={note.id}
-                  className={`
-                    group
-                    flex items-center justify-between
-                    px-4 py-3
-                    rounded-xl
-                    shadow
-                    cursor-pointer
-                    transition
-                    ${selectedNoteId === note.id ? "bg-[#dbeafe] font-bold" : "bg-white hover:bg-[#dbeafe]"}
-                  `}
-                  onClick={() => router.push(`/doc/${note.id}`)}
-                >
-                  <span className="text-base font-medium text-[#222] truncate">
-                    {note.id}
-                  </span>
-                  <svg
-                    width={24}
-                    height={24}
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="ml-2 opacity-0 group-hover:opacity-100 transition"
-                  >
-                    <path d="M9 6l6 6-6 6" stroke="#186370" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
-                </div>
-              ))}
+            <FolderTree
+              folders={folders}
+              notes={notes}
+              selectedNoteId={selectedNoteId}
+              folderOpen={folderOpen}
+              onToggleFolder={handleToggleFolder}
+              onEditFolder={openEditModal}
+              onNoteClick={noteId => router.push(`/doc/${noteId}`)}
+            />
+            {/* 폴더 밖 노트는 FolderTree에서 parentId=null로 처리 */}
           </div>
 
           {/* 폴더 추가 모달 부분 */}
@@ -338,140 +315,17 @@ export default function NoteExplorer({
 
           {/* 폴더 수정 모달 부분 */}
           {editFolderId && (
-            <div className="fixed inset-0 bg-[#f0f8fe]/80 flex items-center justify-center z-[9999]">
-              <div className="bg-white rounded-xl shadow-lg p-6 w-full max-w-md">
-                <h2 className="text-lg font-bold mb-4 text-[#186370]">폴더 수정</h2>
-                <label className="block mb-2 font-semibold">폴더 이름</label>
-                <input
-                  className="w-full border rounded px-3 py-2 mb-4"
-                  value={editFolderName}
-                  onChange={e => setEditFolderName(e.target.value)}
-                />
-                <label className="block mb-2 font-semibold">폴더에 포함된 노트</label>
-                <div className="mb-4">
-                  {editFolderNotes.length === 0 && (
-                    <div className="text-gray-400 text-sm">노트 없음</div>
-                  )}
-                  {editFolderNotes.map(noteId => {
-                    const note = notes.find(n => n.id === noteId);
-                    if (!note) return null;
-                    return (
-                      <div key={note.id} className="flex items-center gap-2 mb-1">
-                        <span className="flex-1">{note.id}</span>
-                        {/* 노트 삭제 버튼 */}
-                        <button
-                          className="px-2 py-1 rounded bg-gray-200 hover:bg-gray-300 text-xs cursor-pointer"
-                          onClick={() => {
-                            setEditFolderNotes(editFolderNotes.filter(id => id !== note.id));
-                          }}
-                        >
-                          삭제
-                        </button>
-                      </div>
-                    );
-                  })}
-                </div>
-                <label className="block mb-2 font-semibold">폴더에 추가할 노트</label>
-                <div className="max-h-32 overflow-y-auto mb-4">
-                  {notes
-                    .filter(
-                      n =>
-                        !editFolderNotes.includes(n.id) &&
-                        !folders.some(f => f.noteIds.includes(n.id))
-                    )
-                    .map(note => (
-                      <label key={note.id} className="flex items-center gap-2 mb-1 cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={editFolderNotes.includes(note.id)}
-                          onChange={e => {
-                            if (e.target.checked) {
-                              setEditFolderNotes([...editFolderNotes, note.id]);
-                            }
-                          }}
-                          className="cursor-pointer"
-                        />
-                        <span>{note.id}</span>
-                      </label>
-                    ))}
-                </div>
-                <div className="flex justify-between gap-2">
-                  <button
-                    className="px-4 py-2 rounded bg-red-200 hover:bg-red-400 text-red-900 font-semibold cursor-pointer"
-                    onClick={() => {
-                      // 폴더 삭제
-                      const editedFolder = folders.find(f => f.id === editFolderId);
-                      if (editedFolder) {
-                        const parentId = editedFolder.parentId ?? null;
-                        // 삭제될 폴더의 노트들을 상위 폴더로 이동
-                        if (editedFolder.noteIds.length > 0) {
-                          if (parentId) {
-                            setFolders(prev =>
-                              prev.map(f =>
-                                f.id === parentId
-                                  ? { ...f, noteIds: [...f.noteIds, ...editedFolder.noteIds] }
-                                  : f
-                              )
-                            );
-                          }
-                          // 최상위로 이동: 어떤 폴더에도 포함시키지 않음(별도 처리 필요 없음)
-                        }
-                        // 폴더 삭제
-                        setFolders(prev => prev.filter(f => f.id !== editFolderId));
-                      }
-                      closeEditModal();
-                    }}
-                  >
-                    폴더 삭제
-                  </button>
-                  <div className="flex gap-2">
-                    <button
-                      className="px-4 py-2 rounded bg-gray-200 hover:bg-gray-300 cursor-pointer"
-                      onClick={closeEditModal}
-                    >
-                      취소
-                    </button>
-                    <button
-                      className="px-4 py-2 rounded bg-[#186370] text-white font-semibold hover:bg-[#38bdf8] cursor-pointer"
-                      onClick={() => {
-                        // 폴더 이름/노트 변경 저장
-                        setFolders(prev =>
-                          prev.map(f =>
-                            f.id === editFolderId
-                              ? { ...f, name: editFolderName, noteIds: editFolderNotes }
-                              : f
-                          )
-                        );
-                        // 삭제된 노트는 상위 폴더(혹은 최상위)로 이동
-                        const editedFolder = folders.find(f => f.id === editFolderId);
-                        if (editedFolder) {
-                          const removedNotes = editedFolder.noteIds.filter(
-                            id => !editFolderNotes.includes(id)
-                          );
-                          if (removedNotes.length > 0) {
-                            const parentId = editedFolder.parentId ?? null;
-                            if (parentId) {
-                              setFolders(prev =>
-                                prev.map(f =>
-                                  f.id === parentId
-                                    ? { ...f, noteIds: [...f.noteIds, ...removedNotes] }
-                                    : f
-                                )
-                              );
-                            }
-                            // 최상위로 이동: 어떤 폴더에도 포함시키지 않음(별도 처리 필요 없음)
-                          }
-                        }
-                        closeEditModal();
-                      }}
-                      disabled={!editFolderName.trim()}
-                    >
-                      저장
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <FolderEditModal
+              notes={notes}
+              folders={folders}
+              editFolderId={editFolderId}
+              editFolderName={editFolderName}
+              setEditFolderName={setEditFolderName}
+              editFolderNotes={editFolderNotes}
+              setEditFolderNotes={setEditFolderNotes}
+              setFolders={setFolders}
+              closeEditModal={closeEditModal}
+            />
           )}
         </aside>
       )}
