@@ -116,9 +116,7 @@ export default function NoteExplorer({
           </div>
           {folderOpen[folder.id] && (
             <div className="ml-6 mt-1 space-y-1">
-              {/* 하위 폴더 */}
-              {renderFolders(folder.id)}
-              {/* 폴더에 속한 노트 */}
+              {/* 1. 상위 폴더의 노트 먼저 */}
               {folder.noteIds.map(noteId => {
                 const note = notes.find(n => n.id === noteId);
                 if (!note) return null;
@@ -153,6 +151,8 @@ export default function NoteExplorer({
                   </div>
                 );
               })}
+              {/* 2. 하위 폴더는 아래에 */}
+              {renderFolders(folder.id)}
             </div>
           )}
         </div>
