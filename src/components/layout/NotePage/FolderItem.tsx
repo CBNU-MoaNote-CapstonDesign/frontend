@@ -1,4 +1,5 @@
 import { BsChevronDown, BsChevronRight, BsFolderFill, BsPencil } from "react-icons/bs";
+import {MoaFile} from "@/types/file";
 
 export default function FolderItem({
   folder,
@@ -7,7 +8,7 @@ export default function FolderItem({
   onEdit,
   children,
 }: {
-  folder: Folder;
+  folder: MoaFile;
   open: boolean;
   onToggle: () => void;
   onEdit: () => void;
