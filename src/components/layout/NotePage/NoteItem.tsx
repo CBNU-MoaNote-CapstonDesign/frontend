@@ -1,11 +1,11 @@
-import { Note } from "@/types/note";
+import { MoaFile } from "@/types/file";
 
 export default function NoteItem({
   note,
   selected,
   onClick,
 }: {
-  note: Note;
+  note: MoaFile;
   selected: boolean;
   onClick: () => void;
 }) {
@@ -24,7 +24,7 @@ export default function NoteItem({
       onClick={onClick}
     >
       <span className="text-base font-medium text-[#222] truncate">
-        {note.id}
+        {note.name}
       </span>
       <svg
         width={24}

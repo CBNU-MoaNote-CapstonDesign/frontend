@@ -1,84 +1,75 @@
 import FolderItem from "./FolderItem";
 import NoteItem from "./NoteItem";
-import { Note } from "@/types/note";
-
-// Folder 타입이 없다면 아래처럼 정의(혹은 import)
-interface Folder {
-  id: string;
-  name: string;
-  noteIds: string[];
-  parentId?: string | null;
-}
+import {MoaFile} from "@/types/file";
+import {FileTypeDTO} from "@/types/dto";
 
 export default function FolderTree({
-  folders,
-  notes,
-  selectedNoteId,
-  folderOpen,
-  onToggleFolder,
-  onEditFolder,
-  onNoteClick,
-  parentId = null,
-}: {
-  folders: Folder[];
-  notes: Note[];
+                                     file,
+                                     selectedNoteId,
+                                     folderOpen,
+                                     onToggleFolder,
+                                     onEditFolder,
+                                     onNoteClick,
+                                   }: {
+  file: MoaFile;
   selectedNoteId: string;
   folderOpen: Record<string, boolean>;
   onToggleFolder: (id: string) => void;
-  onEditFolder: (folder: Folder) => void;
+  onEditFolder: (folder: MoaFile) => void;
   onNoteClick: (noteId: string) => void;
   parentId?: string | null;
 }) {
-  return (
-    <>
-      {folders
-        .filter(folder => (folder.parentId ?? null) === parentId)
-        .map(folder => (
-          <FolderItem
-            key={folder.id}
-            folder={folder}
-            open={folderOpen[folder.id]}
-            onToggle={() => onToggleFolder(folder.id)}
-            onEdit={() => onEditFolder(folder)}
-          >
-            {/* 상위 폴더의 노트 */}
-            {folder.noteIds.map(noteId => {
-              const note = notes.find(n => n.id === noteId);
-              if (!note) return null;
-              return (
-                <NoteItem
-                  key={note.id}
-                  note={note}
-                  selected={selectedNoteId === note.id}
-                  onClick={() => onNoteClick(note.id)}
-                />
-              );
-            })}
-            {/* 하위 폴더 */}
-            <FolderTree
-              folders={folders}
-              notes={notes}
-              selectedNoteId={selectedNoteId}
-              folderOpen={folderOpen}
-              onToggleFolder={onToggleFolder}
-              onEditFolder={onEditFolder}
-              onNoteClick={onNoteClick}
-              parentId={folder.id}
-            />
-          </FolderItem>
-        ))}
-      {/* 폴더 밖 노트는 parentId === null에서만 렌더링 */}
-      {parentId === null &&
-        notes
-          .filter(note => !folders.some(folder => folder.noteIds.includes(note.id)))
-          .map(note => (
-            <NoteItem
-              key={note.id}
-              note={note}
-              selected={selectedNoteId === note.id}
-              onClick={() => onNoteClick(note.id)}
-            />
-          ))}
-    </>
-  );
+  console.log(file);
+  if (file.type.toString() == "DOCUMENT") {
+    return (
+      <NoteItem
+        key={file.id}
+        note={file}
+        selected={file.id === selectedNoteId}
+        onClick={() => onNoteClick(file.id)}
+      />
+    );
+  } else if (file.type.toString() == "DIRECTORY") {
+    const notes = file.children ?
+      file.children.filter((file) => file.type.toString() === "DOCUMENT") : [];
+    const directories = file.children ?
+      file.children.filter((file) => file.type.toString() === "DIRECTORY") : [];
+
+    console.log("노트들");
+    console.log(notes);
+    return (
+      <FolderItem
+        key={file.id}
+        folder={file}
+        open={true/*folderOpen[file.id]*/}
+        onToggle={() => onToggleFolder(file.id)}
+        onEdit={() => onEditFolder(file)}
+      >
+        {
+          directories.map((directory) => (
+            FolderTree({
+              file: directory,
+              selectedNoteId: selectedNoteId,
+              folderOpen: folderOpen,
+              onToggleFolder: onToggleFolder,
+              onEditFolder: onEditFolder,
+              onNoteClick: onNoteClick
+            })
+          ))
+        }
+        {
+          notes.map((note) => (
+            FolderTree({
+              file: note,
+              selectedNoteId: selectedNoteId,
+              folderOpen: folderOpen,
+              onToggleFolder: onToggleFolder,
+              onEditFolder: onEditFolder,
+              onNoteClick: onNoteClick
+            })
+          ))
+        }
+      </FolderItem>
+    )
+  }
 }

@@ -1,6 +1,6 @@
 import { fetchCurrentUserServerSide } from "@/libs/server/user";
-import { fetchNotesServerSide } from "@/libs/server/note";
-import MainPageClient from "./MainPageClient";
+import {getFileList} from "@/libs/server/file";
+import MainPageClient from "@/app/main/MainPageClient";
 
 export default async function MainPage() {
   const user = await fetchCurrentUserServerSide();
@@ -9,8 +9,8 @@ export default async function MainPage() {
     return <div>로그인 필요</div>;
   }
 
-  const notes = await fetchNotesServerSide(user.id);
+  const fileList = await getFileList(null, user);
+  console.log(fileList);
 
-  // selectedNoteId를 빈 문자열로 전달
-  return <MainPageClient user={user} notes={notes ?? []} selectedNoteId={""} />;
+  return <MainPageClient user={user}/>;
 }
