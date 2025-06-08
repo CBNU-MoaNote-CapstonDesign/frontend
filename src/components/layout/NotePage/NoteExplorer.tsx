@@ -1,16 +1,17 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
-import { RxHamburgerMenu } from "react-icons/rx";
-import { BsChevronLeft } from "react-icons/bs";
+import {useRouter} from "next/navigation";
+import {useEffect, useRef, useState} from "react";
+import {RxHamburgerMenu} from "react-icons/rx";
+import {BsChevronLeft} from "react-icons/bs";
 
 import FolderTree from "./FolderTree";
 import AddMenu from "./AddMenu";
 import FolderAddModal from "./FolderAddModal";
-import FolderEditModal from "./FolderEditModal";
-import { MoaFile } from "@/types/file";
-import { getFileTree } from "@/libs/client/file";
+import {MoaFile} from "@/types/file";
+import {createFile, editFile, getFile, getFileTree} from "@/libs/client/file";
+import {FileTypeDTO} from "@/types/dto";
+import AddNoteModal from "@/components/layout/NotePage/AddNoteModal";
 
 interface NoteExplorerProps {
   user: User;
@@ -25,9 +26,8 @@ export default function NoteExplorer({
   const [open, setOpen] = useState(true);
   const [showAddMenu, setShowAddMenu] = useState(false);
   const [showFolderModal, setShowFolderModal] = useState(false);
-  const [folderName, setFolderName] = useState("");
-  const [selectedNotes, setSelectedNotes] = useState<MoaFile[]>([]);
-  const [files, setFiles] = useState<MoaFile[]>([]);
+  const [showNoteModal, setShowNoteModal] = useState(false);
+  const [root, setRoot] = useState<MoaFile | null>(null);
   const [folderOpen, setFolderOpen] = useState<Record<string, boolean>>({});
   const [parentFolderId, setParentFolderId] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -40,9 +40,9 @@ export default function NoteExplorer({
   useEffect(() => {
     getFileTree(null, user).then((rootFolder) => {
       if (rootFolder) {
-        setFiles([rootFolder]);
+        setRoot(rootFolder);
       } else {
-        setFiles([]);
+        setRoot(null);
       }
     });
   }, [user]);
@@ -53,41 +53,65 @@ export default function NoteExplorer({
   const openFolderModal = () => {
     setShowAddMenu(false);
     setShowFolderModal(true);
-    setFolderName("");
-    setSelectedNotes([]);
     setParentFolderId(null);
   };
 
-  const handleAddFolder = () => {
-    const alreadyInFolder = files.some((folder) => {
-      if (folder.children) {
-        return folder.children.some((child) => child.id === selectedNoteId);
-      }
-      return false;
-    });
+  const handleAddFolder = (folderName: string, parentId: string, selectedNotes: string[]) => {
+    // if (!folderName.trim() || selectedNotes.length === 0) return;
 
-    if (alreadyInFolder) {
-      setErrorMsg("이미 다른 폴더에 포함된 노트입니다.");
-      return;
-    }
-
-    if (!folderName.trim() || selectedNotes.length === 0) return;
-
+    console.log("폴더 생성 호출")
+    console.log(folderName)
+    console.log(parentId)
     // 실제 폴더 생성 로직(API 호출 등) 추가 가능
-
-    getFileTree(null, user).then((rootFolder) => {
-      if (rootFolder) {
-        setFiles([rootFolder]);
-      } else {
-        setFiles([]);
+    createFile(folderName, FileTypeDTO.DIRECTORY, parentId, user).then((folder) => {
+      if(!folder)
+        return;
+      // Selected Notes
+      for(const noteId of selectedNotes) {
+        getFile(noteId, user).then((note) => {
+          if (note) {
+            editFile(note, folder.id, user).then((result) => {
+              console.log(result? "에딧 성공 " : "에딧 실패");
+              console.log(note.name);
+              console.log(note.id);
+            })
+          }
+        })
       }
-      setShowFolderModal(false);
-      setFolderName("");
-      setSelectedNotes([]);
-      setParentFolderId(null);
-      setErrorMsg(null);
+
+
+      // 파일 구조 초기화
+      getFileTree(null, user).then((rootFolder) => {
+        if (rootFolder) {
+          setRoot(rootFolder);
+        } else {
+          setRoot(null);
+        }
+        setShowFolderModal(false);
+        setShowNoteModal(false);
+        setParentFolderId(null);
+        setErrorMsg(null);
+      });
     });
   };
+
+  const handleAddNote = (noteName: string, parentId: string) => {
+    createFile(noteName,FileTypeDTO.DOCUMENT, parentId, user).then(() => {
+      window.alert("생성완료");
+      // 파일 구조 초기화
+      getFileTree(null, user).then((rootFolder) => {
+        if (rootFolder) {
+          setRoot(rootFolder);
+        } else {
+          setRoot(null);
+        }
+        setShowFolderModal(false);
+        setShowNoteModal(false);
+        setParentFolderId(null);
+        setErrorMsg(null);
+      });
+    });
+  }
 
   useEffect(() => {
     if (showFolderModal) setErrorMsg(null);
@@ -122,7 +146,7 @@ export default function NoteExplorer({
           title="노트 목록 열기"
           aria-label="노트 목록 열기"
         >
-          <RxHamburgerMenu className="w-7 h-7 text-[#186370]" />
+          <RxHamburgerMenu className="w-7 h-7 text-[#186370]"/>
         </button>
       )}
 
@@ -150,7 +174,7 @@ export default function NoteExplorer({
             aria-label="노트 목록 닫기"
             type="button"
           >
-            <BsChevronLeft className="w-7 h-7 text-[#186370]" />
+            <BsChevronLeft className="w-7 h-7 text-[#186370]"/>
           </button>
 
           <div className="flex items-center justify-between px-6 py-4 border-b border-[#b6d6f2] bg-[#e0f2ff]">
@@ -169,6 +193,7 @@ export default function NoteExplorer({
                 <AddMenu
                   onAddNote={() => {
                     setShowAddMenu(false);
+                    setShowNoteModal(true);
                   }}
                   onAddFolder={openFolderModal}
                   onClose={() => setShowAddMenu(false)}
@@ -178,9 +203,9 @@ export default function NoteExplorer({
           </div>
 
           <div className="flex-1 overflow-y-auto px-2 py-4 space-y-2">
-            {files.length > 0 ? (
+            {root ? (
               <FolderTree
-                file={files[0]}
+                file={root}
                 selectedNoteId={selectedNoteId}
                 folderOpen={folderOpen}
                 onToggleFolder={handleToggleFolder}
@@ -191,24 +216,28 @@ export default function NoteExplorer({
               <>로딩중...</>
             )}
           </div>
+          {
+            showNoteModal && root && (
+              <AddNoteModal
+                root={root}
+                onAdd={handleAddNote}
+                onCancel={()=>{setShowNoteModal(false)}}
+                />
+            )
+          }
 
-          {showFolderModal && (
+          {showFolderModal && root && (
             <FolderAddModal
-              notes={root}
-              folders={files}
-              parentFolderId={parentFolderId}
-              setParentFolderId={setParentFolderId}
-              folderName={folderName}
-              setFolderName={setFolderName}
-              selectedNotes={selectedNotes}
-              setSelectedNotes={setSelectedNotes}
+              root={root}
               onCancel={() => setShowFolderModal(false)}
               onAdd={handleAddFolder}
               errorMsg={errorMsg}
             />
           )}
 
-          {editFolderId && (
+          {
+            /*
+            editFolderId && (
             <FolderAddModal
               selectedNotes={selectedNotes}
               setSelectedNotes={setSelectedNotes}
@@ -220,9 +249,9 @@ export default function NoteExplorer({
               onCancel={() => setShowFolderModal(false)}
               errorMsg={errorMsg}
             />
-          )}
+          )*/}
         </aside>
       )}
     </>
-  );
-}
+  )
+};
