@@ -1,33 +1,81 @@
 "use client";
 
-import { MoaFile } from "@/types/file";
+import {MoaFile} from "@/types/file";
+import {useEffect, useState} from "react";
 
 interface Props {
-  notes: MoaFile[]; // 전체 노트 (type === DOCUMENT)
-  folders: MoaFile[]; // 전체 폴더 (type === DIRECTORY)
-  editFolderId: string;
-  editFolderName: string;
-  setEditFolderName: (v: string) => void;
-  editFolderNotes: MoaFile[];
-  setEditFolderNotes: (v: MoaFile[]) => void;
-  setFolders: React.Dispatch<React.SetStateAction<MoaFile[]>>;
-  closeEditModal: () => void;
+  root: MoaFile;
+  folderId: string;
+  onEdit: (folderName: string, parentId: string, selectedNotes: string[]) => void;
+  onCancel: () => void;
 }
 
-export default function FolderEditModal({
-                                          notes,
-                                          folders,
-                                          editFolderId,
-                                          editFolderName,
-                                          setEditFolderName,
-                                          editFolderNotes,
-                                          setEditFolderNotes,
-                                          setFolders,
-                                          closeEditModal,
-                                        }: Props) {
-  const editedFolder = folders.find(f => f.id === editFolderId);
+export const getFileById = (
+  folderId: string,
+  node: MoaFile
+): MoaFile | null => {
+  if (node.id === folderId) {
+    return node;
+  }
 
-  if (!editedFolder) return null;
+  if (node.children) {
+    for (const child of node.children) {
+      const found = getFileById(folderId, child);
+      if (found) {
+        return found;
+      }
+    }
+  }
+
+  return null;
+};
+
+export const getParent = (
+  folderId: string,
+  node: MoaFile,
+  parentId: string | null = null
+): string | null => {
+  if (node.id === folderId) {
+    return parentId;
+  }
+
+  if (node.children) {
+    for (const child of node.children) {
+      const foundParent = getParent(folderId, child, node.id);
+      if (foundParent) {
+        return foundParent;
+      }
+    }
+  }
+
+  return null;
+};
+
+export default function FolderEditModal({
+                                          root,
+                                          folderId,
+                                          onEdit,
+                                          onCancel,
+                                        }: Props) {
+
+  const [folderName, setFolderName] = useState<string>("");
+  const [parentId, setParentId] = useState<string>("");
+  const [selectedNotes, setSelectedNotes] = useState<string[]>([]);
+
+  useEffect(() => {
+    const newParentId = getParent(folderId, root, root.id);
+    const folder = getFileById(folderId, root);
+
+    if(parent && folder) {
+      setParentId(newParentId);
+      setFolderName(folder.name);
+      const newSelectedNotes = []
+      if (folder.children) {
+        for (const file of folder.children)
+      }
+    }
+  },[folderId])
+
 
   // 상위 폴더 id 추출 (children 기반이라면 따로 관리 필요)
   const parentId = undefined; // MoaFile 구조라면 별도 관리 필요 (상위 폴더 id가 없다면 최상위 폴더)
@@ -140,7 +188,7 @@ export default function FolderEditModal({
                 setFolders(prev =>
                   prev.map(f =>
                     f.id === editFolderId
-                      ? { ...f, name: editFolderName, children: editFolderNotes }
+                      ? {...f, name: editFolderName, children: editFolderNotes}
                       : f
                   )
                 );

@@ -1,38 +1,35 @@
 "use client";
 
-import { MoaFile } from "@/types/file";
+import {MoaFile} from "@/types/file";
+import {useState} from "react";
 
 interface Props {
-  root: MoaFile; // 루트 디렉토리 트리 전체
-  selectedNotes: MoaFile[]; // 현재 선택된 노트들
-  setSelectedNotes: (notes: MoaFile[]) => void;
-  folderName: string;
-  setFolderName: (name: string) => void;
-  parentFolderId: string | null;
-  setParentFolderId: (id: string | null) => void;
-  onAdd: () => void;
+  root: MoaFile;
+  onAdd: (folderName:string, parentId:string, selectedNotes:string[]) => void;
   onCancel: () => void;
   errorMsg?: string | null;
 }
 
 export default function FolderAddModal({
                                          root,
-                                         selectedNotes,
-                                         setSelectedNotes,
-                                         folderName,
-                                         setFolderName,
-                                         parentFolderId,
-                                         setParentFolderId,
                                          onAdd,
                                          onCancel,
                                          errorMsg,
                                        }: Props) {
 
+  const [folderName, setFolderName] = useState<string>("");
+  const [parentId, setParentId] = useState<string>(root.id);
+  const [selectedNotes, setSelectedNotes] = useState<string[]>([]);
+
+  // 모든 부모 목록
   const renderFolderOptions = (
     folder: MoaFile,
     depth = 0
   ): React.ReactNode => {
+    // 루트 폴더 가져오기
+
     if (folder.type.toString() !== "DIRECTORY") return null;
+
     return (
       <>
         <option key={folder.id} value={folder.id}>
@@ -41,26 +38,27 @@ export default function FolderAddModal({
         {folder.children &&
           folder.children.map((child) =>
             renderFolderOptions(child, depth + 1)
-          )}
+          )
+        }
       </>
     );
   };
 
-  // 재귀적으로 노트 목록 출력
-  const renderNoteList = (folder: MoaFile) => {
+  // 모든 노트 목록
+  const getNoteList = (folder: MoaFile) => {
     const notes = [];
     if (folder.type.toString() === "DOCUMENT") {
       notes.push(folder);
     }
     if (folder.children) {
       folder.children.forEach((child) => {
-        notes.push(...renderNoteList(child));
+        notes.push(...getNoteList(child));
       });
     }
     return notes;
   };
 
-  const allNotes = renderNoteList(root);
+  const notes = getNoteList(root);
 
   return (
     <div className="fixed inset-0 bg-[#f0f8fe]/80 flex items-center justify-center z-[9999]">
@@ -76,10 +74,9 @@ export default function FolderAddModal({
         <label className="block mb-2 font-semibold">폴더 생성 위치</label>
         <select
           className="w-full border rounded px-3 py-2 mb-4"
-          value={parentFolderId ?? ""}
-          onChange={(e) => setParentFolderId(e.target.value || null)}
+          value={parentId}
+          onChange={(e) => setParentId(e.target.value)}
         >
-          <option value="">내 노트 (최상위)</option>
           {renderFolderOptions(root)}
         </select>
 
@@ -94,24 +91,25 @@ export default function FolderAddModal({
 
         {/* 폴더에 추가할 노트 선택 */}
         <label className="block mb-2 font-semibold">폴더에 추가할 노트 선택</label>
+
         <div className="max-h-40 overflow-y-auto mb-4">
-          {allNotes.length === 0 && (
+          {notes.length === 0 && (
             <div className="text-gray-400 text-sm">노트가 없습니다.</div>
           )}
-          {allNotes.map((note) => (
+          {notes.map((note) => (
             <label
               key={note.id}
               className="flex items-center gap-2 mb-1 cursor-pointer"
             >
               <input
                 type="checkbox"
-                checked={selectedNotes.some((n) => n.id === note.id)}
+                checked={selectedNotes.some((n) => n === note.id)}
                 onChange={(e) => {
                   if (e.target.checked) {
-                    setSelectedNotes([...selectedNotes, note]);
+                    setSelectedNotes([...selectedNotes, note.id]);
                   } else {
                     setSelectedNotes(
-                      selectedNotes.filter((n) => n.id !== note.id)
+                      selectedNotes.filter((n) => n !== note.id)
                     );
                   }
                 }}
@@ -132,8 +130,13 @@ export default function FolderAddModal({
           </button>
           <button
             className="px-4 py-2 rounded bg-[#186370] text-white font-semibold hover:bg-[#38bdf8] cursor-pointer"
-            onClick={onAdd}
-            disabled={!folderName.trim() || selectedNotes.length === 0}
+            onClick={()=>{
+              console.log("삽입 테스트");
+              console.log(folderName);
+              console.log(parentId);
+              onAdd(folderName, parentId, selectedNotes);
+            }}
+            disabled={/*!folderName.trim() || selectedNotes.length === 0*/ false}
           >
             추가
           </button>

@@ -1,6 +1,7 @@
 "use client";
 import {MoaFile} from "@/types/file";
 import {FileDTO, FileTypeDTO, NoteDTO} from "@/types/dto";
+import {UUID} from "node:crypto";
 
 const SERVER_URL = process.env.NEXT_PUBLIC_SERVER_URL;
 
@@ -214,17 +215,28 @@ export async function deleteFile(fileId: string, user: User) {
 /**
  * 파일 수정
  * @param file 수정할 MoaFile 객체
+ * @param parentId ""이면 그대로 두기
  * @param user 유저 ID
  */
-export async function editFile(file: MoaFile, user: User) {
-  const fileDTO = await getFile(file.id, user);
+export async function editFile(file: MoaFile, parentId: string, user: User) {
+  // 파일 정보 불러오기
+  const metaLocation = `/api/files/metadata/${file.id}?user=${user.id}`;
+  const metadata = await getRequest(metaLocation);
+  if (!metadata) return false;
+
+  const fileDTO = metadata as FileDTO;
+
   if (!fileDTO) return false;
 
   fileDTO.type = file.type;
   fileDTO.name = file.name;
+  if(parentId) {
+    fileDTO.dir = parentId as UUID;
+  }
 
   const location = `/api/files/edit/${file.id}?user=${user.id}`;
-  return await postRequest(location, JSON.stringify(fileDTO));
+  const data = await postRequest(location, JSON.stringify(fileDTO));
+  return !!data;
 }
 
 /**
