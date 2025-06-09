@@ -2,7 +2,6 @@
 import { useEffect, useRef } from 'react';
 import {Client} from '@stomp/stompjs';
 import toast from "react-hot-toast";
-import debugToast from "@/libs/debugToast";
 import {CRDTOperation} from "@/types/crdtOperation";
 
 const SERVER_WS_URL = process.env.NEXT_PUBLIC_SERVER_WS_URL;
@@ -22,12 +21,12 @@ const useFugueDocumentSync = (uuid:string, onAction:(actions: CRDTOperation[])=>
    * @param actions CRDTOperation[] - 전송할 operation 배열
    */
   const broadcast = (actions: CRDTOperation[]) => {
-    if (clientRef.current && clientRef.current.connected) {
+    setTimeout(()=>{if (clientRef.current && clientRef.current.connected) {
       clientRef.current.publish({
         destination: `/app/docs/tree/edit/${uuid}`,
         body: JSON.stringify(actions),
       });
-    }
+    }}, 2000);
   };
 
   useEffect(() => {

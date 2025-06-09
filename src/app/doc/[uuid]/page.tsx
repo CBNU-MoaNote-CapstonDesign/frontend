@@ -1,5 +1,4 @@
 import { fetchCurrentUserServerSide } from "@/libs/server/user";
-import { fetchNotesServerSide } from "@/libs/server/note";
 import DocPageClient from "./DocPageClient";
 
 export default async function DocumentPage(props: { params: { uuid: string } }) {
@@ -9,7 +8,5 @@ export default async function DocumentPage(props: { params: { uuid: string } }) 
   const user = await fetchCurrentUserServerSide();
   if (!user) return <div>로그인 필요</div>;
 
-  const notes = await fetchNotesServerSide(user.id);
-
-  return <DocPageClient user={user} notes={notes ?? []} selectedNoteId={uuid} />;
+  return <DocPageClient user={user} selectedNoteId={uuid} />;
 }
