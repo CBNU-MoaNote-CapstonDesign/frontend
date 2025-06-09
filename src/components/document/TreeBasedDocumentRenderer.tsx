@@ -4,7 +4,6 @@ import {useState} from "react";
 import {Note} from "@/types/note";
 import {TreeMarkdownEditor} from "@/components/document/TreeMarkdownEditor";
 import {MarkdownRenderer} from "@/components/document/MarkdownRenderer";
-import DocumentTitle from "@/components/document/DocumentTitle";
 import {TreeNote} from "@/libs/structures/treenote";
 import getDiff from "@/libs/simpledDiff";
 import {CRDTOperation} from "@/types/crdtOperation";
@@ -57,8 +56,10 @@ export default function DocumentRenderer({user, uuid}: { user:User, uuid: string
     };
 
   return (
-    <div className={"flex flex-col w-full"} key={treeNote.id}>
-      <DocumentTitle title={document.title}/>
+    <div className={`
+        w-full bg-white rounded-xl shadow px-8 py-5 flex items-start transition duration-150
+        ${!isEditing ? "hover:bg-[#dbeafe] cursor-pointer" : ""}
+      `} key={treeNote.id}>
       {isEditing ? (
         <TreeMarkdownEditor
           initialContent={document.content}
