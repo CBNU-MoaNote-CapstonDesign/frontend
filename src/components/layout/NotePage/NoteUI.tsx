@@ -1,13 +1,25 @@
+"use client"
 import DocumentTitle from "@/components/document/DocumentTitle";
 import DocumentRenderer from "@/components/document/DocumentRenderer";
+import { MoaFile } from "@/types/file";
+import {useEffect, useState} from "react";
+import {getFile} from "@/libs/client/file";
 
-// TODO: AI 챗 봇 UI 통합하기
-// import ChatMenu from "@/components/chat/ChatMenu";
 
-import { Note } from "@/types/note";
+export default function NoteUI({ user, noteId }: { user: User; noteId?:string }) {
+  const [note, setNote] = useState<MoaFile|null>(null);
 
-export default function NoteUI({ user, note }: { user: User; note?: Note }) {
-  if (!note) {
+  useEffect(() => {
+    if(noteId) {
+      getFile(noteId, user).then((file)=>{
+        if (file) {
+          setNote(file);
+        }
+      });
+    }
+  }, [noteId, user]);
+
+  if (!noteId) {
     return (
       <main className="flex-1 h-[calc(100vh-6rem)] ml-0 bg-[#f8fbff] rounded-l-2xl shadow-md overflow-auto flex flex-col items-center z-30">
         <div className="w-full max-w-4xl min-h-full flex flex-col gap-8 px-8 py-10 items-center justify-center">
@@ -16,6 +28,8 @@ export default function NoteUI({ user, note }: { user: User; note?: Note }) {
       </main>
     );
   }
+
+
 
   return (
     <main
@@ -34,11 +48,8 @@ export default function NoteUI({ user, note }: { user: User; note?: Note }) {
       "
     >
       <div className="w-full max-w-4xl min-h-full flex flex-col gap-8 px-8 py-10">
-        <DocumentTitle title={note.id} />
-        <DocumentRenderer user={user} uuid={note.id} />
-
-        {/* TODO: AI 챗 봇 UI 통합하기 */}
-        {/* <ChatMenu uuid={note.id} /> */}
+        <DocumentTitle title={note?note.name:""} />
+        <DocumentRenderer user={user} uuid={"01974466-5c50-73ab-a6ac-e7ab4b22d73b"} />
       </div>
     </main>
   );

@@ -19,7 +19,7 @@ export default function DocPageClient({
           user={user}
           selectedNoteId={selectedNoteId}
         />
-        {/*<NoteUI user={user} note={selectedNoteId} /> */}
+        <NoteUI user={user} noteId={selectedNoteId} />
       </div>
     </div>
   );
