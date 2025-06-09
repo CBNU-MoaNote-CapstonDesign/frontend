@@ -1,7 +1,6 @@
 import FolderItem from "./FolderItem";
 import NoteItem from "./NoteItem";
 import {MoaFile} from "@/types/file";
-import {FileTypeDTO} from "@/types/dto";
 
 export default function FolderTree({
                                      file,
@@ -9,6 +8,7 @@ export default function FolderTree({
                                      folderOpen,
                                      onToggleFolder,
                                      onEditFolder,
+                                     onEditNote,
                                      onNoteClick,
                                    }: {
   file: MoaFile;
@@ -16,6 +16,7 @@ export default function FolderTree({
   folderOpen: Record<string, boolean>;
   onToggleFolder: (id: string) => void;
   onEditFolder: (folder: MoaFile) => void;
+  onEditNote: (note: MoaFile) => void;
   onNoteClick: (noteId: string) => void;
   parentId?: string | null;
 }) {
@@ -27,6 +28,7 @@ export default function FolderTree({
         note={file}
         selected={file.id === selectedNoteId}
         onClick={() => onNoteClick(file.id)}
+        onEdit={()=> onEditNote(file)}
       />
     );
   } else if (file.type.toString() == "DIRECTORY") {
@@ -53,6 +55,7 @@ export default function FolderTree({
               folderOpen: folderOpen,
               onToggleFolder: onToggleFolder,
               onEditFolder: onEditFolder,
+              onEditNote: onEditNote,
               onNoteClick: onNoteClick
             })
           ))
@@ -65,6 +68,7 @@ export default function FolderTree({
               folderOpen: folderOpen,
               onToggleFolder: onToggleFolder,
               onEditFolder: onEditFolder,
+              onEditNote: onEditNote,
               onNoteClick: onNoteClick
             })
           ))

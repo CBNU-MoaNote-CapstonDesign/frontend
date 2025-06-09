@@ -208,8 +208,13 @@ export async function createFile(
  */
 export async function deleteFile(fileId: string, user: User) {
   const location = `/api/files/delete/${fileId}?user=${user.id}`;
-  const result = await postRequest(location, JSON.stringify(null));
-  return !!result;
+  try {
+    await postRequest(location, JSON.stringify({}));
+    return true;
+  } catch(error: unknown) {
+    console.error(error);
+    return false;
+  }
 }
 
 /**

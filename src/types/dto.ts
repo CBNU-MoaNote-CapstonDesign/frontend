@@ -3,6 +3,7 @@ import {UUID} from "node:crypto";
 export interface FileDTO {
   id: UUID,
   name: string,
+  owner: {id: UUID, name: string},
   type: FileTypeDTO,
   dir: UUID,
 }
