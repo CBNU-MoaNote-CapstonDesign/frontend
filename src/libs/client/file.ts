@@ -1,6 +1,6 @@
 "use client";
 import {MoaFile} from "@/types/file";
-import {FileDTO, FileTypeDTO, NoteDTO, PermissionDTO} from "@/types/dto";
+import {FileDTO, FileTypeDTO, NoteDTO, PermissionDTO, Collaborator} from "@/types/dto";
 import {UUID} from "node:crypto";
 
 const SERVER_URL = process.env.NEXT_PUBLIC_SERVER_URL;
@@ -310,4 +310,40 @@ export async function getCollaborators(fildId:string, user:User): Collaborator[]
   } catch {
     return [];
   }
+}
+
+export async function getSharedFiles(user:User) {
+  const location = `/api/files/all/${user.id}`;
+  try {
+    const data = await getRequest(location);
+    const fileDTOs = data as FileDTO[];
+
+
+    console.log("공유받은 파일들 ");
+    console.log(fileDTOs);
+
+    const files: MoaFile[] = [];
+
+    for (const fileDTO of fileDTOs) {
+      if (fileDTO.owner.id == user.id) continue;
+      files.push({
+        id: fileDTO.id,
+        name: fileDTO.name,
+        type: fileDTO.type,
+      } as MoaFile);
+    }
+    console.log(files);
+    return files;
+  } catch {
+    return [];
+  }
+}
+
+export async function addNoteSegment(fileId: string, type: number, user: User) {
+  const location = `/api/notes/${fileId}/add/segment?user=${user.id}`;
+  const body = {
+    type: type,
+  }
+  const data = await postRequest(location, JSON.stringify(body));
+  return !!data;
 }
