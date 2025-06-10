@@ -345,5 +345,5 @@ export async function addNoteSegment(fileId: string, type: number, user: User) {
     type: type,
   }
   const data = await postRequest(location, JSON.stringify(body));
-  return !!data;
+  return data;
 }
