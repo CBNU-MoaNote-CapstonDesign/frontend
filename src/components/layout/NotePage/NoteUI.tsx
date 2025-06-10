@@ -43,7 +43,7 @@ export default function NoteUI({ user, noteId }: { user: User; noteId?: string }
     >
       <div className="w-full max-w-4xl min-h-full flex flex-col gap-8 px-8 py-10">
         <DocumentTitle title={note?note.name:""} />
-        <TreeBasedDocumentRenderer user={user} uuid={"test"} />
+        <TreeBasedDocumentRenderer user={user} uuid={note?.id as string} />
       </div>
     </main>
   );

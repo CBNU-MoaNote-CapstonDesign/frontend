@@ -12,7 +12,7 @@ import {TextNoteSegmentDTO} from "@/types/dto";
 
 export default function DocumentRenderer({user, uuid}: { user:User, uuid: string }) {
   const [treeNote, setTreeNote] = useState<TreeNote>(TreeNote.fromString(user.id, uuid, "loading...", "loading..."));
-  const [document, setDocument] = useState<Note>({title: treeNote.title, id: treeNote.id, content: treeNote.content}); // 현재 문서 내용
+  const [document, setDocument] = useState<Note>({title: treeNote.title, id: uuid, content: treeNote.content}); // 현재 문서 내용
   const [isEditing, setEditing] = useState<boolean>(false); // 현재 편집중인가?
   const [cursorPosition, setCursorPosition] = useState<number>(0); // 커서 위치
   const startEditing = () => setEditing(true);
@@ -43,16 +43,23 @@ export default function DocumentRenderer({user, uuid}: { user:User, uuid: string
     };
 
   const initialize = (segment: TextNoteSegmentDTO) => {
-    setTreeNote(TreeNote.fromTree(user.id, segment.id, "tree", segment.rootNode, segment.nodes));
+    const initialTree = TreeNote.fromTree(user.id, segment.id, "tree", segment.rootNode, segment.nodes);
+    console.log('initialized : ' + initialTree.content);
+    setDocument({
+      ...document,
+      id: uuid,
+      content: initialTree.content,
+    });
+    setTreeNote(initialTree);
   }
 
-  const [{broadcast}, ] = useState(useFugueDocumentSync(uuid, update, initialize));
+  const [{broadcast}, ] = useState(useFugueDocumentSync(user.id, uuid, update, initialize));
 
   // 로컬 변경사항을 보내는거
   const send =
     (actions: CRDTOperation[]) => {
       console.log("Send ", actions);
-      broadcast(actions);
+      broadcast(document.id, treeNote.id, actions);
     };
 
   return (

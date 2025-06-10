@@ -96,32 +96,37 @@ export class TreeNote {
    * @param uuid node id prefix
    * @param id note id
    * @param title note title
-   * @param root root node of tree based document
+   * @param rootDTO root node of tree based document
+   * @param nodesDTO all nodes of tree based document
    */
   static fromTree(uuid: string, id: string, title: string, rootDTO: TreeNodeDTO, nodesDTO: TreeNodeDTO[]) {
     const root: TreeNode = {
-      id: rootDTO.node,
+      id: rootDTO.id,
       leftChildren: [],
       rightChildren: [],
+      value: rootDTO.value
     };
 
     const nodes: TreeNode[] = [];
-    let _idToNode = new Map<string, TreeNode>();
-
+    const _idToNode = new Map<string, TreeNode>();
     for (let i = 0; i < nodesDTO.length; i++) {
       const nodeDTO = nodesDTO[i];
+      let node: TreeNode;
       if (nodeDTO.parentId == null) {
         nodes.push(root);
-        continue;
+        node = root;
+      } else {
+        node = {
+          id: nodeDTO.id,
+          leftChildren: [],
+          rightChildren: [],
+          value: nodeDTO.value
+        };
+        nodes.push(node);
       }
-      const node = {
-        id: nodeDTO.node,
-        leftChildren: [],
-        rightChildren: []
-      };
-      nodes.push(node);
       _idToNode.set(node.id, node);
     }
+
 
     for (let i = 0; i < nodesDTO.length; i++) {
       if (nodesDTO[i].parentId == null)
@@ -135,7 +140,6 @@ export class TreeNote {
     const _id = id;
     const _title = title;
     const _indexToChild = new Map<number, TreeNode>();
-    _idToNode = new Map<string, TreeNode>();
 
     const tree: TreeNote = new TreeNote(uuid, _id, _title, "", root, nodesDTO.length, _indexToChild, _idToNode);
     tree.traversal();
