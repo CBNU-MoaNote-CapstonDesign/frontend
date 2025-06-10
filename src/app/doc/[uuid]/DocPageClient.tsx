@@ -3,6 +3,7 @@
 import TopNavigationBar from "@/components/layout/NotePage/TopNavigationBar";
 import NoteExplorer from "@/components/layout/NotePage/NoteExplorer";
 import NoteUI from "@/components/layout/NotePage/NoteUI";
+import ChatMenu from "@/components/chat/ChatMenu";
 
 export default function DocPageClient({
   user,
@@ -21,6 +22,7 @@ export default function DocPageClient({
         />
         <NoteUI user={user} noteId={selectedNoteId} />
       </div>
+      <ChatMenu uuid={"1234"} user={user}/>
     </div>
   );
 }

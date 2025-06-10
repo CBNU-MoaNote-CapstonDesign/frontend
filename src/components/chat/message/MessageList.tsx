@@ -5,16 +5,15 @@ import {ChatMessage} from "@/types/chat";
 import SentMessage from "@/components/chat/message/SentMessage";
 import ReceivedMessage from "@/components/chat/message/ReceivedMessage";
 import BotMessage from "@/components/chat/message/BotMessage";
-import {fetchCurrentUser} from "@/libs/client/user";
 
-function MessageBuilder({message}: { message: ChatMessage}) {
+function MessageBuilder({message, user}: { message: ChatMessage, user: User}) {
   const [me, setMe] = useState<User | null>(null);
   const [sender, setSender] = useState<User | null>(null);
 
-  fetchCurrentUser().then((user) => {
+  useEffect(()=>{
     setMe(user);
     setSender(user);
-  })
+  },[user]);
 
   if (!me || !sender)
     return <></>
@@ -24,18 +23,18 @@ function MessageBuilder({message}: { message: ChatMessage}) {
     if (me.id === message.senderId)
       return <SentMessage name={me.name} content={message.messageContent} time={""} isBotRequest={false}/>
     else
-      return <ReceivedMessage name={sender.name} content={message.messageContent} time={""} isBotRequest={false}/>
+      return <ReceivedMessage name={message.senderName} content={message.messageContent} time={""} isBotRequest={false}/>
   } else if (message.messageType === 'request-bot') {
     if (me.id === message.senderId)
       return <SentMessage name={me.name} content={message.messageContent} time={""} isBotRequest={true}/>
     else
-      return <ReceivedMessage name={sender.name} content={message.messageContent} time={""} isBotRequest={true}/>
+      return <ReceivedMessage name={message.senderName} content={message.messageContent} time={""} isBotRequest={true}/>
   } else {
     return <BotMessage name={"Moa Bot"} content={message.messageContent} time={""}/>
   }
 }
 
-export default function MessageList({uuid}: { uuid: string }) {
+export default function MessageList({uuid, user}: { uuid: string ,user:User}) {
     const ref =  useRef<HTMLDivElement>(null);
   const [messages, setMessages] = useState<Array<ChatMessage>>([]);
 
@@ -54,9 +53,9 @@ export default function MessageList({uuid}: { uuid: string }) {
     {
       messages.map((message,index) => {
         if (index === messages.length-1) {
-            return <div key={message.chatId} ref={ref}><MessageBuilder message={message}/></div>;
+            return <div key={message.chatId} ref={ref}><MessageBuilder message={message} user={user}/></div>;
         }
-        return <div key={message.chatId}><MessageBuilder message={message}/></div>;
+        return <div key={message.chatId}><MessageBuilder message={message} user={user}/></div>;
       })
     }
   </div>

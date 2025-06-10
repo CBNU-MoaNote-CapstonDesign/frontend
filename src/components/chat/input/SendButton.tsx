@@ -1,26 +1,16 @@
 "use client"
 import {FaRegPaperPlane} from "react-icons/fa";
-import {useEffect, useState} from "react";
 import useChatSync from "@/hooks/useChatSync";
-import {fetchCurrentUser} from "@/libs/client/user";
 
-export default function SendButton({chat, uuid}: { chat: string, uuid: string }) {
-  const [me, setMe] = useState<User | null>(null);
-
-  useEffect(() => {
-    fetchCurrentUser().then((user) => {
-      setMe(user);
-    })
-  }, []);
-
+export default function SendButton({chat, uuid, user}: { chat: string, uuid: string, user:User }) {
   const send = useChatSync(uuid);
 
   const handleClick = () => {
-    if (me) {
+    if (user) {
       send({
         messageContent: chat,
         messageType: "chat",
-        senderId: me.id
+        senderId: user.id,
       });
     }
   }

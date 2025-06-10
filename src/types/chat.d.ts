@@ -1,6 +1,7 @@
 export interface ChatMessage extends SendMessage {
   chatId: string;
   senderId: string;
+  senderName: string;
   date: string;
 }
 
