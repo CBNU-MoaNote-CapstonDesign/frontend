@@ -35,7 +35,7 @@ export interface DiagramNoteSegment {
 }
 
 export interface TreeNodeDTO {
-  node: string,
+  id: string,
   parentId: UUID,
   value: string,
   side: "LEFT" | "RIGHT"

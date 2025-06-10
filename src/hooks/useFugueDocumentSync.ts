@@ -13,7 +13,7 @@ const SERVER_WS_URL = process.env.NEXT_PUBLIC_SERVER_WS_URL;
  * @param onAction 백엔드에서 받은 action(operation)이 도착했을 때 FE에서 적용하는 콜백
  * @constructor
  */
-const useFugueDocumentSync = (uuid:string, onAction:(actions: CRDTOperation[])=>void, initialize:(segment: TextNoteSegmentDTO)=>void) => {
+const useFugueDocumentSync = (user: string, uuid:string, onAction:(actions: CRDTOperation[])=>void, initialize:(segment: TextNoteSegmentDTO)=>void) => {
   const clientRef = useRef<Client | null>(null);
   const textNoteSegmentsRef = useRef<TextNoteSegmentDTO[]>([]);
 
@@ -22,13 +22,13 @@ const useFugueDocumentSync = (uuid:string, onAction:(actions: CRDTOperation[])=>
    * 백엔드는 해당 operation을 채널에 접속된 모든 유저에게 전송한다.
    * @param actions CRDTOperation[] - 전송할 operation 배열
    */
-  const broadcast = (actions: CRDTOperation[]) => {
+  const broadcast = (docId:string, segmentId: string, actions: CRDTOperation[]) => {
     if (clientRef.current && clientRef.current.connected) {
       clientRef.current.publish({
-        destination: `/app/docs/tree/edit/${uuid}`,
+        destination: `/app/docs/text/edit/${docId}/${segmentId}`,
         body: JSON.stringify(actions),
       });
-    };
+    }
   };
 
   useEffect(() => {
@@ -39,6 +39,7 @@ const useFugueDocumentSync = (uuid:string, onAction:(actions: CRDTOperation[])=>
       onConnect: () => {
         if (process.env.DEBUG==='true')
           toast("연결시도 끝");
+        console.log(`/app/docs/text/participate/${uuid}`);
         client.subscribe(`/app/docs/text/participate/${uuid}`, (data) => {
           const body = JSON.parse(data.body);
           if(body?.textNoteSegments) {
@@ -54,7 +55,7 @@ const useFugueDocumentSync = (uuid:string, onAction:(actions: CRDTOperation[])=>
               }
             });
           }
-        });
+        }, {'participantUserId': user});
       },
       onWebSocketError: (event) => {
         toast.error("서버와의 연결이 실패하였습니다.",{position:"bottom-right"});
