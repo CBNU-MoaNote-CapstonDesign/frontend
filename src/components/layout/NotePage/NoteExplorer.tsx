@@ -14,6 +14,7 @@ import {FileTypeDTO} from "@/types/dto";
 import AddNoteModal from "@/components/layout/NotePage/AddNoteModal";
 import FolderEditModal from "@/components/layout/NotePage/FolderEditModal";
 import NoteEditModal from "@/components/layout/NotePage/NoteEditModal";
+import SharedNoteTree from "@/components/layout/NotePage/SharedNoteTree";
 
 interface NoteExplorerProps {
   user: User;
@@ -296,6 +297,12 @@ export default function NoteExplorer({
             ) : (
               <>로딩중...</>
             )}
+            <br />
+            <br />
+            <SharedNoteTree
+              user={user}
+              selectedNoteId={selectedNoteId}
+            />
           </div>
           {
             showNoteModal && root && (
