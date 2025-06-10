@@ -9,7 +9,7 @@ import FolderTree from "./FolderTree";
 import AddMenu from "./AddMenu";
 import FolderAddModal from "./FolderAddModal";
 import {MoaFile} from "@/types/file";
-import {createFile, deleteFile, editFile, getFile, getFileTree} from "@/libs/client/file";
+import {addNoteSegment, createFile, deleteFile, editFile, getFile, getFileTree} from "@/libs/client/file";
 import {FileTypeDTO} from "@/types/dto";
 import AddNoteModal from "@/components/layout/NotePage/AddNoteModal";
 import FolderEditModal from "@/components/layout/NotePage/FolderEditModal";
@@ -138,19 +138,24 @@ export default function NoteExplorer({
   };
 
   const handleAddNote = (noteName: string, parentId: string) => {
-    createFile(noteName, FileTypeDTO.DOCUMENT, parentId, user).then(() => {
-      // 파일 구조 초기화
-      getFileTree(null, user).then((rootFolder) => {
-        if (rootFolder) {
-          setRoot(rootFolder);
-        } else {
-          setRoot(null);
-        }
-        setShowFolderModal(false);
-        setShowNoteModal(false);
-        setShowEditModal(false);
-        setErrorMsg(null);
-      });
+    createFile(noteName, FileTypeDTO.DOCUMENT, parentId, user).then((file) => {
+      // 첫번쨰 노트 세그먼트 생성
+      if (file) {
+        addNoteSegment(file.id,0,user).then(() => {
+          // 파일 구조 초기화
+          getFileTree(null, user).then((rootFolder) => {
+            if (rootFolder) {
+              setRoot(rootFolder);
+            } else {
+              setRoot(null);
+            }
+            setShowFolderModal(false);
+            setShowNoteModal(false);
+            setShowEditModal(false);
+            setErrorMsg(null);
+          });
+        })
+      }
     });
   };
 

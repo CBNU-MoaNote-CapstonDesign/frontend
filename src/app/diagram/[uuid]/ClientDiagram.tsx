@@ -15,6 +15,6 @@ export default function ClientDiagram ({user, uuid}: { user:User, uuid: string }
     <div className="flex flex-row w-full pt-24">
       <DiagramRenderer user={user} uuid={uuid} />
     </div>
-    <ChatMenu uuid={"1234"} user={user}/>
+    <ChatMenu uuid={uuid} user={user}/>
   </div>
 }
