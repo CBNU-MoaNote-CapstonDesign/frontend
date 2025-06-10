@@ -19,6 +19,7 @@
     "react-dom": "^19.0.0",
     "react-hot-toast": "^2.5.2",
     "react-icons": "^5.5.0",
+    "react-intersection-observer": "^9.16.0",
     "react-markdown": "^10.1.0",
     "react-textarea-autosize": "^8.5.9",
     "stompjs": "^2.3.3",
