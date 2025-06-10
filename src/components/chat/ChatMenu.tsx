@@ -6,7 +6,7 @@ import Chat from "@/components/chat/Chat";
 
 const DURATION = 500;
 
-export default function ChatMenu({uuid}: { uuid: string }) {
+export default function ChatMenu({uuid, user}: { uuid: string, user:User }) {
   const contentRef = useRef<HTMLDivElement>(null);
 
   const closeWithAnimation = () => {
@@ -42,7 +42,7 @@ export default function ChatMenu({uuid}: { uuid: string }) {
           <IoIosCloseCircleOutline color={"#ee3333"}
                                    className={"duration-500 transition-all hover:w-[48px] hover:h-[48px] w-[32px] h-[48px]"}/>
         </button>
-        <Chat uuid={uuid}/>
+        <Chat uuid={uuid} user={user}/>
       </div>
 
     </div>

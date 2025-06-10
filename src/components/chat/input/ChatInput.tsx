@@ -4,7 +4,7 @@ import SendButton from "@/components/chat/input/SendButton";
 import CallBotButton from "@/components/chat/input/CallBotButton";
 import {useState} from "react";
 
-export default function ChatInput({uuid}:{uuid:string})
+export default function ChatInput({uuid, user}:{uuid:string, user:User})
 {
   const [chat, setChat] = useState<string>("");
   return <div className={"flex"}>
@@ -15,7 +15,7 @@ export default function ChatInput({uuid}:{uuid:string})
       <div className={"mb-2"}>
         <CallBotButton chat={chat} uuid={uuid}/>
       </div>
-      <SendButton chat={chat} uuid={uuid}/>
+      <SendButton chat={chat} uuid={uuid} user={user}/>
     </div>
   </div>
 }
