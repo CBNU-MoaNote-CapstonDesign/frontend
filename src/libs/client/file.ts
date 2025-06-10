@@ -1,6 +1,6 @@
 "use client";
 import {MoaFile} from "@/types/file";
-import {FileDTO, FileTypeDTO, NoteDTO} from "@/types/dto";
+import {FileDTO, FileTypeDTO, NoteDTO, PermissionDTO} from "@/types/dto";
 import {UUID} from "node:crypto";
 
 const SERVER_URL = process.env.NEXT_PUBLIC_SERVER_URL;
@@ -286,4 +286,28 @@ export async function getNoteDiagram(file: MoaFile, user: User) {
 
   const data = await res.json();
   return data as NoteDTO;
+}
+
+export async function invite(fileId: string, user:User, collaboratorName:string, permission: PermissionDTO) {
+  const location = `/api/files/share/${fileId}?user=${user.id}`;
+  const body = {
+    "username": collaboratorName,
+    "permission": permission,
+  };
+  try{
+    await postRequest(location, JSON.stringify(body));
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export async function getCollaborators(fildId:string, user:User): Collaborator[] {
+  const location = `/api/files/collaborators/${fildId}?user=${user.id}`;
+  try {
+    const data = await getRequest(location);
+    return data as Collaborator[];
+  } catch {
+    return [];
+  }
 }

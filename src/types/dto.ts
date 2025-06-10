@@ -46,6 +46,13 @@ export interface LWWStateDTO {
   value : {content: string},
 }
 
+export type PermissionDTO = "READ" | "WRITE" | "DELETE" | "OWNER";
+
+export interface Collaborator {
+  user: User,
+  permission: PermissionDTO,
+}
+
 
 
 
