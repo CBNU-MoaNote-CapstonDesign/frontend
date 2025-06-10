@@ -3,64 +3,20 @@
 import {useEffect, useState} from "react";
 import Profile from "@/components/layout/Profile";
 import InviteUserModal from "@/components/layout/NotePage/InviteUserModal";
-import { MoaFile } from "@/types/file";
+import {MoaFile} from "@/types/file";
 import {getFile} from "@/libs/client/file";
 
-type Permission = "읽기" | "쓰기" | "소유자";
-
-interface InviteUser {
-  username: string;
-  permission: Permission;
-}
 
 export default function TopNavigationBar({user, selectedNoteId}: { user: User; selectedNoteId: string }) {
-  const [note, setNote] = useState<MoaFile|null>(null);
+  const [note, setNote] = useState<MoaFile | null>(null);
   const [inviteOpen, setInviteOpen] = useState(false);
-  const [sharedUsers, setSharedUsers] = useState<InviteUser[]>([]);
+  const [sharedUsers, setSharedUsers] = useState<User[]>([]);
 
   useEffect(() => {
     getFile(selectedNoteId, user).then((file) => {
       setNote(file);
     });
   }, [selectedNoteId, user]);
-
-  /* 아래 주석처리된 handleInvite 함수는 초대한 사용자 이름과 권한 정보를 백엔드에 전송하는 로직 */
-  /* 백엔드에서 초대한 사용자의 정보는 아래와 같은 JSON 형식으로 받게 된다. */
-  /*
-  *   {
-  *        "users": [
-  *            { "username": "alice", "permission": "읽기" },
-  *            { "username": "bob", "permission": "쓰기" },
-  *            { "username": "carol", "permission": "소유자" }
-  *        ]
-  *   }
-  */
-
-  // // 현재 선택된 노트 id를 저장하는 변수(미완성)
-  // const note = /* CURRENT NOTE ID */
-
-  // // 초대 정보 백엔드로 전송
-  // const handleInvite = async (users: InviteUser[]) => {
-  //     if (!note) return;
-  //     try {
-  //         // 초대 API 링크 가정
-  //         const res = await fetch(`/api/notes/${note.id}/invite`, {
-  //             method: "POST",
-  //             headers: { "Content-Type": "application/json" },
-  //             body: JSON.stringify({ users }),
-  //         });
-  //         if (!res.ok) {
-  //             // 실패 처리 (예: alert)
-  //             alert("초대에 실패했습니다.");
-  //             return;
-  //         }
-  //         setSharedUsers(users);
-  //     } catch (e) {
-  //         alert("네트워크 오류가 발생했습니다.");
-  //     } finally {
-  //         setInviteOpen(false);
-  //     }
-  // };
 
   return (
     <header
@@ -80,7 +36,7 @@ export default function TopNavigationBar({user, selectedNoteId}: { user: User; s
       {/* 문서 제목 및 블록 타입 */}
       <div className="flex-1 flex flex-col items-center">
                 <span className="text-lg md:text-xl font-semibold text-[#333] mb-1 truncate max-w-[60vw]">
-                  {note ? note.name: "문서 없음"}
+                  {note ? note.name : "문서 없음"}
                 </span>
         <div className="flex gap-4">
                     <span
@@ -124,12 +80,12 @@ export default function TopNavigationBar({user, selectedNoteId}: { user: User; s
       <div className="flex items-center gap-3 mr-8 cursor-pointer">
         {sharedUsers.map((user, idx) => (
           <div
-            key={user.username}
+            key={user.name}
             className="w-10 h-10 rounded-full bg-gradient-to-br from-[#b6eaff] to-[#7EEA8A] flex items-center justify-center text-base font-bold text-[#186370] border-2 border-[#69F179] shadow-sm -ml-2 first:ml-0"
-            title={`${user.username} (${user.permission})`}
+            title={`${user.name}`}
             style={{zIndex: 10 - idx}}
           >
-            {user.username[0]?.toUpperCase() || "?"}
+            {user.name[0]?.toUpperCase() || "?"}
           </div>
         ))}
         {/* 초대 버튼 */}
@@ -141,16 +97,12 @@ export default function TopNavigationBar({user, selectedNoteId}: { user: User; s
           +
         </button>
         <InviteUserModal
+          user={user}
+          noteId={selectedNoteId}
           open={inviteOpen}
           onClose={() => setInviteOpen(false)}
-          initialUsers={sharedUsers}
-          onInvite={(users) => {
-            setSharedUsers(users);
-            setInviteOpen(false);
+          onInvite={() => {
           }}
-
-          /* 백엔드 초대 사용자 받는 API가 완성되면 기존 onInvite를 지우고 아래 주석으로 대체 */
-          // onInvite={handleInvite}
         />
       </div>
 
