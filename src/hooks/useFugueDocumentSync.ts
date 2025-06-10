@@ -13,7 +13,7 @@ const SERVER_WS_URL = process.env.NEXT_PUBLIC_SERVER_WS_URL;
  * @param onAction 백엔드에서 받은 action(operation)이 도착했을 때 FE에서 적용하는 콜백
  * @constructor
  */
-const useFugueDocumentSync = (uuid:string, onAction:(actions: CRDTOperation[])=>void) => {
+const useFugueDocumentSync = (uuid:string, onAction:(actions: CRDTOperation[])=>void, initialize:(segment: TextNoteSegmentDTO)=>void) => {
   const clientRef = useRef<Client | null>(null);
   const textNoteSegmentsRef = useRef<TextNoteSegmentDTO[]>([]);
 
@@ -43,8 +43,8 @@ const useFugueDocumentSync = (uuid:string, onAction:(actions: CRDTOperation[])=>
           const body = JSON.parse(data.body);
           if(body?.textNoteSegments) {
             textNoteSegmentsRef.current = body.textNoteSegments as TextNoteSegmentDTO[];
-
-            client.subscribe(`/topic/docs/text/${uuid}/${textNoteSegmentsRef[0].id}`, (message) => {
+            initialize(textNoteSegmentsRef.current[0]);
+            client.subscribe(`/topic/docs/text/${uuid}/${textNoteSegmentsRef.current[0].id}`, (message) => {
               try {
                 const body = JSON.parse(message.body);
                 const actions = body as CRDTOperation[];
@@ -55,7 +55,6 @@ const useFugueDocumentSync = (uuid:string, onAction:(actions: CRDTOperation[])=>
             });
           }
         });
-
       },
       onWebSocketError: (event) => {
         toast.error("서버와의 연결이 실패하였습니다.",{position:"bottom-right"});

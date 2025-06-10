@@ -8,11 +8,10 @@ import {TreeNote} from "@/libs/structures/treenote";
 import getDiff from "@/libs/simpledDiff";
 import {CRDTOperation} from "@/types/crdtOperation";
 import useFugueDocumentSync from "@/hooks/useFugueDocumentSync";
+import {TextNoteSegmentDTO} from "@/types/dto";
 
 export default function DocumentRenderer({user, uuid}: { user:User, uuid: string }) {
-  // TODO 임시 데이터
-  const [treeNote, setTreeNote] = useState<TreeNote>(TreeNote.fromString(user.id, uuid, "initial title", "initial content"));
-
+  const [treeNote, setTreeNote] = useState<TreeNote>(TreeNote.fromString(user.id, uuid, "loading...", "loading..."));
   const [document, setDocument] = useState<Note>({title: treeNote.title, id: treeNote.id, content: treeNote.content}); // 현재 문서 내용
   const [isEditing, setEditing] = useState<boolean>(false); // 현재 편집중인가?
   const [cursorPosition, setCursorPosition] = useState<number>(0); // 커서 위치
@@ -43,10 +42,11 @@ export default function DocumentRenderer({user, uuid}: { user:User, uuid: string
       commitActions();
     };
 
+  const initialize = (segment: TextNoteSegmentDTO) => {
+    setTreeNote(TreeNote.fromTree(user.id, segment.id, "tree", segment.rootNode, segment.nodes));
+  }
 
-  const [{broadcast}, ] = useState(useFugueDocumentSync(uuid, update));
-
-
+  const [{broadcast}, ] = useState(useFugueDocumentSync(uuid, update, initialize));
 
   // 로컬 변경사항을 보내는거
   const send =
