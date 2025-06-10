@@ -10,11 +10,8 @@ export default function ClientDiagram ({user, uuid}: { user:User, uuid: string }
     { ssr: false }
   );
 
-  return <div className="flex flex-col justify-start w-full relative gap-[59px] bg-[#f0f8fe]">
-    <TopNavigationBar user={user} selectedNoteId={uuid} />
-    <div className="flex flex-row w-full pt-24">
+  return <div className="w-[100vw] h-[100vh]">
       <DiagramRenderer user={user} uuid={uuid} />
-    </div>
     <ChatMenu uuid={uuid} user={user}/>
   </div>
 }

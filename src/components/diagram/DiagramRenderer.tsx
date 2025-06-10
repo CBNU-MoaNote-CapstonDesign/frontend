@@ -4,6 +4,7 @@ import {useEffect, useRef, useState} from "react";
 import type {ExcalidrawImperativeAPI} from "@excalidraw/excalidraw/types";
 import useDocumentSync from "@/hooks/useDocumentSync";
 import {ExcalidrawElement} from "@excalidraw/excalidraw";
+import useDiagramSync from "@/hooks/useDiagramSync";
 
 
 const ExcalidrawWrapper = dynamic(
@@ -15,9 +16,10 @@ const ExcalidrawWrapper = dynamic(
 
 export default function DiagramRenderer({user, uuid}: { user: User, uuid: string }) {
   const updateRef = useRef<null | ((elements: ExcalidrawElement[]) => void)>(null);
+  const [first, setFirst] = useState<boolean>(true);
 
-  const {publish} = useDocumentSync(user,
-    "01975535-44a6-77eb-84e5-c9b2c27f4e2b",
+  const {publish} = useDiagramSync(user,
+    uuid,
     (content: string) => {
       try {
 
@@ -29,6 +31,7 @@ export default function DiagramRenderer({user, uuid}: { user: User, uuid: string
         if (updateRef.current) {
           updateRef.current(data);
         }
+        setFirst(false);
       } catch (e: unknown) {
         console.log(e);
       }
@@ -42,8 +45,10 @@ export default function DiagramRenderer({user, uuid}: { user: User, uuid: string
         }}
         onChange={(elements) => {
           console.log("변경 발생한거 publish합니다.");
-          const body = JSON.stringify(elements);
-          publish(body);
+          if (!first) {
+            const body = JSON.stringify(elements);
+            publish(body);
+          }
         }}/>
     </div>
   );

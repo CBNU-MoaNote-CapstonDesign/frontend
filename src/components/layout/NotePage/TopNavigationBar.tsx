@@ -4,13 +4,32 @@ import {useEffect, useState} from "react";
 import Profile from "@/components/layout/Profile";
 import InviteUserModal from "@/components/layout/NotePage/InviteUserModal";
 import {MoaFile} from "@/types/file";
-import {getCollaborators, getFile} from "@/libs/client/file";
-
+import {addNoteSegment, getCollaborators, getFile} from "@/libs/client/file";
+import toast from "react-hot-toast";
 
 export default function TopNavigationBar({user, selectedNoteId}: { user: User; selectedNoteId: string }) {
   const [note, setNote] = useState<MoaFile | null>(null);
   const [inviteOpen, setInviteOpen] = useState(false);
   const [sharedUsers, setSharedUsers] = useState<User[]>([]);
+
+  const handleAddDiagram = () => {
+    addNoteSegment(selectedNoteId, 1, user).then((data)=>{
+      const segmentId = data as string;
+
+      const copyText = (text) => {
+        navigator.clipboard.writeText(text)
+          .then(() => {
+            console.log('Text copied to clipboard!');
+          })
+          .catch((err) => {
+            console.error('Failed to copy text: ', err);
+          });
+      };
+
+      copyText(`/diagram/${segmentId}`);
+      toast.success("Digram 태그를 클립보드에 복사했습니다.");
+    });
+  }
 
   useEffect(() => {
     getFile(selectedNoteId, user).then((file) => {
@@ -61,6 +80,7 @@ export default function TopNavigationBar({user, selectedNoteId}: { user: User; s
                             cursor-pointer
                             transition
                         "
+                      onClick={()=>{handleAddDiagram();}}
                     >
                         디자인 블록
                     </span>
