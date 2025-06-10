@@ -1,7 +1,33 @@
 import {cookies} from "next/headers";
 import {Note} from "@/types/note";
+import {NoteDTO} from "@/types/dto";
 
 const SERVER_URL = process.env.NEXT_PUBLIC_SERVER_URL;
+
+/**
+ * 특정 파일의 NoteDTO 를 불러오는 API
+ *
+ * @param fileId Note 데이터를 받아올 file 의 id
+ * @param userId 요청을 보내는 유저의 id
+ * @see NoteDTO
+ */
+export async function fetchNote(fileId: string, userId: string): Promise<NoteDTO | null> {
+  const cookie = (await cookies()).toString();
+  const res = await fetch(`${SERVER_URL}/api/notes/metadata/${fileId}?user=${userId}`, {
+    method: "GET",
+    credentials: "include",
+    headers: {
+      cookie,
+      "Content-Type": "application/json"
+    }
+  });
+
+  if (!res.ok) {
+    return null;
+  }
+
+  return await res.json() as NoteDTO;
+}
 
 /**
  * fetchNotes

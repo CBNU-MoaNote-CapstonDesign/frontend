@@ -38,6 +38,7 @@ export interface TreeNodeDTO {
   node: string,
   parentId: UUID,
   value: string,
+  side: "LEFT" | "RIGHT"
 }
 
 export interface LWWStateDTO {

@@ -1,6 +1,8 @@
 import {TreeNode} from "@/types/treenode";
 import {CRDTOperation} from "@/types/crdtOperation";
 import invariant from "tiny-invariant";
+import {TreeNodeDTO} from "@/types/dto";
+import {codeText} from "micromark-core-commonmark";
 
 
 /**
@@ -96,56 +98,48 @@ export class TreeNote {
    * @param title note title
    * @param root root node of tree based document
    */
-  static fromTree(uuid: string, id: string, title: string, root: TreeNode) {
+  static fromTree(uuid: string, id: string, title: string, rootDTO: TreeNodeDTO, nodesDTO: TreeNodeDTO[]) {
+    const root: TreeNode = {
+      id: rootDTO.node,
+      leftChildren: [],
+      rightChildren: [],
+    };
+
+    const nodes: TreeNode[] = [];
+    let _idToNode = new Map<string, TreeNode>();
+
+    for (let i = 0; i < nodesDTO.length; i++) {
+      const nodeDTO = nodesDTO[i];
+      if (nodeDTO.parentId == null) {
+        nodes.push(root);
+        continue;
+      }
+      const node = {
+        id: nodeDTO.node,
+        leftChildren: [],
+        rightChildren: []
+      };
+      nodes.push(node);
+      _idToNode.set(node.id, node);
+    }
+
+    for (let i = 0; i < nodesDTO.length; i++) {
+      if (nodesDTO[i].parentId == null)
+        continue;
+      if (nodesDTO[i].side == "LEFT")
+        _idToNode.get(nodesDTO[i].parentId)?.leftChildren.push(nodes[i]);
+      else
+        _idToNode.get(nodesDTO[i].parentId)?.rightChildren.push(nodes[i]);
+    }
+
     const _id = id;
     const _title = title;
     const _indexToChild = new Map<number, TreeNode>();
-    const _idToNode = new Map<string, TreeNode>();
-    const _root = root;
+    _idToNode = new Map<string, TreeNode>();
 
-    let size = 0;
-    let lastVisit = null;
-    const contentBuffer: string[] = [];
-    const stack: { node: TreeNode; state: "left" | "self" | "right"; index: number }[] = [];
-
-    stack.push({ node: root, state: "left", index: 0 });
-    _indexToChild.set(-1, root);
-
-    while (stack.length > 0) {
-      const top = stack[stack.length - 1];
-
-      if (top.state === "left") {
-        // Traverse leftChildren one by one
-        if (top.index < top.node.leftChildren.length) {
-          const child = top.node.leftChildren[top.index++];
-          stack.push({ node: child, state: "left", index: 0 });
-        } else {
-          top.state = "self";
-        }
-      } else if (top.state === "self") {
-        if (lastVisit)
-          lastVisit.successor = top.node;
-        lastVisit = top.node;
-        size++;
-        top.state = "right";
-        top.index = 0;
-        _idToNode.set(top.node.id, top.node);
-        if (!top.node.value)
-          continue;
-        contentBuffer.push(top.node.value);
-        _indexToChild.set(contentBuffer.length - 1, top.node);
-      } else if (top.state === "right") {
-        if (top.index < top.node.rightChildren.length) {
-          const child = top.node.rightChildren[top.index++];
-          stack.push({ node: child, state: "left", index: 0 });
-        } else {
-          stack.pop();
-        }
-      }
-    }
-    const _content = contentBuffer.join("");
-
-    return new TreeNote(uuid, _id, _title, _content, _root, size, _indexToChild, _idToNode);
+    const tree: TreeNote = new TreeNote(uuid, _id, _title, "", root, nodesDTO.length, _indexToChild, _idToNode);
+    tree.traversal();
+    return tree;
   }
 
   /**
