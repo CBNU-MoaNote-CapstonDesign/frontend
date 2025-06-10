@@ -1,12 +1,31 @@
 "use client";
-import {Excalidraw} from "@excalidraw/excalidraw";
+import {Excalidraw, ExcalidrawElement} from "@excalidraw/excalidraw";
 
 import "@excalidraw/excalidraw/index.css";
 import {ExcalidrawImperativeAPI} from "@excalidraw/excalidraw/types";
+import {useEffect, useState} from "react";
 
 const ExcalidrawWrapper: React.FC<{
-  setExcalidrawAPI: (api:ExcalidrawImperativeAPI) => void,
-}> = ({setExcalidrawAPI}) => {
+  onChange: (elements:ExcalidrawElement[]) => void,
+  setUpdate: (update: (elements: ExcalidrawElement[])=>void)=>void,
+}> = ({setUpdate, onChange}) => {
+  const [excalidrawAPI, setExcalidrawAPI] = useState<ExcalidrawImperativeAPI>();
+
+  useEffect(() => {
+    if (excalidrawAPI) {
+      excalidrawAPI.onChange((elements)=>{
+        onChange(elements as ExcalidrawElement[]);
+      })
+
+      setUpdate((elements:ExcalidrawElement[])=>{
+        excalidrawAPI.updateScene(
+          {
+            elements: elements,
+          }
+        );
+      })
+    }
+  }, [excalidrawAPI]);
 
   return (
     <div className={"w-full h-full"}>
