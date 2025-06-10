@@ -3,6 +3,7 @@ import { useEffect, useRef } from 'react';
 import {Client} from '@stomp/stompjs';
 import toast from "react-hot-toast";
 import {CRDTOperation} from "@/types/crdtOperation";
+import {TextNoteSegmentDTO} from "@/types/dto";
 
 const SERVER_WS_URL = process.env.NEXT_PUBLIC_SERVER_WS_URL;
 /**
@@ -14,6 +15,7 @@ const SERVER_WS_URL = process.env.NEXT_PUBLIC_SERVER_WS_URL;
  */
 const useFugueDocumentSync = (uuid:string, onAction:(actions: CRDTOperation[])=>void) => {
   const clientRef = useRef<Client | null>(null);
+  const textNoteSegmentsRef = useRef<TextNoteSegmentDTO[]>([]);
 
   /**
    * broadcast : operation을 백엔드에 전송하는 기능
@@ -21,12 +23,12 @@ const useFugueDocumentSync = (uuid:string, onAction:(actions: CRDTOperation[])=>
    * @param actions CRDTOperation[] - 전송할 operation 배열
    */
   const broadcast = (actions: CRDTOperation[]) => {
-    setTimeout(()=>{if (clientRef.current && clientRef.current.connected) {
+    if (clientRef.current && clientRef.current.connected) {
       clientRef.current.publish({
         destination: `/app/docs/tree/edit/${uuid}`,
         body: JSON.stringify(actions),
       });
-    }}, 2000);
+    };
   };
 
   useEffect(() => {
@@ -37,15 +39,23 @@ const useFugueDocumentSync = (uuid:string, onAction:(actions: CRDTOperation[])=>
       onConnect: () => {
         if (process.env.DEBUG==='true')
           toast("연결시도 끝");
-        client.subscribe(`/topic/docs/${uuid}`, (message) => {
-          try {
-              const body = JSON.parse(message.body);
-              const actions = body as CRDTOperation[];
-              onAction(actions); // action 전달받았을 때 콜백 호출
-          } catch {
-              toast.error("전달 받은 정보의 body가 Operation 형식이 아닙니다. : " + message.body);
+        client.subscribe(`/app/docs/text/participate/${uuid}`, (data) => {
+          const body = JSON.parse(data.body);
+          if(body?.textNoteSegments) {
+            textNoteSegmentsRef.current = body.textNoteSegments as TextNoteSegmentDTO[];
+
+            client.subscribe(`/topic/docs/text/${uuid}/${textNoteSegmentsRef[0].id}`, (message) => {
+              try {
+                const body = JSON.parse(message.body);
+                const actions = body as CRDTOperation[];
+                onAction(actions); // action 전달받았을 때 콜백 호출
+              } catch {
+                toast.error("전달 받은 정보의 body가 Operation 형식이 아닙니다. : " + message.body);
+              }
+            });
           }
         });
+
       },
       onWebSocketError: (event) => {
         toast.error("서버와의 연결이 실패하였습니다.",{position:"bottom-right"});
