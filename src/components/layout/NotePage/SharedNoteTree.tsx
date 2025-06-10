@@ -34,13 +34,15 @@ export default function SharedNoteTree({user, selectedNoteId}: { user: User, sel
       sharedFiles.length > 0 && (
         sharedFiles.map((file: MoaFile) => {
           return (
-            <NoteItem key={file.id}
-                      note={file}
-                      onEdit={()=>{}}
-                      selected={selectedNoteId == file.id}
-                      onClick={()=>{
-                        router.push(`/doc/${file.id}`);
-                      }} />
+            <div key={file.id} className={"my-1 ml-7"}>
+              <NoteItem
+                        note={file}
+                        onEdit={()=>{}}
+                        selected={selectedNoteId == file.id}
+                        onClick={()=>{
+                          router.push(`/doc/${file.id}`);
+                        }} />
+            </div>
           );
         })
       )
