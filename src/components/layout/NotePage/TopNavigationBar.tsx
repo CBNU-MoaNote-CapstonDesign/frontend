@@ -4,7 +4,7 @@ import {useEffect, useState} from "react";
 import Profile from "@/components/layout/Profile";
 import InviteUserModal from "@/components/layout/NotePage/InviteUserModal";
 import {MoaFile} from "@/types/file";
-import {getFile} from "@/libs/client/file";
+import {getCollaborators, getFile} from "@/libs/client/file";
 
 
 export default function TopNavigationBar({user, selectedNoteId}: { user: User; selectedNoteId: string }) {
@@ -16,6 +16,14 @@ export default function TopNavigationBar({user, selectedNoteId}: { user: User; s
     getFile(selectedNoteId, user).then((file) => {
       setNote(file);
     });
+
+    getCollaborators(selectedNoteId, user).then((collaborators)=>{
+      const users:User[] = collaborators.map((collaborator)=>{
+        return collaborator.user;
+      });
+
+      setSharedUsers(users);
+    })
   }, [selectedNoteId, user]);
 
   return (
@@ -99,10 +107,9 @@ export default function TopNavigationBar({user, selectedNoteId}: { user: User; s
         <InviteUserModal
           user={user}
           noteId={selectedNoteId}
-          open={inviteOpen}
           onClose={() => setInviteOpen(false)}
-          onInvite={() => {
-          }}
+          open={inviteOpen}
+          onInvite={() => {}}
         />
       </div>
 
