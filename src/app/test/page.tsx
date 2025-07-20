@@ -7,6 +7,9 @@ export default async function Page() {
   console.log("유저 정보");
   console.log(user);
 
+  if (!user) {
+    return <div>로그인이 필요합니다.</div>;
+  }
 
   const file = await createFile('test', FileTypeDTO.DOCUMENT, null, user) as FileDTO;
 
