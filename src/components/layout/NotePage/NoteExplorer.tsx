@@ -53,18 +53,23 @@ export default function NoteExplorer({
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
 
+  const openNoteModal = () => {
+  setShowAddMenu(false);
+  setShowNoteModal(true);
+  };
+
   const openFolderModal = () => {
     setShowAddMenu(false);
     setShowFolderModal(true);
   };
 
-  const openEditModal = (folder: MoaFile) => {
+  const openFolderEditModal = (folder: MoaFile) => {
     setEditFolder(folder);
     setShowAddMenu(false);
     setShowEditModal(true);
   };
 
-  const closeEditModal = () => {
+  const closeFolderEditModal = () => {
     setEditFolder(null);
     setShowAddMenu(false);
     setShowEditModal(false);
@@ -160,8 +165,12 @@ export default function NoteExplorer({
   };
 
   const handleDeleteFolder = (folderId: string) => {
+    console.log("폴더 삭제 요청 folderId:", folderId);
+    console.log("폴더 삭제 요청 userId:", user);
+
     deleteFile(folderId, user).then(() => {
-      reRoot();
+      reRoot(); // 트리 새로 고침
+      closeFolderEditModal(); // 모달 닫기
     });
   };
 
@@ -196,8 +205,12 @@ export default function NoteExplorer({
   };
 
   const handleDeleteNote = (noteId: string) => {
+    console.log("노트 삭제 요청 noteId:", noteId);
+    console.log("노트 삭제 요청 userId:", user);
+
     deleteFile(noteId, user).then(() => {
-      reRoot();
+      reRoot(); // 트리 새로 고침
+      closeNoteEditModal(); // 삭제 후 모달 닫기
     });
   };
 
@@ -277,10 +290,7 @@ export default function NoteExplorer({
               </button>
               {showAddMenu && (
                 <AddMenu
-                  onAddNote={() => {
-                    setShowAddMenu(false);
-                    setShowNoteModal(true);
-                  }}
+                  onAddNote={openNoteModal}
                   onAddFolder={openFolderModal}
                   onClose={() => setShowAddMenu(false)}
                 />
@@ -295,7 +305,7 @@ export default function NoteExplorer({
                 selectedNoteId={selectedNoteId}
                 folderOpen={folderOpen}
                 onToggleFolder={handleToggleFolder}
-                onEditFolder={openEditModal}
+                onEditFolder={openFolderEditModal}
                 onEditNote={openNoteEditModal}
                 onNoteClick={(noteId) => router.push(`/doc/${noteId}`)}
               />
@@ -336,7 +346,7 @@ export default function NoteExplorer({
               folderId={editFolder.id}
               onDelete={handleDeleteFolder}
               onEdit={handleEditFolder}
-              onCancel={closeEditModal}
+              onCancel={closeFolderEditModal}
             />
           )}
 
