@@ -1,7 +1,7 @@
 'use client';
 
 import {useEffect, useState} from "react";
-import {Collaborator} from "@/types/dto";
+import {Collaborator, PermissionDTO} from "@/types/dto";
 import {getCollaborators, invite} from "@/libs/client/file";
 
 
@@ -102,7 +102,7 @@ export default function InviteUserModal({
                 <select
                   value={collaborator.permission}
                   onChange={(e)=>{
-                    collaborator.permission = e.target.value;
+                    collaborator.permission = e.target.value as PermissionDTO;
                     handlePermissionChange(collaborator);
                   }}>
                   <option value="READ">읽기</option>
