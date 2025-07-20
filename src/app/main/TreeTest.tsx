@@ -21,6 +21,7 @@ export default function TreeTest({ user }: { user: User }) {
         folderOpen={{}}
         onToggleFolder={() => {}}
         onEditFolder={() => {}}
+        onEditNote={()=>{}}
         onNoteClick={() => {}}
       />
     );
