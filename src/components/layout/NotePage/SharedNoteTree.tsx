@@ -19,33 +19,32 @@ export default function SharedNoteTree({user, selectedNoteId}: { user: User, sel
     })
   }, [user]);
 
-  return (<div>
-    <FolderItem
-      folder={{
-        id: "null",
-        name: "공유받은 문서",
-        type: FileTypeDTO.DIRECTORY,
-        children: []
-      } as MoaFile}
-      open={()=>{}}
-      onToggle={()=>{}}
-      onEdit={()=>{}} />
-    {
-      sharedFiles.length > 0 && (
-        sharedFiles.map((file: MoaFile) => {
-          return (
+  return (
+    <div>
+      <FolderItem
+        folder={{
+          id: "00000000-0000-0000-0000-000000000000",
+          name: "공유받은 문서",
+          type: FileTypeDTO.DIRECTORY,
+          children: []
+        } as MoaFile}
+        open={true}
+        onToggle={()=>{}}
+        onEdit={()=>{}}>
+        {sharedFiles.length > 0 && (
+          sharedFiles.map((file: MoaFile) => (
             <div key={file.id} className={"my-1 ml-7"}>
               <NoteItem
-                        note={file}
-                        onEdit={()=>{}}
-                        selected={selectedNoteId == file.id}
-                        onClick={()=>{
-                          router.push(`/doc/${file.id}`);
-                        }} />
+                note={file}
+                onEdit={()=>{}}
+                selected={selectedNoteId == file.id}
+                onClick={()=>{
+                  router.push(`/doc/${file.id}`);
+                }} />
             </div>
-          );
-        })
-      )
-    }
-  </div>);
+          ))
+        )}
+      </FolderItem>
+    </div>
+  );
 }
