@@ -36,13 +36,10 @@ export default function TopNavigationBar({user, selectedNoteId}: { user: User; s
       setNote(file);
     });
 
-    getCollaborators(selectedNoteId, user).then((collaborators)=>{
-      const users:User[] = collaborators.map((collaborator)=>{
-        return collaborator.user;
-      });
-
+    getCollaborators(selectedNoteId, user).then((collaborators) => {
+      const users: User[] = (collaborators ?? []).map((collaborator) => collaborator.user);
       setSharedUsers(users);
-    })
+    });
   }, [selectedNoteId, user]);
 
   return (
