@@ -1,12 +1,11 @@
 import {cookies} from "next/headers";
-import {User} from "@/types/user";
 
 const SERVER_URL = process.env.NEXT_PUBLIC_SERVER_URL;
 
 /**
  * Server-Side : 현재 로그인 된 유저 정보 가져오기
  */
-export async function fetchCurrentUserServerSide() {
+export async function fetchCurrentUserServerSide(): Promise<User | null>{
     if (typeof window !== "undefined") {
         throw new Error("fetchServerUser must be called on the server only");
     }
