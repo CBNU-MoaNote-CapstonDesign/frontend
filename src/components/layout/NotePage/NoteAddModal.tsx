@@ -10,7 +10,7 @@ interface Props {
   errorMsg?: string | null;
 }
 
-export default function AddNoteModal({
+export default function NoteAddModal({
                                        root,
                                        onAdd,
                                        onCancel,

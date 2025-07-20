@@ -11,7 +11,7 @@ import FolderAddModal from "./FolderAddModal";
 import {MoaFile} from "@/types/file";
 import {addNoteSegment, createFile, deleteFile, editFile, getFile, getFileTree} from "@/libs/client/file";
 import {FileTypeDTO} from "@/types/dto";
-import AddNoteModal from "@/components/layout/NotePage/AddNoteModal";
+import AddNoteModal from "@/components/layout/NotePage/NoteAddModal";
 import FolderEditModal from "@/components/layout/NotePage/FolderEditModal";
 import NoteEditModal from "@/components/layout/NotePage/NoteEditModal";
 import SharedNoteTree from "@/components/layout/NotePage/SharedNoteTree";
