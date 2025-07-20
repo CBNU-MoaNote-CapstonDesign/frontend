@@ -3,7 +3,7 @@ import dynamic from "next/dynamic";
 import {useEffect, useRef, useState} from "react";
 import type {ExcalidrawImperativeAPI} from "@excalidraw/excalidraw/types";
 import useDocumentSync from "@/hooks/useDocumentSync";
-import {ExcalidrawElement} from "@excalidraw/excalidraw";
+import { ExcalidrawElement } from "@excalidraw/excalidraw/element/types";
 import useDiagramSync from "@/hooks/useDiagramSync";
 
 

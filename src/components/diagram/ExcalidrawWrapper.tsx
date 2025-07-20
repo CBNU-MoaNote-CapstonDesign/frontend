@@ -1,5 +1,6 @@
 "use client";
-import {Excalidraw, ExcalidrawElement} from "@excalidraw/excalidraw";
+import {Excalidraw} from "@excalidraw/excalidraw";
+import { ExcalidrawElement } from "@excalidraw/excalidraw/element/types";
 
 import "@excalidraw/excalidraw/index.css";
 import {ExcalidrawImperativeAPI} from "@excalidraw/excalidraw/types";
