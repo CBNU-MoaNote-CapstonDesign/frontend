@@ -1,7 +1,7 @@
 "use client";
 
 import {MoaFile} from "@/types/file";
-import {useState} from "react";
+import React, {useState} from "react";
 
 interface Props {
   root: MoaFile;
@@ -26,13 +26,11 @@ export default function FolderAddModal({
     folder: MoaFile,
     depth = 0
   ): React.ReactNode => {
-    // 루트 폴더 가져오기
-
     if (folder.type.toString() !== "DIRECTORY") return null;
 
     return (
-      <>
-        <option key={folder.id} value={folder.id}>
+      <React.Fragment key={folder.id}>
+        <option value={folder.id}>
           {`${"—".repeat(depth)} ${folder.name}`}
         </option>
         {folder.children &&
@@ -40,7 +38,7 @@ export default function FolderAddModal({
             renderFolderOptions(child, depth + 1)
           )
         }
-      </>
+      </React.Fragment>
     );
   };
 
