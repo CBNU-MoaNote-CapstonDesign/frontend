@@ -12,7 +12,7 @@ export default function MainPageClient({ user, selectedNoteId }: MainPageClientP
 
   return (
     <div className="flex flex-col justify-start w-full relative gap-[59px] bg-[#f0f8fe]">
-      <TopNavigationBar user={user} notes={[]} selectedNoteId={selectedNoteId ?? ""} />
+      <TopNavigationBar user={user} selectedNoteId={selectedNoteId ?? ""} />
       <div className="flex flex-row w-full pt-24">
         <NoteExplorer user={user} selectedNoteId={""} />
 
