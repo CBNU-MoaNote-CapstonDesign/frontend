@@ -1,3 +1,6 @@
+// 더이상 사용되지 않는 컴포넌트
+// NoteExplorer.tsx 컴포넌트에 햄버거 메뉴 기능이 별도로 구현되어 있음
+
 "use client"
 import {RxHamburgerMenu} from "react-icons/rx";
 import {BsChevronLeft} from "react-icons/bs";

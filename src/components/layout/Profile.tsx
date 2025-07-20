@@ -1,3 +1,5 @@
+// 현재 사용되지 않는 컴포넌트
+
 export default function Profile({ name }: { name: string }) {
   // 이름의 첫 글자 추출 (없으면 ?)
   const initial = name ? name[0].toUpperCase() : "?";
