@@ -312,7 +312,7 @@ export async function getCollaborators(fildId:string, user:User): Promise<Collab
   }
 }
 
-export async function getSharedFiles(user:User) {
+export async function getSharedFiles(user: User): Promise<MoaFile[]> {
   const location = `/api/files/all/${user.id}`;
   try {
     const data = await getRequest(location);
