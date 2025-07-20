@@ -302,7 +302,7 @@ export async function invite(fileId: string, user:User, collaboratorName:string,
   }
 }
 
-export async function getCollaborators(fildId:string, user:User): Collaborator[] {
+export async function getCollaborators(fildId:string, user:User): Promise<Collaborator[]> {
   const location = `/api/files/collaborators/${fildId}?user=${user.id}`;
   try {
     const data = await getRequest(location);
