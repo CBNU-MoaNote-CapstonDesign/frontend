@@ -16,7 +16,7 @@ export default function TopNavigationBar({user, selectedNoteId}: { user: User; s
     addNoteSegment(selectedNoteId, 1, user).then((data)=>{
       const segmentId = data as string;
 
-      const copyText = (text) => {
+      const copyText = (text: string) => {
         navigator.clipboard.writeText(text)
           .then(() => {
             console.log('Text copied to clipboard!');
