@@ -10,6 +10,7 @@ import {FileTypeDTO} from "@/types/dto";
 
 export default function SharedNoteTree({user, selectedNoteId}: { user: User, selectedNoteId:string }) {
   const [sharedFiles, setSharedFiles] = useState<MoaFile[]>([]);
+  const [folderOpen, setFolderOpen] = useState<Record<string, boolean>>({});
 
   const router = useRouter();
 
@@ -19,17 +20,25 @@ export default function SharedNoteTree({user, selectedNoteId}: { user: User, sel
     })
   }, [user]);
 
+  // 폴더 토글 핸들러
+  const handleToggleFolder = (folderId: string) => {
+    setFolderOpen(prev => ({
+      ...prev,
+      [folderId]: !prev[folderId]
+    }));
+  };
+
   return (
     <div>
       <FolderItem
         folder={{
-          id: "00000000-0000-0000-0000-000000000000",
+          id: "00000000-0000-0000-0000-000000000000", // 공유 폴더의 임시 uuid
           name: "공유받은 문서",
           type: FileTypeDTO.DIRECTORY,
           children: []
         } as MoaFile}
-        open={true}
-        onToggle={()=>{}}
+        open={folderOpen["00000000-0000-0000-0000-000000000000"] ?? true}
+        onToggle={() => handleToggleFolder("00000000-0000-0000-0000-000000000000")}
         onEdit={()=>{}}>
         {sharedFiles.length > 0 && (
           sharedFiles.map((file: MoaFile) => (

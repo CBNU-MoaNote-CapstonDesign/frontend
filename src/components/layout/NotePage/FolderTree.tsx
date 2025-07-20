@@ -3,14 +3,14 @@ import NoteItem from "./NoteItem";
 import {MoaFile} from "@/types/file";
 
 export default function FolderTree({
-                                     file,
-                                     selectedNoteId,
-                                     folderOpen,
-                                     onToggleFolder,
-                                     onEditFolder,
-                                     onEditNote,
-                                     onNoteClick,
-                                   }: {
+  file,
+  selectedNoteId,
+  folderOpen,
+  onToggleFolder,
+  onEditFolder,
+  onEditNote,
+  onNoteClick,
+}: {
   file: MoaFile;
   selectedNoteId: string;
   folderOpen: Record<string, boolean>;
@@ -43,36 +43,34 @@ export default function FolderTree({
       <FolderItem
         key={file.id}
         folder={file}
-        open={true/*folderOpen[file.id]*/}
+        open={folderOpen[file.id] ?? true} // 처음엔 폴더는 열린 상태로 보여짐
         onToggle={() => onToggleFolder(file.id)}
         onEdit={() => onEditFolder(file)}
       >
-        {
-          directories.map((directory) => (
-            FolderTree({
-              file: directory,
-              selectedNoteId: selectedNoteId,
-              folderOpen: folderOpen,
-              onToggleFolder: onToggleFolder,
-              onEditFolder: onEditFolder,
-              onEditNote: onEditNote,
-              onNoteClick: onNoteClick
-            })
-          ))
-        }
-        {
-          notes.map((note) => (
-            FolderTree({
-              file: note,
-              selectedNoteId: selectedNoteId,
-              folderOpen: folderOpen,
-              onToggleFolder: onToggleFolder,
-              onEditFolder: onEditFolder,
-              onEditNote: onEditNote,
-              onNoteClick: onNoteClick
-            })
-          ))
-        }
+        {directories.map((directory) => (
+          <FolderTree
+            key={directory.id}
+            file={directory}
+            selectedNoteId={selectedNoteId}
+            folderOpen={folderOpen}
+            onToggleFolder={onToggleFolder}
+            onEditFolder={onEditFolder}
+            onEditNote={onEditNote}
+            onNoteClick={onNoteClick}
+          />
+        ))}
+        {notes.map((note) => (
+          <FolderTree
+            key={note.id}
+            file={note}
+            selectedNoteId={selectedNoteId}
+            folderOpen={folderOpen}
+            onToggleFolder={onToggleFolder}
+            onEditFolder={onEditFolder}
+            onEditNote={onEditNote}
+            onNoteClick={onNoteClick}
+          />
+        ))}
       </FolderItem>
     )
   }
