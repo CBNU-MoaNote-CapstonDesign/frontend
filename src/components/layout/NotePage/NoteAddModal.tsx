@@ -1,6 +1,6 @@
 "use client"
 
-import {useState} from "react";
+import React, {useState} from "react";
 import {MoaFile} from "@/types/file";
 
 interface Props {
@@ -28,8 +28,8 @@ export default function NoteAddModal({
     if (folder.type.toString() !== "DIRECTORY") return null;
 
     return (
-      <>
-        <option key={folder.id} value={folder.id}>
+      <React.Fragment key={folder.id}>
+        <option value={folder.id}>
           {`${"—".repeat(depth)} ${folder.name}`}
         </option>
         {folder.children &&
@@ -37,7 +37,7 @@ export default function NoteAddModal({
             renderFolderOptions(child, depth + 1)
           )
         }
-      </>
+      </React.Fragment>
     );
   };
 
