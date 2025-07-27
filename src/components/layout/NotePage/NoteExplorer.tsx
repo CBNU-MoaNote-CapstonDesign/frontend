@@ -112,7 +112,7 @@ export default function NoteExplorer({
     });
   };
 
-  const handleAddFolder = (
+  const handleAddFolder = async (
     folderName: string,
     parentId: string,
     selectedNotes: string[]
@@ -122,37 +122,32 @@ export default function NoteExplorer({
     console.log("폴더 생성 호출");
     console.log(folderName);
     console.log(parentId);
-    // 실제 폴더 생성 로직(API 호출 등) 추가 가능
-    createFile(folderName, FileTypeDTO.DIRECTORY, parentId, user).then(
-      (folder) => {
-        if (!folder) return;
-        // Selected Notes
-        for (const noteId of selectedNotes) {
-          getFile(noteId, user).then((note) => {
-            if (note) {
-              editFile(note, folder.id, user).then((result) => {
-                console.log(result ? "에딧 성공 " : "에딧 실패");
-                console.log(note.name);
-                console.log(note.id);
-              });
-            }
-          });
-        }
 
-        // 파일 구조 초기화
-        getFileTree(null, user).then((rootFolder) => {
-          if (rootFolder) {
-            setRoot(rootFolder);
-          } else {
-            setRoot(null);
-          }
-          setShowFolderModal(false);
-          setShowNoteModal(false);
-          setShowEditModal(false);
-          setErrorMsg(null);
-        });
-      }
+    const folder = await createFile(
+      folderName,
+      FileTypeDTO.DIRECTORY,
+      parentId,
+      user
     );
+    if (!folder) return;
+
+    if (selectedNotes.length > 0) {
+      await Promise.all(
+        selectedNotes.map(async (noteId) => {
+          const note = await getFile(noteId, user);
+          if (note) {
+            await editFile(note, folder.id, user);
+          }
+        })
+      );
+    }
+
+    const rootFolder = await getFileTree(null, user);
+    setRoot(rootFolder);
+    setShowFolderModal(false);
+    setShowNoteModal(false);
+    setShowEditModal(false);
+    setErrorMsg(null);
   };
 
   const handleAddNote = (noteName: string, parentId: string) => {
