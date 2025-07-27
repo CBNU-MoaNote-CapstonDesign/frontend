@@ -19,7 +19,9 @@ import {
 } from "@/libs/client/file";
 import { FileTypeDTO } from "@/types/dto";
 import NoteAddModal from "@/components/layout/NotePage/NoteAddModal";
-import FolderEditModal from "@/components/layout/NotePage/FolderEditModal";
+import FolderEditModal, {
+  getFileById,
+} from "@/components/layout/NotePage/FolderEditModal";
 import NoteEditModal from "@/components/layout/NotePage/NoteEditModal";
 import SharedNoteTree from "@/components/layout/NotePage/SharedNoteTree";
 
@@ -191,6 +193,27 @@ export default function NoteExplorer({
     parentId: string,
     selectedNotes: string[]
   ) => {
+    if (!root) return;
+
+    // 기존 폴더에 포함된 노트 id 목록
+    const folder = editFolder ?? getFileById(folderId, root);
+    const originalNoteIds = (folder?.children ?? []).map((n) => n.id);
+
+    // 체크 해제된(포함 해제된) 노트 id 목록
+    const removedNoteIds = originalNoteIds.filter(
+      (id) => !selectedNotes.includes(id)
+    );
+
+    // 포함 해제된 노트는 루트(혹은 상위 폴더)로 이동
+    removedNoteIds.forEach((noteId) => {
+      getFile(noteId, user).then((note) => {
+        if (note) {
+          editFile(note, root.id, user);
+        }
+      });
+    });
+
+    // 폴더 정보(이름, 위치 등) 수정
     editFile(
       {
         id: folderId,
