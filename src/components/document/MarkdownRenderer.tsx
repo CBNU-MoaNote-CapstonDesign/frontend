@@ -1,12 +1,15 @@
 import Markdown from "react-markdown";
 
-export function MarkdownRenderer({content, startEditing}: {
-  content: string | null | undefined,
-  startEditing: () => void
+export function MarkdownRenderer({
+  content,
+  startEditing,
+}: {
+  content: string | null | undefined;
+  startEditing: () => void;
 }) {
   const handleClick = () => {
     startEditing();
-  }
+  };
 
   return (
     <div

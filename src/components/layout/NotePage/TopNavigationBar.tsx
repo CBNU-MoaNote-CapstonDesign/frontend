@@ -1,35 +1,42 @@
-'use client';
+"use client";
 
-import {useEffect, useState} from "react";
+import { useEffect, useState } from "react";
 import Profile from "@/components/layout/Profile";
 import InviteUserModal from "@/components/layout/NotePage/InviteUserModal";
-import {MoaFile} from "@/types/file";
-import {addNoteSegment, getCollaborators, getFile} from "@/libs/client/file";
+import { MoaFile } from "@/types/file";
+import { addNoteSegment, getCollaborators, getFile } from "@/libs/client/file";
 import toast from "react-hot-toast";
 
-export default function TopNavigationBar({user, selectedNoteId}: { user: User; selectedNoteId: string }) {
+export default function TopNavigationBar({
+  user,
+  selectedNoteId,
+}: {
+  user: User;
+  selectedNoteId: string;
+}) {
   const [note, setNote] = useState<MoaFile | null>(null);
   const [inviteOpen, setInviteOpen] = useState(false);
   const [sharedUsers, setSharedUsers] = useState<User[]>([]);
 
   const handleAddDiagram = () => {
-    addNoteSegment(selectedNoteId, 1, user).then((data)=>{
+    addNoteSegment(selectedNoteId, 1, user).then((data) => {
       const segmentId = data as string;
 
       const copyText = (text: string) => {
-        navigator.clipboard.writeText(text)
+        navigator.clipboard
+          .writeText(text)
           .then(() => {
-            console.log('Text copied to clipboard!');
+            console.log("Text copied to clipboard!");
           })
           .catch((err) => {
-            console.error('Failed to copy text: ', err);
+            console.error("Failed to copy text: ", err);
           });
       };
 
       copyText(`/diagram/${segmentId}`);
       toast.success("Digram 태그를 클립보드에 복사했습니다.");
     });
-  }
+  };
 
   useEffect(() => {
     getFile(selectedNoteId, user).then((file) => {
@@ -37,14 +44,15 @@ export default function TopNavigationBar({user, selectedNoteId}: { user: User; s
     });
 
     getCollaborators(selectedNoteId, user).then((collaborators) => {
-      const users: User[] = (collaborators ?? []).map((collaborator) => collaborator.user);
+      const users: User[] = (collaborators ?? []).map(
+        (collaborator) => collaborator.user
+      );
       setSharedUsers(users);
     });
   }, [selectedNoteId, user]);
 
   return (
-    <header
-      className="fixed top-0 left-0 w-full h-24 bg-gradient-to-r from-[#f0f8fe] to-[#e0e7ff] z-50 flex items-center px-8 shadow-md">
+    <header className="fixed top-0 left-0 w-full h-24 bg-gradient-to-r from-[#f0f8fe] to-[#e0e7ff] z-50 flex items-center px-8 shadow-md">
       {/* 로고 및 제목 */}
       <div className="flex items-center gap-4 min-w-[200px]">
         <img
@@ -53,18 +61,18 @@ export default function TopNavigationBar({user, selectedNoteId}: { user: User; s
           alt="logo"
         />
         <span className="text-2xl font-bold text-[#186370] tracking-tight select-none">
-                    모아노트
-                </span>
+          모아노트
+        </span>
       </div>
 
       {/* 문서 제목 및 블록 타입 */}
       <div className="flex-1 flex flex-col items-center">
-                <span className="text-lg md:text-xl font-semibold text-[#333] mb-1 truncate max-w-[60vw]">
-                  {note ? note.name : "문서 없음"}
-                </span>
+        <span className="text-lg md:text-xl font-semibold text-[#333] mb-1 truncate max-w-[60vw]">
+          {note ? note.name : "문서 없음"}
+        </span>
         <div className="flex gap-4">
-                    <span
-                      className="
+          <span
+            className="
                             px-4
                             py-1
                             rounded-full
@@ -77,10 +85,12 @@ export default function TopNavigationBar({user, selectedNoteId}: { user: User; s
                             cursor-pointer
                             transition
                         "
-                      onClick={()=>{handleAddDiagram();}}
-                    >
-                        디자인 블록
-                    </span>
+            onClick={() => {
+              handleAddDiagram();
+            }}
+          >
+            디자인 블록
+          </span>
           <span
             className="
                             px-4
@@ -96,8 +106,8 @@ export default function TopNavigationBar({user, selectedNoteId}: { user: User; s
                             transition
                         "
           >
-                        텍스트 블록
-                    </span>
+            텍스트 블록
+          </span>
         </div>
       </div>
 
@@ -108,7 +118,7 @@ export default function TopNavigationBar({user, selectedNoteId}: { user: User; s
             key={user.name}
             className="w-10 h-10 rounded-full bg-gradient-to-br from-[#b6eaff] to-[#7EEA8A] flex items-center justify-center text-base font-bold text-[#186370] border-2 border-[#69F179] shadow-sm -ml-2 first:ml-0"
             title={`${user.name}`}
-            style={{zIndex: 10 - idx}}
+            style={{ zIndex: 10 - idx }}
           >
             {user.name[0]?.toUpperCase() || "?"}
           </div>
@@ -136,9 +146,11 @@ export default function TopNavigationBar({user, selectedNoteId}: { user: User; s
           className="flex items-center justify-center w-10 h-10 rounded-full hover:bg-[#e0e7ff] transition"
           title="더보기"
         >
-          <span className="text-2xl font-bold text-[#444] cursor-pointer">…</span>
+          <span className="text-2xl font-bold text-[#444] cursor-pointer">
+            …
+          </span>
         </button>
-        <Profile name={user?.name || ""}/>
+        <Profile name={user?.name || ""} />
       </div>
     </header>
   );

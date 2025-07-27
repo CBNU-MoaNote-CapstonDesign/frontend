@@ -1,13 +1,12 @@
-'use client';
+"use client";
 
-import {useEffect, useState} from "react";
-import {Collaborator, PermissionDTO} from "@/types/dto";
-import {getCollaborators, invite} from "@/libs/client/file";
-
+import { useEffect, useState } from "react";
+import { Collaborator, PermissionDTO } from "@/types/dto";
+import { getCollaborators, invite } from "@/libs/client/file";
 
 interface InviteUserModalProps {
-  user:User,
-  noteId: string,
+  user: User;
+  noteId: string;
   open: boolean;
   onClose: () => void;
   onInvite: () => void;
@@ -15,17 +14,17 @@ interface InviteUserModalProps {
 }
 
 export default function InviteUserModal({
-                                          user,
-                                          noteId,
-                                          open,
-                                          onClose,
-                                          onInvite
-                                        }: InviteUserModalProps) {
+  user,
+  noteId,
+  open,
+  onClose,
+  onInvite,
+}: InviteUserModalProps) {
   const [input, setInput] = useState("");
   const [collaborators, setCollaborators] = useState<Collaborator[]>([]);
 
   useEffect(() => {
-    getCollaborators(noteId, user).then((collaborators)=>{
+    getCollaborators(noteId, user).then((collaborators) => {
       console.log("체크");
       console.log(collaborators);
       setCollaborators(collaborators);
@@ -33,22 +32,24 @@ export default function InviteUserModal({
   }, [noteId, user, setCollaborators]);
 
   const reload = () => {
-    getCollaborators(noteId, user).then((collaborators)=>{
+    getCollaborators(noteId, user).then((collaborators) => {
       setCollaborators(collaborators);
     });
   };
 
   const handleAddUser = () => {
-    invite(noteId, user, input, "READ").then(()=>{
+    invite(noteId, user, input, "READ").then(() => {
       reload();
     });
   };
 
   const handlePermissionChange = (collaborator: Collaborator) => {
     console.log("collaborator", collaborator);
-    invite(noteId, user, collaborator.user.name, collaborator.permission).then(()=>{
-      reload();
-    })
+    invite(noteId, user, collaborator.user.name, collaborator.permission).then(
+      () => {
+        reload();
+      }
+    );
   };
 
   const handleRemoveUser = (collaborator: Collaborator) => {
@@ -78,8 +79,8 @@ export default function InviteUserModal({
             className="flex-1 px-3 py-2 border border-[#b6d6f2] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#69F179] transition"
             placeholder="사용자 이름 입력"
             value={input}
-            onChange={e => setInput(e.target.value)}
-            onKeyDown={e => {
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={(e) => {
               if (e.key === "Enter") handleAddUser();
             }}
           />
@@ -93,25 +94,24 @@ export default function InviteUserModal({
         </div>
         {/* 추가된 사용자 목록 */}
         <div className="flex flex-col gap-2 max-h-40 overflow-y-auto">
-          {
-            collaborators.map((collaborator)=><li key={collaborator.user.id}>
+          {collaborators.map((collaborator) => (
+            <li key={collaborator.user.id}>
               <div className={"flex flex-row"}>
-                <div className={"me-auto"}>
-                  {collaborator.user.name}
-                </div>
+                <div className={"me-auto"}>{collaborator.user.name}</div>
                 <select
                   value={collaborator.permission}
-                  onChange={(e)=>{
+                  onChange={(e) => {
                     collaborator.permission = e.target.value as PermissionDTO;
                     handlePermissionChange(collaborator);
-                  }}>
+                  }}
+                >
                   <option value="READ">읽기</option>
                   <option value="WRITE">쓰기</option>
                   <option value="OWNER">소유자</option>
                 </select>
               </div>
-            </li>)
-          }
+            </li>
+          ))}
         </div>
         {/* 초대하기 버튼 */}
         <button

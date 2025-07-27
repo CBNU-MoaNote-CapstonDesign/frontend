@@ -1,5 +1,5 @@
 import { MoaFile } from "@/types/file";
-import {BsPencil} from "react-icons/bs";
+import { BsPencil } from "react-icons/bs";
 
 export default function NoteItem({
   note,
@@ -31,7 +31,7 @@ export default function NoteItem({
       </span>
       <button
         className="ml-auto p-1 rounded hover:bg-[#dbeafe] hover:scale-110 transition cursor-pointer"
-        onClick={e => {
+        onClick={(e) => {
           e.stopPropagation();
           onEdit();
         }}

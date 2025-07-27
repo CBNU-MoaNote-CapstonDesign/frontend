@@ -1,7 +1,7 @@
 // 더이상 사용하지 않는 컴포넌트
 // 대신 components/document/DocumentRenderer.tsx 사용
 
-'use client';
+"use client";
 
 import { useEffect, useState } from "react";
 import { MarkdownRenderer } from "@/components/document/MarkdownRenderer";
@@ -79,7 +79,10 @@ export default function TextBlock({
           className="w-full break-words whitespace-pre-line"
           onClick={() => setIsEditing(true)}
         >
-          <MarkdownRenderer content={content} startEditing={() => setIsEditing(true)} />
+          <MarkdownRenderer
+            content={content}
+            startEditing={() => setIsEditing(true)}
+          />
         </div>
       )}
     </div>

@@ -1,8 +1,8 @@
 export interface NoteMeta {
-  id: string,
-  title: string,
+  id: string;
+  title: string;
 }
 
 export interface Note extends NoteMeta {
-  content: string,
+  content: string;
 }

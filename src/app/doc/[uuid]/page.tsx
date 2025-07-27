@@ -1,7 +1,9 @@
 import { fetchCurrentUserServerSide } from "@/libs/server/user";
 import DocPageClient from "./DocPageClient";
 
-export default async function DocumentPage(props: { params: { uuid: string } }) {
+export default async function DocumentPage(props: {
+  params: { uuid: string };
+}) {
   const params = await props.params; // params를 await로 받아옴
   const uuid = params.uuid;
 

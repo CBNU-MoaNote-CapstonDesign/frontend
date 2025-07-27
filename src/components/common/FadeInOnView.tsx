@@ -18,7 +18,9 @@ export default function FadeInOnView({
   return (
     <div
       ref={ref}
-      className={`${className} ${inView ? "animate-slideUpFadeIn" : "opacity-0"}`}
+      className={`${className} ${
+        inView ? "animate-slideUpFadeIn" : "opacity-0"
+      }`}
       style={{ animationDelay: `${delay}s` }}
     >
       {children}

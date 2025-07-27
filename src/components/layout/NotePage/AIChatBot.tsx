@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
 export default function AIChatBot() {
-    return (
-        <button
-            className="
+  return (
+    <button
+      className="
                 fixed
                 bottom-8
                 right-8
@@ -20,14 +20,14 @@ export default function AIChatBot() {
                 transition
                 cursor-pointer
             "
-            title="모아 AI 챗봇 열기"
-            aria-label="모아 AI 챗봇 열기"
-        >
-            <img
-                src="/icon/chatbot.png"
-                alt="모아 AI"
-                className="w-10 h-10 object-contain"
-            />
-        </button>
-    );
+      title="모아 AI 챗봇 열기"
+      aria-label="모아 AI 챗봇 열기"
+    >
+      <img
+        src="/icon/chatbot.png"
+        alt="모아 AI"
+        className="w-10 h-10 object-contain"
+      />
+    </button>
+  );
 }

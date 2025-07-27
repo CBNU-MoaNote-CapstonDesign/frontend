@@ -1,31 +1,31 @@
 "use client";
 
-import {MoaFile} from "@/types/file";
-import React, {useState} from "react";
+import { MoaFile } from "@/types/file";
+import React, { useState } from "react";
 
 interface Props {
   root: MoaFile;
-  onAdd: (folderName:string, parentId:string, selectedNotes:string[]) => void;
+  onAdd: (
+    folderName: string,
+    parentId: string,
+    selectedNotes: string[]
+  ) => void;
   onCancel: () => void;
   errorMsg?: string | null;
 }
 
 export default function FolderAddModal({
-                                         root,
-                                         onAdd,
-                                         onCancel,
-                                         errorMsg,
-                                       }: Props) {
-
+  root,
+  onAdd,
+  onCancel,
+  errorMsg,
+}: Props) {
   const [folderName, setFolderName] = useState<string>("");
   const [parentId, setParentId] = useState<string>(root.id);
   const [selectedNotes, setSelectedNotes] = useState<string[]>([]);
 
   // 모든 부모 목록
-  const renderFolderOptions = (
-    folder: MoaFile,
-    depth = 0
-  ): React.ReactNode => {
+  const renderFolderOptions = (folder: MoaFile, depth = 0): React.ReactNode => {
     if (folder.type.toString() !== "DIRECTORY") return null;
 
     return (
@@ -34,10 +34,7 @@ export default function FolderAddModal({
           {`${"—".repeat(depth)} ${folder.name}`}
         </option>
         {folder.children &&
-          folder.children.map((child) =>
-            renderFolderOptions(child, depth + 1)
-          )
-        }
+          folder.children.map((child) => renderFolderOptions(child, depth + 1))}
       </React.Fragment>
     );
   };
@@ -65,7 +62,9 @@ export default function FolderAddModal({
 
         {/* 안내문 표시 */}
         {errorMsg && (
-          <div className="mb-4 text-red-500 text-sm font-semibold">{errorMsg}</div>
+          <div className="mb-4 text-red-500 text-sm font-semibold">
+            {errorMsg}
+          </div>
         )}
 
         {/* 폴더 생성 위치 */}
@@ -88,7 +87,9 @@ export default function FolderAddModal({
         />
 
         {/* 폴더에 추가할 노트 선택 */}
-        <label className="block mb-2 font-semibold">폴더에 추가할 노트 선택</label>
+        <label className="block mb-2 font-semibold">
+          폴더에 추가할 노트 선택
+        </label>
 
         <div className="max-h-40 overflow-y-auto mb-4">
           {notes.length === 0 && (
@@ -128,13 +129,15 @@ export default function FolderAddModal({
           </button>
           <button
             className="px-4 py-2 rounded bg-[#186370] text-white font-semibold hover:bg-[#38bdf8] cursor-pointer"
-            onClick={()=>{
+            onClick={() => {
               console.log("삽입 테스트");
               console.log(folderName);
               console.log(parentId);
               onAdd(folderName, parentId, selectedNotes);
             }}
-            disabled={/*!folderName.trim() || selectedNotes.length === 0*/ false}
+            disabled={
+              /*!folderName.trim() || selectedNotes.length === 0*/ false
+            }
           >
             추가
           </button>

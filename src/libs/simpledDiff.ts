@@ -21,16 +21,22 @@
  *        insertedContent: 삽입된 내용 (있다면)
  *        </pre>
  */
-const getDiff = (previousString: string, newString: string): {removeFrom: number, removeLength: number, insertedContent?: string} => {
+const getDiff = (
+  previousString: string,
+  newString: string
+): { removeFrom: number; removeLength: number; insertedContent?: string } => {
   let removeFrom = 0;
   let removeEnd = previousString.length - 1;
-  while (removeFrom < previousString.length && removeFrom < newString.length && previousString[removeFrom] === newString[removeFrom]) {
+  while (
+    removeFrom < previousString.length &&
+    removeFrom < newString.length &&
+    previousString[removeFrom] === newString[removeFrom]
+  ) {
     removeFrom++;
   }
   removeEnd = previousString.length - 1;
   for (let i = newString.length - 1; removeEnd >= 0 && i >= 0; i--) {
-    if (previousString[removeEnd] !== newString[i])
-        break;
+    if (previousString[removeEnd] !== newString[i]) break;
     removeEnd--;
   }
 
@@ -46,16 +52,22 @@ const getDiff = (previousString: string, newString: string): {removeFrom: number
   let insertedContent = undefined;
   if (removeLength === 0) {
     if (newString.length !== previousString.length)
-      insertedContent = newString.slice(removeFrom, removeFrom + newString.length - previousString.length);
+      insertedContent = newString.slice(
+        removeFrom,
+        removeFrom + newString.length - previousString.length
+      );
   } else {
     if (removeLength + newString.length !== previousString.length)
-      insertedContent = newString.slice(removeFrom, removeFrom + newString.length - previousString.length + removeLength);
+      insertedContent = newString.slice(
+        removeFrom,
+        removeFrom + newString.length - previousString.length + removeLength
+      );
   }
   return {
-      removeFrom,
-      removeLength,
-      insertedContent
+    removeFrom,
+    removeLength,
+    insertedContent,
   };
-}
+};
 
 export default getDiff;

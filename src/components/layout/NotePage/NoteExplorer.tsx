@@ -1,16 +1,23 @@
 "use client";
 
-import {useRouter} from "next/navigation";
-import {useEffect, useRef, useState} from "react";
-import {RxHamburgerMenu} from "react-icons/rx";
-import {BsChevronLeft} from "react-icons/bs";
+import { useRouter } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
+import { RxHamburgerMenu } from "react-icons/rx";
+import { BsChevronLeft } from "react-icons/bs";
 
 import FolderTree from "./FolderTree";
 import AddMenu from "./AddMenu";
 import FolderAddModal from "./FolderAddModal";
-import {MoaFile} from "@/types/file";
-import {addNoteSegment, createFile, deleteFile, editFile, getFile, getFileTree} from "@/libs/client/file";
-import {FileTypeDTO} from "@/types/dto";
+import { MoaFile } from "@/types/file";
+import {
+  addNoteSegment,
+  createFile,
+  deleteFile,
+  editFile,
+  getFile,
+  getFileTree,
+} from "@/libs/client/file";
+import { FileTypeDTO } from "@/types/dto";
 import NoteAddModal from "@/components/layout/NotePage/NoteAddModal";
 import FolderEditModal from "@/components/layout/NotePage/FolderEditModal";
 import NoteEditModal from "@/components/layout/NotePage/NoteEditModal";
@@ -22,9 +29,9 @@ interface NoteExplorerProps {
 }
 
 export default function NoteExplorer({
-                                       user,
-                                       selectedNoteId,
-                                     }: NoteExplorerProps) {
+  user,
+  selectedNoteId,
+}: NoteExplorerProps) {
   const router = useRouter();
   const [open, setOpen] = useState(true);
   const [showAddMenu, setShowAddMenu] = useState(false);
@@ -54,8 +61,8 @@ export default function NoteExplorer({
   const handleClose = () => setOpen(false);
 
   const openNoteModal = () => {
-  setShowAddMenu(false);
-  setShowNoteModal(true);
+    setShowAddMenu(false);
+    setShowNoteModal(true);
   };
 
   const openFolderModal = () => {
@@ -79,13 +86,13 @@ export default function NoteExplorer({
     setEditNote(note);
     setShowAddMenu(false);
     setShowNoteEditModal(true);
-  }
+  };
 
   const closeNoteEditModal = () => {
     setEditNote(null);
     setShowAddMenu(false);
     setShowNoteEditModal(false);
-  }
+  };
 
   const reRoot = () => {
     // 파일 구조 초기화
@@ -101,52 +108,56 @@ export default function NoteExplorer({
       setShowNoteEditModal(false);
       setErrorMsg(null);
     });
-  }
+  };
 
-  const handleAddFolder = (folderName: string, parentId: string, selectedNotes: string[]) => {
+  const handleAddFolder = (
+    folderName: string,
+    parentId: string,
+    selectedNotes: string[]
+  ) => {
     // if (!folderName.trim() || selectedNotes.length === 0) return;
 
-    console.log("폴더 생성 호출")
-    console.log(folderName)
-    console.log(parentId)
+    console.log("폴더 생성 호출");
+    console.log(folderName);
+    console.log(parentId);
     // 실제 폴더 생성 로직(API 호출 등) 추가 가능
-    createFile(folderName, FileTypeDTO.DIRECTORY, parentId, user).then((folder) => {
-      if (!folder)
-        return;
-      // Selected Notes
-      for (const noteId of selectedNotes) {
-        getFile(noteId, user).then((note) => {
-          if (note) {
-            editFile(note, folder.id, user).then((result) => {
-              console.log(result ? "에딧 성공 " : "에딧 실패");
-              console.log(note.name);
-              console.log(note.id);
-            })
-          }
-        })
-      }
-
-
-      // 파일 구조 초기화
-      getFileTree(null, user).then((rootFolder) => {
-        if (rootFolder) {
-          setRoot(rootFolder);
-        } else {
-          setRoot(null);
+    createFile(folderName, FileTypeDTO.DIRECTORY, parentId, user).then(
+      (folder) => {
+        if (!folder) return;
+        // Selected Notes
+        for (const noteId of selectedNotes) {
+          getFile(noteId, user).then((note) => {
+            if (note) {
+              editFile(note, folder.id, user).then((result) => {
+                console.log(result ? "에딧 성공 " : "에딧 실패");
+                console.log(note.name);
+                console.log(note.id);
+              });
+            }
+          });
         }
-        setShowFolderModal(false);
-        setShowNoteModal(false);
-        setShowEditModal(false);
-        setErrorMsg(null);
-      });
-    });
+
+        // 파일 구조 초기화
+        getFileTree(null, user).then((rootFolder) => {
+          if (rootFolder) {
+            setRoot(rootFolder);
+          } else {
+            setRoot(null);
+          }
+          setShowFolderModal(false);
+          setShowNoteModal(false);
+          setShowEditModal(false);
+          setErrorMsg(null);
+        });
+      }
+    );
   };
 
   const handleAddNote = (noteName: string, parentId: string) => {
     createFile(noteName, FileTypeDTO.DOCUMENT, parentId, user).then((file) => {
       // 첫번쨰 노트 세그먼트 생성
       if (file) {
-        addNoteSegment(file.id,0,user).then(() => {
+        addNoteSegment(file.id, 0, user).then(() => {
           // 파일 구조 초기화
           getFileTree(null, user).then((rootFolder) => {
             if (rootFolder) {
@@ -159,7 +170,7 @@ export default function NoteExplorer({
             setShowEditModal(false);
             setErrorMsg(null);
           });
-        })
+        });
       }
     });
   };
@@ -178,12 +189,17 @@ export default function NoteExplorer({
     folderId: string,
     folderName: string,
     parentId: string,
-    selectedNotes: string[]) => {
-    editFile({
-      id: folderId,
-      name: folderName,
-      type: FileTypeDTO.DIRECTORY
-    } as MoaFile, parentId, user).then((result) => {
+    selectedNotes: string[]
+  ) => {
+    editFile(
+      {
+        id: folderId,
+        name: folderName,
+        type: FileTypeDTO.DIRECTORY,
+      } as MoaFile,
+      parentId,
+      user
+    ).then((result) => {
       if (result) {
         let count = selectedNotes.length;
         for (const noteId of selectedNotes) {
@@ -196,12 +212,11 @@ export default function NoteExplorer({
                 }
               });
             }
-          })
+          });
         }
-        if (count == 0)
-          reRoot();
+        if (count == 0) reRoot();
       }
-    })
+    });
   };
 
   const handleDeleteNote = (noteId: string) => {
@@ -214,16 +229,23 @@ export default function NoteExplorer({
     });
   };
 
-  const handleEditNote = (noteId: string, noteName: string, parentId: string) => {
-    editFile({
-      id: noteId,
-      name: noteName,
-      type: FileTypeDTO.DOCUMENT,
-    } as MoaFile, parentId, user).then(() => {
+  const handleEditNote = (
+    noteId: string,
+    noteName: string,
+    parentId: string
+  ) => {
+    editFile(
+      {
+        id: noteId,
+        name: noteName,
+        type: FileTypeDTO.DOCUMENT,
+      } as MoaFile,
+      parentId,
+      user
+    ).then(() => {
       reRoot();
-    })
+    });
   };
-
 
   useEffect(() => {
     if (showFolderModal) setErrorMsg(null);
@@ -245,7 +267,7 @@ export default function NoteExplorer({
           title="노트 목록 열기"
           aria-label="노트 목록 열기"
         >
-          <RxHamburgerMenu className="w-7 h-7 text-[#186370]"/>
+          <RxHamburgerMenu className="w-7 h-7 text-[#186370]" />
         </button>
       )}
 
@@ -273,7 +295,7 @@ export default function NoteExplorer({
             aria-label="노트 목록 닫기"
             type="button"
           >
-            <BsChevronLeft className="w-7 h-7 text-[#186370]"/>
+            <BsChevronLeft className="w-7 h-7 text-[#186370]" />
           </button>
 
           <div className="flex items-center justify-between px-6 py-4 border-b border-[#b6d6f2] bg-[#e0f2ff]">
@@ -314,22 +336,17 @@ export default function NoteExplorer({
             )}
             <br />
             <br />
-            <SharedNoteTree
-              user={user}
-              selectedNoteId={selectedNoteId}
-            />
+            <SharedNoteTree user={user} selectedNoteId={selectedNoteId} />
           </div>
-          {
-            showNoteModal && root && (
-              <NoteAddModal
-                root={root}
-                onAdd={handleAddNote}
-                onCancel={() => {
-                  setShowNoteModal(false)
-                }}
-              />
-            )
-          }
+          {showNoteModal && root && (
+            <NoteAddModal
+              root={root}
+              onAdd={handleAddNote}
+              onCancel={() => {
+                setShowNoteModal(false);
+              }}
+            />
+          )}
 
           {showFolderModal && root && (
             <FolderAddModal
@@ -362,5 +379,5 @@ export default function NoteExplorer({
         </aside>
       )}
     </>
-  )
-};
+  );
+}

@@ -1,6 +1,6 @@
 import FolderItem from "./FolderItem";
 import NoteItem from "./NoteItem";
-import {MoaFile} from "@/types/file";
+import { MoaFile } from "@/types/file";
 
 export default function FolderTree({
   file,
@@ -28,14 +28,16 @@ export default function FolderTree({
         note={file}
         selected={file.id === selectedNoteId}
         onClick={() => onNoteClick(file.id)}
-        onEdit={()=> onEditNote(file)}
+        onEdit={() => onEditNote(file)}
       />
     );
   } else if (file.type.toString() == "DIRECTORY") {
-    const notes = file.children ?
-      file.children.filter((file) => file.type.toString() === "DOCUMENT") : [];
-    const directories = file.children ?
-      file.children.filter((file) => file.type.toString() === "DIRECTORY") : [];
+    const notes = file.children
+      ? file.children.filter((file) => file.type.toString() === "DOCUMENT")
+      : [];
+    const directories = file.children
+      ? file.children.filter((file) => file.type.toString() === "DIRECTORY")
+      : [];
 
     console.log("노트들");
     console.log(notes);
@@ -72,6 +74,6 @@ export default function FolderTree({
           />
         ))}
       </FolderItem>
-    )
+    );
   }
 }

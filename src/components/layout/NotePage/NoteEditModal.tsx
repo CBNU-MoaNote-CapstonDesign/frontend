@@ -1,20 +1,17 @@
 "use client";
 
-import {MoaFile} from "@/types/file";
-import React, {useEffect, useState} from "react";
+import { MoaFile } from "@/types/file";
+import React, { useEffect, useState } from "react";
 
 interface Props {
   root: MoaFile;
   noteId: string;
   onDelete: (noteId: string) => void;
-  onEdit: (noteId:string, noteName: string, parentId: string) => void;
+  onEdit: (noteId: string, noteName: string, parentId: string) => void;
   onCancel: () => void;
 }
 
-function getFileById (
-  folderId: string,
-  node: MoaFile
-): MoaFile | null {
+function getFileById(folderId: string, node: MoaFile): MoaFile | null {
   if (node.id === folderId) {
     return node;
   }
@@ -31,7 +28,7 @@ function getFileById (
   return null;
 }
 
-function getParent (
+function getParent(
   folderId: string,
   node: MoaFile,
   parentId: string | null = null
@@ -53,46 +50,37 @@ function getParent (
 }
 
 // 모든 디렉토리 목록
-function renderFolderOptions (
-  folder: MoaFile,
-  depth = 0
-): React.ReactNode {
+function renderFolderOptions(folder: MoaFile, depth = 0): React.ReactNode {
   if (folder.type.toString() !== "DIRECTORY") return null;
 
   return (
     <React.Fragment key={folder.id}>
-      <option value={folder.id}>
-        {`${"—".repeat(depth)} ${folder.name}`}
-      </option>
+      <option value={folder.id}>{`${"—".repeat(depth)} ${folder.name}`}</option>
       {folder.children &&
-        folder.children.map((child) =>
-          renderFolderOptions(child, depth + 1)
-        )
-      }
+        folder.children.map((child) => renderFolderOptions(child, depth + 1))}
     </React.Fragment>
   );
 }
 
 export default function NoteEditModal({
-                                          root,
-                                          noteId,
-                                          onDelete,
-                                          onEdit,
-                                          onCancel,
-                                        }: Props) {
-
+  root,
+  noteId,
+  onDelete,
+  onEdit,
+  onCancel,
+}: Props) {
   const [noteName, setNoteName] = useState<string>("");
-  const [parentId, setParentId] = useState<string|null>(null);
+  const [parentId, setParentId] = useState<string | null>(null);
 
   useEffect(() => {
     const newParentId = getParent(noteId, root, root.id);
     const folder = getFileById(noteId, root);
 
-    if(parent && folder) {
+    if (parent && folder) {
       setParentId(newParentId);
       setNoteName(folder.name);
     }
-  },[noteId, root])
+  }, [noteId, root]);
 
   return (
     <div className="fixed inset-0 bg-[#f0f8fe]/80 flex items-center justify-center z-[9999]">
@@ -104,14 +92,14 @@ export default function NoteEditModal({
         <input
           className="w-full border rounded px-3 py-2 mb-4"
           value={noteName}
-          onChange={e => setNoteName(e.target.value)}
+          onChange={(e) => setNoteName(e.target.value)}
         />
 
-        { /* 노트 위치 */ }
+        {/* 노트 위치 */}
         <label className="block mb-2 font-semibold">노트 위치</label>
         <select
           className="w-full border rounded px-3 py-2 mb-4"
-          value={parentId?parentId:root.id}
+          value={parentId ? parentId : root.id}
           onChange={(e) => setParentId(e.target.value)}
         >
           {renderFolderOptions(root)}
@@ -133,7 +121,7 @@ export default function NoteEditModal({
           <div className="flex gap-2">
             <button
               className="px-4 py-2 rounded bg-gray-200 hover:bg-gray-300 cursor-pointer"
-              onClick={()=>{
+              onClick={() => {
                 onCancel();
               }}
             >
@@ -142,7 +130,7 @@ export default function NoteEditModal({
             <button
               className="px-4 py-2 rounded bg-[#186370] text-white font-semibold hover:bg-[#38bdf8] cursor-pointer"
               onClick={() => {
-                onEdit(noteId, noteName, parentId?parentId:root.id);
+                onEdit(noteId, noteName, parentId ? parentId : root.id);
               }}
             >
               저장

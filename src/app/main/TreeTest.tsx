@@ -8,7 +8,7 @@ export default function TreeTest({ user }: { user: User }) {
   const [file, setFile] = useState<MoaFile | null>(null);
 
   useEffect(() => {
-    getFileTree(null, user).then(file => {
+    getFileTree(null, user).then((file) => {
       setFile(file);
     });
   }, [user]);
@@ -21,7 +21,7 @@ export default function TreeTest({ user }: { user: User }) {
         folderOpen={{}}
         onToggleFolder={() => {}}
         onEditFolder={() => {}}
-        onEditNote={()=>{}}
+        onEditNote={() => {}}
         onNoteClick={() => {}}
       />
     );

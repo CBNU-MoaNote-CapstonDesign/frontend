@@ -1,9 +1,8 @@
-import {TreeNode} from "@/types/treenode";
-import {CRDTOperation} from "@/types/crdtOperation";
+import { TreeNode } from "@/types/treenode";
+import { CRDTOperation } from "@/types/crdtOperation";
 import invariant from "tiny-invariant";
-import {TreeNodeDTO} from "@/types/dto";
-import {codeText} from "micromark-core-commonmark";
-
+import { TreeNodeDTO } from "@/types/dto";
+import { codeText } from "micromark-core-commonmark";
 
 /**
  * Tree based document 를 표현하는 클래스
@@ -26,7 +25,7 @@ export class TreeNote {
   /**
    * User 의 UUID node 생성 시 node 의 id 에 사용
    */
-  uuid: string
+  uuid: string;
   id: string;
   title: string;
   content: string;
@@ -36,8 +35,16 @@ export class TreeNote {
   size: number;
   operationHistories: CRDTOperation[][] = [[]];
 
-  constructor(uuid: string, id: string, title: string, content: string, root: TreeNode, size: number = 1,
-              indexToChild: Map<number, TreeNode>, idToNode: Map<string, TreeNode>) {
+  constructor(
+    uuid: string,
+    id: string,
+    title: string,
+    content: string,
+    root: TreeNode,
+    size: number = 1,
+    indexToChild: Map<number, TreeNode>,
+    idToNode: Map<string, TreeNode>
+  ) {
     this.uuid = uuid;
     this.id = id;
     this.title = title;
@@ -64,7 +71,7 @@ export class TreeNote {
       successor: null,
       leftChildren: [],
       rightChildren: [],
-      key: 0
+      key: 0,
     };
     let curr = _root;
     _indexToChild.set(-1, _root);
@@ -76,7 +83,7 @@ export class TreeNote {
         parent: curr,
         leftChildren: [],
         rightChildren: [],
-        key: i
+        key: i,
       };
       curr.successor = node;
       _indexToChild.set(i, node);
@@ -85,7 +92,16 @@ export class TreeNote {
       curr = node;
     }
 
-    return new TreeNote(uuid, _id, _title, _content, _root, _content.length + 1, _indexToChild, _idToNode);
+    return new TreeNote(
+      uuid,
+      _id,
+      _title,
+      _content,
+      _root,
+      _content.length + 1,
+      _indexToChild,
+      _idToNode
+    );
   }
 
   /**
@@ -99,12 +115,18 @@ export class TreeNote {
    * @param rootDTO root node of tree based document
    * @param nodesDTO all nodes of tree based document
    */
-  static fromTree(uuid: string, id: string, title: string, rootDTO: TreeNodeDTO, nodesDTO: TreeNodeDTO[]) {
+  static fromTree(
+    uuid: string,
+    id: string,
+    title: string,
+    rootDTO: TreeNodeDTO,
+    nodesDTO: TreeNodeDTO[]
+  ) {
     const root: TreeNode = {
       id: rootDTO.id,
       leftChildren: [],
       rightChildren: [],
-      value: rootDTO.value
+      value: rootDTO.value,
     };
 
     const nodes: TreeNode[] = [];
@@ -120,28 +142,34 @@ export class TreeNote {
           id: nodeDTO.id,
           leftChildren: [],
           rightChildren: [],
-          value: nodeDTO.value
+          value: nodeDTO.value,
         };
         nodes.push(node);
       }
       _idToNode.set(node.id, node);
     }
 
-
     for (let i = 0; i < nodesDTO.length; i++) {
-      if (nodesDTO[i].parentId == null)
-        continue;
+      if (nodesDTO[i].parentId == null) continue;
       if (nodesDTO[i].side == "LEFT")
         _idToNode.get(nodesDTO[i].parentId)?.leftChildren.push(nodes[i]);
-      else
-        _idToNode.get(nodesDTO[i].parentId)?.rightChildren.push(nodes[i]);
+      else _idToNode.get(nodesDTO[i].parentId)?.rightChildren.push(nodes[i]);
     }
 
     const _id = id;
     const _title = title;
     const _indexToChild = new Map<number, TreeNode>();
 
-    const tree: TreeNote = new TreeNote(uuid, _id, _title, "", root, nodesDTO.length, _indexToChild, _idToNode);
+    const tree: TreeNote = new TreeNote(
+      uuid,
+      _id,
+      _title,
+      "",
+      root,
+      nodesDTO.length,
+      _indexToChild,
+      _idToNode
+    );
     tree.traversal();
     return tree;
   }
@@ -172,7 +200,7 @@ export class TreeNote {
       successor: null,
       leftChildren: [],
       rightChildren: [],
-      key: this.indexToChild.size + 1 // 해당 key 는 의미를 가지지 않음
+      key: this.indexToChild.size + 1, // 해당 key 는 의미를 가지지 않음
     };
 
     if (previousNode.rightChildren.length == 0) {
@@ -184,7 +212,7 @@ export class TreeNote {
         value: newNode.value as string,
         parentId: newNode.parent.id,
         side: "RIGHT",
-        byWho: this.uuid
+        byWho: this.uuid,
       });
     } else {
       invariant(successor, "successor is undefined");
@@ -196,10 +224,9 @@ export class TreeNote {
         value: newNode.value as string,
         parentId: newNode.parent.id,
         side: "LEFT",
-        byWho: this.uuid
+        byWho: this.uuid,
       });
     }
-
 
     for (let i = 1; i < value.length; i++) {
       const nextNode: TreeNode = {
@@ -209,7 +236,7 @@ export class TreeNote {
         successor: null,
         leftChildren: [],
         rightChildren: [],
-        key: this.indexToChild.size + 1 // 해당 key 는 의미를 가지지 않음
+        key: this.indexToChild.size + 1, // 해당 key 는 의미를 가지지 않음
       };
       newNode = nextNode;
       invariant(newNode.parent, "newNode.parent is undefined");
@@ -220,7 +247,7 @@ export class TreeNote {
         value: newNode.value as string,
         parentId: newNode.parent.id,
         side: "RIGHT",
-        byWho: this.uuid
+        byWho: this.uuid,
       });
     }
   }
@@ -228,7 +255,8 @@ export class TreeNote {
   onInsertAction(newNode: TreeNode, parent: TreeNode, side: "left" | "right") {
     this.size++;
     this.idToNode.set(newNode.id, newNode);
-    const sideArray = side === "left" ? parent.leftChildren : parent.rightChildren;
+    const sideArray =
+      side === "left" ? parent.leftChildren : parent.rightChildren;
 
     let i = 0;
     for (; i < sideArray.length; i++) {
@@ -250,7 +278,7 @@ export class TreeNote {
       this.operationHistories[this.operationHistories.length - 1].push({
         type: "REMOVE",
         nodeId: nodeToRemove.id,
-        byWho: this.uuid
+        byWho: this.uuid,
       });
     }
   }
@@ -276,7 +304,11 @@ export class TreeNote {
 
     let lastVisit = null;
 
-    const stack: { node: TreeNode; state: "left" | "self" | "right"; index: number }[] = [];
+    const stack: {
+      node: TreeNode;
+      state: "left" | "self" | "right";
+      index: number;
+    }[] = [];
     stack.push({ node: this.root, state: "left", index: 0 });
 
     while (stack.length > 0) {
@@ -291,8 +323,7 @@ export class TreeNote {
           top.state = "self";
         }
       } else if (top.state === "self") {
-        if (lastVisit)
-          lastVisit.successor = top.node;
+        if (lastVisit) lastVisit.successor = top.node;
         lastVisit = top.node;
         if (top.node.value !== null && top.node.value !== undefined) {
           contentBuffer.push(top.node.value);
@@ -326,9 +357,13 @@ export class TreeNote {
         parent: parentNode,
         leftChildren: [],
         rightChildren: [],
-        key: 0
-      }
-      this.onInsertAction(newNode, parentNode, action.side === "LEFT" ? "left" : "right");
+        key: 0,
+      };
+      this.onInsertAction(
+        newNode,
+        parentNode,
+        action.side === "LEFT" ? "left" : "right"
+      );
     } else {
       const nodeToRemove = this.idToNode.get(action.nodeId as string);
       if (nodeToRemove === undefined) {

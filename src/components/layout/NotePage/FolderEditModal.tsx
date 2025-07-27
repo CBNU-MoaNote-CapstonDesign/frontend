@@ -1,13 +1,18 @@
 "use client";
 
-import {MoaFile} from "@/types/file";
-import React, {useEffect, useState} from "react";
+import { MoaFile } from "@/types/file";
+import React, { useEffect, useState } from "react";
 
 interface Props {
   root: MoaFile;
   folderId: string;
   onDelete: (folderId: string) => void;
-  onEdit: (folderId:string, folderName: string, parentId: string, selectedNotes: string[]) => void;
+  onEdit: (
+    folderId: string,
+    folderName: string,
+    parentId: string,
+    selectedNotes: string[]
+  ) => void;
   onCancel: () => void;
 }
 
@@ -53,7 +58,7 @@ export const getParent = (
 };
 
 // 모든 노트 목록
-function getNoteList (folder: MoaFile) {
+function getNoteList(folder: MoaFile) {
   const notes = [];
   if (folder.type.toString() === "DOCUMENT") {
     notes.push(folder);
@@ -67,40 +72,30 @@ function getNoteList (folder: MoaFile) {
 }
 
 // 모든 디렉토리 목록
-function renderFolderOptions (
-  folder: MoaFile,
-  depth = 0
-): React.ReactNode {
+function renderFolderOptions(folder: MoaFile, depth = 0): React.ReactNode {
   // 루트 폴더 가져오기
 
   if (folder.type.toString() !== "DIRECTORY") return null;
 
   return (
     <React.Fragment key={folder.id}>
-      <option value={folder.id}>
-        {`${"—".repeat(depth)} ${folder.name}`}
-      </option>
+      <option value={folder.id}>{`${"—".repeat(depth)} ${folder.name}`}</option>
       {folder.children &&
-        folder.children.map((child) =>
-          renderFolderOptions(child, depth + 1)
-        )
-      }
+        folder.children.map((child) => renderFolderOptions(child, depth + 1))}
     </React.Fragment>
   );
 }
 
 export default function FolderEditModal({
-                                          root,
-                                          folderId,
-                                          onDelete,
-                                          onEdit,
-                                          onCancel,
-                                        }: Props) {
-
+  root,
+  folderId,
+  onDelete,
+  onEdit,
+  onCancel,
+}: Props) {
   const [folderName, setFolderName] = useState<string>("");
-  const [parentId, setParentId] = useState<string|null>(null);
+  const [parentId, setParentId] = useState<string | null>(null);
   const [selectedNotes, setSelectedNotes] = useState<MoaFile[]>([]);
-
 
   // 부모 ID 찾고, Selected Notes 에 children 추가하고, folder name에 이름 바꾸기
 
@@ -108,7 +103,7 @@ export default function FolderEditModal({
     const newParentId = getParent(folderId, root, root.id);
     const folder = getFileById(folderId, root);
 
-    if(parent && folder) {
+    if (parent && folder) {
       setParentId(newParentId);
       setFolderName(folder.name);
       const newSelectedNotes: MoaFile[] = [];
@@ -119,7 +114,7 @@ export default function FolderEditModal({
       }
       setSelectedNotes(newSelectedNotes);
     }
-  },[folderId, root])
+  }, [folderId, root]);
 
   const notes = getNoteList(root);
 
@@ -133,21 +128,23 @@ export default function FolderEditModal({
         <input
           className="w-full border rounded px-3 py-2 mb-4"
           value={folderName}
-          onChange={e => setFolderName(e.target.value)}
+          onChange={(e) => setFolderName(e.target.value)}
         />
 
-        { /* 폴더 위치 */ }
+        {/* 폴더 위치 */}
         <label className="block mb-2 font-semibold">폴더 위치</label>
         <select
           className="w-full border rounded px-3 py-2 mb-4"
-          value={parentId?parentId:root.id}
+          value={parentId ? parentId : root.id}
           onChange={(e) => setParentId(e.target.value)}
         >
           {renderFolderOptions(root)}
         </select>
 
         {/* 폴더에 포함된 노트 */}
-        <label className="block mb-2 font-semibold">폴더에 추가할 노트 선택</label>
+        <label className="block mb-2 font-semibold">
+          폴더에 추가할 노트 선택
+        </label>
         <div className="max-h-40 overflow-y-auto mb-4">
           {notes.length === 0 && (
             <div className="text-gray-400 text-sm">노트가 없습니다.</div>
@@ -192,7 +189,7 @@ export default function FolderEditModal({
           <div className="flex gap-2">
             <button
               className="px-4 py-2 rounded bg-gray-200 hover:bg-gray-300 cursor-pointer"
-              onClick={()=>{
+              onClick={() => {
                 onCancel();
               }}
             >
@@ -201,7 +198,12 @@ export default function FolderEditModal({
             <button
               className="px-4 py-2 rounded bg-[#186370] text-white font-semibold hover:bg-[#38bdf8] cursor-pointer"
               onClick={() => {
-                onEdit(folderId, folderName, parentId?parentId:"", selectedNotes.map((file)=>file.id))
+                onEdit(
+                  folderId,
+                  folderName,
+                  parentId ? parentId : "",
+                  selectedNotes.map((file) => file.id)
+                );
               }}
             >
               저장

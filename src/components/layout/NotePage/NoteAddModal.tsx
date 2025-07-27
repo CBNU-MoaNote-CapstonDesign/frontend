@@ -1,7 +1,7 @@
-"use client"
+"use client";
 
-import React, {useState} from "react";
-import {MoaFile} from "@/types/file";
+import React, { useState } from "react";
+import { MoaFile } from "@/types/file";
 
 interface Props {
   root: MoaFile;
@@ -10,19 +10,12 @@ interface Props {
   errorMsg?: string | null;
 }
 
-export default function NoteAddModal({
-                                       root,
-                                       onAdd,
-                                       onCancel,
-                                     }: Props) {
+export default function NoteAddModal({ root, onAdd, onCancel }: Props) {
   const [noteName, setNoteName] = useState<string>("");
   const [parentId, setParentId] = useState<string>(root.id);
 
   // 모든 디렉토리 목록
-  const renderFolderOptions = (
-    folder: MoaFile,
-    depth = 0
-  ): React.ReactNode => {
+  const renderFolderOptions = (folder: MoaFile, depth = 0): React.ReactNode => {
     // 루트 폴더 가져오기
 
     if (folder.type.toString() !== "DIRECTORY") return null;
@@ -33,10 +26,7 @@ export default function NoteAddModal({
           {`${"—".repeat(depth)} ${folder.name}`}
         </option>
         {folder.children &&
-          folder.children.map((child) =>
-            renderFolderOptions(child, depth + 1)
-          )
-        }
+          folder.children.map((child) => renderFolderOptions(child, depth + 1))}
       </React.Fragment>
     );
   };
@@ -75,10 +65,12 @@ export default function NoteAddModal({
           </button>
           <button
             className="px-4 py-2 rounded bg-[#186370] text-white font-semibold hover:bg-[#38bdf8] cursor-pointer"
-            onClick={()=>{
+            onClick={() => {
               onAdd(noteName, parentId);
             }}
-            disabled={/*!folderName.trim() || selectedNotes.length === 0*/ false}
+            disabled={
+              /*!folderName.trim() || selectedNotes.length === 0*/ false
+            }
           >
             추가
           </button>
