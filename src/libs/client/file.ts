@@ -45,6 +45,9 @@ async function getRequest(location: string) {
  * @param stringifiedBody JSON stringified body
  */
 async function postRequest(location: string, stringifiedBody?: string) {
+  console.log("post요청 location:", location);
+  console.log("post요청 body:", stringifiedBody);
+
   const res = await fetch(`${SERVER_URL}${location}`, {
     method: "POST",
     credentials: "include",

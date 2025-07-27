@@ -143,6 +143,7 @@ export default function NoteExplorer({
     }
 
     const rootFolder = await getFileTree(null, user);
+    console.log("폴더 생성 작업 이후 트리 구조 확인:", rootFolder);
     setRoot(rootFolder);
     setShowFolderModal(false);
     setShowNoteModal(false);
@@ -229,6 +230,10 @@ export default function NoteExplorer({
         }
       })
     );
+
+    const rootFolder = await getFileTree(null, user);
+    console.log("폴더 수정 작업 이후 트리 구조 확인:", rootFolder);
+    setRoot(rootFolder);
 
     // 모든 작업이 끝난 뒤 트리 새로고침
     reRoot();
