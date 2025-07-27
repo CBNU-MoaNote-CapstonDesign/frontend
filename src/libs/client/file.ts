@@ -54,10 +54,13 @@ async function postRequest(location: string, stringifiedBody?: string) {
     return null;
   }
 
-  if (!res.body) {
+  // 응답 본문이 없으면 true 반환
+  const contentLength = res.headers.get("content-length");
+  if (!contentLength || contentLength === "0") {
     return true;
   }
 
+  // 본문이 있으면 json 파싱
   return await res.json();
 }
 
