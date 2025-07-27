@@ -187,7 +187,7 @@ export default function NoteExplorer({
     });
   };
 
-  const handleEditFolder = (
+  const handleEditFolder = async (
     folderId: string,
     folderName: string,
     parentId: string,
@@ -205,16 +205,17 @@ export default function NoteExplorer({
     );
 
     // 포함 해제된 노트는 루트(혹은 상위 폴더)로 이동
-    removedNoteIds.forEach((noteId) => {
-      getFile(noteId, user).then((note) => {
+    await Promise.all(
+      removedNoteIds.map(async (noteId) => {
+        const note = await getFile(noteId, user);
         if (note) {
-          editFile(note, root.id, user);
+          await editFile(note, root.id, user);
         }
-      });
-    });
+      })
+    );
 
     // 폴더 정보(이름, 위치 등) 수정
-    editFile(
+    await editFile(
       {
         id: folderId,
         name: folderName,
@@ -222,24 +223,20 @@ export default function NoteExplorer({
       } as MoaFile,
       parentId,
       user
-    ).then((result) => {
-      if (result) {
-        let count = selectedNotes.length;
-        for (const noteId of selectedNotes) {
-          getFile(noteId, user).then((result) => {
-            if (result) {
-              editFile(result, folderId, user).then(() => {
-                count -= 1;
-                if (count < 1) {
-                  reRoot();
-                }
-              });
-            }
-          });
+    );
+
+    // 폴더에 추가할 노트 이동
+    await Promise.all(
+      selectedNotes.map(async (noteId) => {
+        const note = await getFile(noteId, user);
+        if (note) {
+          await editFile(note, folderId, user);
         }
-        if (count == 0) reRoot();
-      }
-    });
+      })
+    );
+
+    // 모든 작업이 끝난 뒤 트리 새로고침
+    reRoot();
   };
 
   const handleDeleteNote = (noteId: string) => {
