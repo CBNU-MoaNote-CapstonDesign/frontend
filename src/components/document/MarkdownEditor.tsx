@@ -1,3 +1,6 @@
+// 더이상 사용하지 않는 컴포넌트로 보임
+// 대신 TreeMarkdownEditor.tsx에서 같은 기능이 구현된 것으로 보임
+
 import invariant from "tiny-invariant";
 import { useEffect, useRef, useState } from "react";
 import TextareaAutosize from "react-textarea-autosize";
