@@ -1,16 +1,16 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Note } from "@/types/note";
+import type { Note } from "@/types/note";
 import { TreeMarkdownEditor } from "@/components/document/TreeMarkdownEditor";
 import { MarkdownRenderer } from "@/components/document/MarkdownRenderer";
 import { TreeNote } from "@/libs/structures/treenote";
 import getDiff from "@/libs/simpledDiff";
-import { CRDTOperation } from "@/types/crdtOperation";
-import useFugueDocumentSync from "@/hooks/useFugueDocumentSync";
-import { TextNoteSegmentDTO } from "@/types/dto";
+import type { CRDTOperation } from "@/types/crdtOperation";
+import type { TextNoteSegmentDTO } from "@/types/dto";
 import { Client } from "@stomp/stompjs";
 import toast from "react-hot-toast";
+import { Edit3, Eye } from "lucide-react";
 
 const SERVER_WS_URL = process.env.NEXT_PUBLIC_SERVER_WS_URL;
 
@@ -162,39 +162,67 @@ export default function DocumentRenderer({
   return (
     <div
       className={`
-        w-full bg-white rounded-xl shadow px-8 py-5 flex items-start transition duration-150
-        ${!isEditing ? "hover:bg-[#dbeafe] cursor-pointer" : ""}
+        w-full bg-gradient-to-br from-white via-slate-50 to-white rounded-2xl shadow-sm border border-slate-100 px-8 py-6 flex items-start transition-all duration-300 ease-in-out relative overflow-hidden group
+        ${
+          !isEditing
+            ? "hover:shadow-lg hover:border-slate-200 hover:bg-gradient-to-br hover:from-blue-50 hover:via-white hover:to-slate-50 cursor-pointer"
+            : "shadow-lg border-blue-200 bg-gradient-to-br from-blue-50 via-white to-slate-50"
+        }
       `}
       key={treeNoteRef.current.id}
     >
-      {isEditing ? (
-        <TreeMarkdownEditor
-          initialContent={document.content}
-          updateBlur={endEditing}
-          updateContent={(newContent: string) => {
-            const diff = getDiff(document.content, newContent);
+      {/* 상태 표시 아이콘 */}
+      <div className="absolute top-4 right-4 opacity-60 transition-opacity duration-200 group-hover:opacity-100">
+        {isEditing ? (
+          <div className="flex items-center gap-2 text-blue-600">
+            <Edit3 className="w-4 h-4" />
+            <span className="text-xs font-medium">편집 중</span>
+          </div>
+        ) : (
+          <div className="flex items-center gap-2 text-slate-500">
+            <Eye className="w-4 h-4" />
+            <span className="text-xs font-medium">읽기 모드</span>
+          </div>
+        )}
+      </div>
 
-            if (diff.insertedContent)
-              treeNoteRef.current.insert(diff.removeFrom, diff.insertedContent);
-            if (diff.removeLength > 0)
-              treeNoteRef.current.remove(diff.removeFrom, diff.removeLength);
+      {/* 장식적 요소 */}
+      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 via-purple-500 to-blue-600 opacity-0 transition-opacity duration-300 group-hover:opacity-100"></div>
 
-            send(
-              treeNoteRef.current.operationHistories[
-                treeNote.operationHistories.length - 1
-              ]
-            );
-            commitActions();
-          }}
-          lastCursorPosition={cursorPosition}
-          cursorHandler={setCursorPosition}
-        />
-      ) : (
-        <MarkdownRenderer
-          content={document?.content}
-          startEditing={startEditing}
-        />
-      )}
+      {/* 메인 콘텐츠 */}
+      <div className="w-full pr-20">
+        {isEditing ? (
+          <TreeMarkdownEditor
+            initialContent={document.content}
+            updateBlur={endEditing}
+            updateContent={(newContent: string) => {
+              const diff = getDiff(document.content, newContent);
+
+              if (diff.insertedContent)
+                treeNoteRef.current.insert(
+                  diff.removeFrom,
+                  diff.insertedContent
+                );
+              if (diff.removeLength > 0)
+                treeNoteRef.current.remove(diff.removeFrom, diff.removeLength);
+
+              send(
+                treeNoteRef.current.operationHistories[
+                  treeNote.operationHistories.length - 1
+                ]
+              );
+              commitActions();
+            }}
+            lastCursorPosition={cursorPosition}
+            cursorHandler={setCursorPosition}
+          />
+        ) : (
+          <MarkdownRenderer
+            content={document?.content}
+            startEditing={startEditing}
+          />
+        )}
+      </div>
     </div>
   );
 }
