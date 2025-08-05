@@ -2,13 +2,9 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { RxHamburgerMenu } from "react-icons/rx";
-import { BsChevronLeft } from "react-icons/bs";
+import { Menu, ChevronLeft, Plus, FileText, Folder, Users } from "lucide-react";
 
-import FolderTree from "./FolderTree";
-import AddMenu from "./AddMenu";
-import FolderAddModal from "./FolderAddModal";
-import { MoaFile } from "@/types/file";
+import type { MoaFile } from "@/types/file";
 import {
   addNoteSegment,
   createFile,
@@ -18,9 +14,13 @@ import {
   getFileTree,
 } from "@/libs/client/file";
 import { FileTypeDTO } from "@/types/dto";
+
+import AddMenu from "@/components/layout/NotePage/AddMenu";
 import NoteAddModal from "@/components/layout/NotePage/NoteAddModal";
-import FolderEditModal from "@/components/layout/NotePage/FolderEditModal";
+import FolderAddModal from "@/components/layout/NotePage/FolderAddModal";
 import NoteEditModal from "@/components/layout/NotePage/NoteEditModal";
+import FolderEditModal from "@/components/layout/NotePage/FolderEditModal";
+import FolderTree from "@/components/layout/NotePage/FolderTree";
 import SharedNoteTree from "@/components/layout/NotePage/SharedNoteTree";
 
 interface NoteExplorerProps {
@@ -249,12 +249,12 @@ export default function NoteExplorer({
     <>
       {!open && (
         <button
-          className="fixed top-28 left-4 z-50 w-12 h-12 bg-white rounded-full shadow flex items-center justify-center hover:bg-[#e0f2ff] transition cursor-pointer"
+          className="fixed top-28 left-4 z-50 w-12 h-12 bg-gradient-to-br from-white to-slate-50 rounded-2xl shadow-lg border border-slate-200 flex items-center justify-center hover:shadow-xl hover:scale-105 transition-all duration-200 group"
           onClick={handleOpen}
           title="노트 목록 열기"
           aria-label="노트 목록 열기"
         >
-          <RxHamburgerMenu className="w-7 h-7 text-[#186370]" />
+          <Menu className="w-5 h-5 text-slate-600 group-hover:text-blue-600 transition-colors duration-200" />
         </button>
       )}
 
@@ -265,37 +265,50 @@ export default function NoteExplorer({
             flex flex-col
             w-full max-w-xs
             h-[calc(100vh-6rem)]
-            bg-[#e0f2ff]
-            shadow-md
+            bg-gradient-to-b from-white via-slate-50 to-white
+            shadow-xl
+            border border-slate-200
             rounded-r-2xl
             overflow-visible
             z-40
-            transition-transform
+            transition-all
             duration-300
             relative
+            backdrop-blur-sm
           "
         >
           <button
-            className="absolute top-1/2 right-[-32px] z-50 w-12 h-12 bg-white rounded-full shadow flex items-center justify-center hover:bg-[#dbeafe] transition -translate-y-1/2 cursor-pointer"
+            className="absolute top-1/2 right-[-20px] z-50 w-10 h-10 bg-gradient-to-br from-white to-slate-50 rounded-full shadow-lg border border-slate-200 flex items-center justify-center hover:shadow-xl hover:scale-105 transition-all duration-200 -translate-y-1/2 group"
             onClick={handleClose}
             title="노트 목록 닫기"
             aria-label="노트 목록 닫기"
             type="button"
           >
-            <BsChevronLeft className="w-7 h-7 text-[#186370]" />
+            <ChevronLeft className="w-4 h-4 text-slate-600 group-hover:text-blue-600 transition-colors duration-200" />
           </button>
 
-          <div className="flex items-center justify-between px-6 py-4 border-b border-[#b6d6f2] bg-[#e0f2ff]">
-            <span className="text-xl font-bold text-[#186370] tracking-tight">
-              내 노트
-            </span>
+          {/* 헤더 */}
+          <div className="flex items-center justify-between px-6 py-5 border-b border-slate-200 bg-gradient-to-r from-blue-50 to-purple-50">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
+                <Folder className="w-4 h-4 text-white" />
+              </div>
+              <div>
+                <span className="text-lg font-bold bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent">
+                  내 노트
+                </span>
+                <div className="w-6 h-0.5 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full mt-1"></div>
+              </div>
+            </div>
+
             <div className="relative">
               <button
-                className="px-3 py-1 rounded-lg bg-[#186370] text-white text-sm font-semibold hover:bg-[#1e7a8a] transition cursor-pointer flex items-center gap-1"
+                className="group flex items-center gap-2 px-3 py-2 rounded-xl bg-gradient-to-r from-blue-500 to-purple-600 text-white text-sm font-semibold hover:from-blue-600 hover:to-purple-700 transition-all duration-200 shadow-sm hover:shadow-md"
                 title="노트/폴더 추가"
                 onClick={() => setShowAddMenu((v) => !v)}
               >
-                +
+                <Plus className="w-4 h-4 transition-transform duration-200 group-hover:rotate-90" />
+                <span>추가</span>
               </button>
               {showAddMenu && (
                 <AddMenu
@@ -310,24 +323,46 @@ export default function NoteExplorer({
             </div>
           </div>
 
-          <div className="flex-1 overflow-y-auto px-2 py-4 space-y-2">
+          {/* 콘텐츠 영역 */}
+          <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
             {root ? (
-              <FolderTree
-                file={root}
-                selectedNoteId={selectedNoteId}
-                folderOpen={folderOpen}
-                onToggleFolder={handleToggleFolder}
-                onEditFolder={openEditModal}
-                onEditNote={openNoteEditModal}
-                onNoteClick={(noteId) => router.push(`/doc/${noteId}`)}
-              />
+              <div className="space-y-2">
+                <FolderTree
+                  file={root}
+                  selectedNoteId={selectedNoteId}
+                  folderOpen={folderOpen}
+                  onToggleFolder={handleToggleFolder}
+                  onEditFolder={openEditModal}
+                  onEditNote={openNoteEditModal}
+                  onNoteClick={(noteId) => router.push(`/doc/${noteId}`)}
+                />
+              </div>
             ) : (
-              <>로딩중...</>
+              <div className="flex items-center justify-center py-8">
+                <div className="text-center">
+                  <div className="w-12 h-12 bg-gradient-to-br from-blue-100 to-purple-100 rounded-xl flex items-center justify-center mx-auto mb-3">
+                    <FileText className="w-6 h-6 text-slate-500 animate-pulse" />
+                  </div>
+                  <p className="text-sm text-slate-500 font-medium">
+                    로딩 중...
+                  </p>
+                </div>
+              </div>
             )}
-            <br />
-            <br />
-            <SharedNoteTree user={user} selectedNoteId={selectedNoteId} />
+
+            {/* 공유된 노트 섹션 */}
+            <div className="pt-4 border-t border-slate-200">
+              <div className="flex items-center gap-2 mb-3 px-2">
+                <Users className="w-4 h-4 text-slate-500" />
+                <span className="text-sm font-medium text-slate-600">
+                  공유된 노트
+                </span>
+              </div>
+              <SharedNoteTree user={user} selectedNoteId={selectedNoteId} />
+            </div>
           </div>
+
+          {/* 모달들 */}
           {showNoteModal && root && (
             <NoteAddModal
               root={root}
