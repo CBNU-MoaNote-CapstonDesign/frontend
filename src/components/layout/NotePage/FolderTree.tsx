@@ -1,6 +1,9 @@
-import FolderItem from "./FolderItem";
-import NoteItem from "./NoteItem";
-import { MoaFile } from "@/types/file";
+"use client";
+
+import type { MoaFile } from "@/types/file";
+
+import FolderItem from "@/components/layout/NotePage/FolderItem";
+import NoteItem from "@/components/layout/NotePage/NoteItem";
 
 export default function FolderTree({
   file,

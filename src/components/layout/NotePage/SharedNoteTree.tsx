@@ -1,12 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { MoaFile } from "@/types/file";
-import FolderItem from "@/components/layout/NotePage/FolderItem";
-import NoteItem from "@/components/layout/NotePage/NoteItem";
+import type { MoaFile } from "@/types/file";
 import { getSharedFiles } from "@/libs/client/file";
 import { useRouter } from "next/navigation";
 import { FileTypeDTO } from "@/types/dto";
+
+import FolderItem from "@/components/layout/NotePage/FolderItem";
+import NoteItem from "@/components/layout/NotePage/NoteItem";
 
 export default function SharedNoteTree({
   user,
@@ -50,10 +51,11 @@ export default function SharedNoteTree({
           handleToggleFolder("00000000-0000-0000-0000-000000000000")
         }
         onEdit={() => {}}
+        isShared={true}
       >
         {sharedFiles.length > 0 &&
           sharedFiles.map((file: MoaFile) => (
-            <div key={file.id} className={"my-1 ml-7"}>
+            <div key={file.id} className={"my-1 ml-4"}>
               <NoteItem
                 note={file}
                 onEdit={() => {}}
@@ -61,6 +63,7 @@ export default function SharedNoteTree({
                 onClick={() => {
                   router.push(`/doc/${file.id}`);
                 }}
+                isShared={true}
               />
             </div>
           ))}
