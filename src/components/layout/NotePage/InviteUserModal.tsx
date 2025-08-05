@@ -94,24 +94,26 @@ export default function InviteUserModal({
         </div>
         {/* 추가된 사용자 목록 */}
         <div className="flex flex-col gap-2 max-h-40 overflow-y-auto">
-          {collaborators.map((collaborator) => (
-            <li key={collaborator.user.id}>
-              <div className={"flex flex-row"}>
-                <div className={"me-auto"}>{collaborator.user.name}</div>
-                <select
-                  value={collaborator.permission}
-                  onChange={(e) => {
-                    collaborator.permission = e.target.value as PermissionDTO;
-                    handlePermissionChange(collaborator);
-                  }}
-                >
-                  <option value="READ">읽기</option>
-                  <option value="WRITE">쓰기</option>
-                  <option value="OWNER">소유자</option>
-                </select>
-              </div>
-            </li>
-          ))}
+          {(Array.isArray(collaborators) ? collaborators : []).map(
+            (collaborator) => (
+              <li key={collaborator.user.id}>
+                <div className={"flex flex-row"}>
+                  <div className={"me-auto"}>{collaborator.user.name}</div>
+                  <select
+                    value={collaborator.permission}
+                    onChange={(e) => {
+                      collaborator.permission = e.target.value as PermissionDTO;
+                      handlePermissionChange(collaborator);
+                    }}
+                  >
+                    <option value="READ">읽기</option>
+                    <option value="WRITE">쓰기</option>
+                    <option value="OWNER">소유자</option>
+                  </select>
+                </div>
+              </li>
+            )
+          )}
         </div>
         {/* 초대하기 버튼 */}
         <button
