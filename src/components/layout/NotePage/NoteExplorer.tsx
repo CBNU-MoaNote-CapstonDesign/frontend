@@ -19,9 +19,7 @@ import {
 } from "@/libs/client/file";
 import { FileTypeDTO } from "@/types/dto";
 import NoteAddModal from "@/components/layout/NotePage/NoteAddModal";
-import FolderEditModal, {
-  getFileById,
-} from "@/components/layout/NotePage/FolderEditModal";
+import FolderEditModal from "@/components/layout/NotePage/FolderEditModal";
 import NoteEditModal from "@/components/layout/NotePage/NoteEditModal";
 import SharedNoteTree from "@/components/layout/NotePage/SharedNoteTree";
 
@@ -62,23 +60,18 @@ export default function NoteExplorer({
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
 
-  const openNoteModal = () => {
-    setShowAddMenu(false);
-    setShowNoteModal(true);
-  };
-
   const openFolderModal = () => {
     setShowAddMenu(false);
     setShowFolderModal(true);
   };
 
-  const openFolderEditModal = (folder: MoaFile) => {
+  const openEditModal = (folder: MoaFile) => {
     setEditFolder(folder);
     setShowAddMenu(false);
     setShowEditModal(true);
   };
 
-  const closeFolderEditModal = () => {
+  const closeEditModal = () => {
     setEditFolder(null);
     setShowAddMenu(false);
     setShowEditModal(false);
@@ -112,7 +105,7 @@ export default function NoteExplorer({
     });
   };
 
-  const handleAddFolder = async (
+  const handleAddFolder = (
     folderName: string,
     parentId: string,
     selectedNotes: string[]
@@ -122,33 +115,37 @@ export default function NoteExplorer({
     console.log("폴더 생성 호출");
     console.log(folderName);
     console.log(parentId);
+    // 실제 폴더 생성 로직(API 호출 등) 추가 가능
+    createFile(folderName, FileTypeDTO.DIRECTORY, parentId, user).then(
+      (folder) => {
+        if (!folder) return;
+        // Selected Notes
+        for (const noteId of selectedNotes) {
+          getFile(noteId, user).then((note) => {
+            if (note) {
+              editFile(note, folder.id, user).then((result) => {
+                console.log(result ? "에딧 성공 " : "에딧 실패");
+                console.log(note.name);
+                console.log(note.id);
+              });
+            }
+          });
+        }
 
-    const folder = await createFile(
-      folderName,
-      FileTypeDTO.DIRECTORY,
-      parentId,
-      user
-    );
-    if (!folder) return;
-
-    if (selectedNotes.length > 0) {
-      await Promise.all(
-        selectedNotes.map(async (noteId) => {
-          const note = await getFile(noteId, user);
-          if (note) {
-            await editFile(note, folder.id, user);
+        // 파일 구조 초기화
+        getFileTree(null, user).then((rootFolder) => {
+          if (rootFolder) {
+            setRoot(rootFolder);
+          } else {
+            setRoot(null);
           }
-        })
-      );
-    }
-
-    const rootFolder = await getFileTree(null, user);
-    console.log("폴더 생성 작업 이후 트리 구조 확인:", rootFolder);
-    setRoot(rootFolder);
-    setShowFolderModal(false);
-    setShowNoteModal(false);
-    setShowEditModal(false);
-    setErrorMsg(null);
+          setShowFolderModal(false);
+          setShowNoteModal(false);
+          setShowEditModal(false);
+          setErrorMsg(null);
+        });
+      }
+    );
   };
 
   const handleAddNote = (noteName: string, parentId: string) => {
@@ -174,44 +171,18 @@ export default function NoteExplorer({
   };
 
   const handleDeleteFolder = (folderId: string) => {
-    console.log("폴더 삭제 요청 folderId:", folderId);
-    console.log("폴더 삭제 요청 userId:", user);
-
     deleteFile(folderId, user).then(() => {
-      reRoot(); // 트리 새로 고침
-      closeFolderEditModal(); // 모달 닫기
+      reRoot();
     });
   };
 
-  const handleEditFolder = async (
+  const handleEditFolder = (
     folderId: string,
     folderName: string,
     parentId: string,
     selectedNotes: string[]
   ) => {
-    if (!root) return;
-
-    // 기존 폴더에 포함된 노트 id 목록
-    const folder = editFolder ?? getFileById(folderId, root);
-    const originalNoteIds = (folder?.children ?? []).map((n) => n.id);
-
-    // 체크 해제된(포함 해제된) 노트 id 목록
-    const removedNoteIds = originalNoteIds.filter(
-      (id) => !selectedNotes.includes(id)
-    );
-
-    // 포함 해제된 노트는 루트(혹은 상위 폴더)로 이동
-    await Promise.all(
-      removedNoteIds.map(async (noteId) => {
-        const note = await getFile(noteId, user);
-        if (note) {
-          await editFile(note, root.id, user);
-        }
-      })
-    );
-
-    // 폴더 정보(이름, 위치 등) 수정
-    await editFile(
+    editFile(
       {
         id: folderId,
         name: folderName,
@@ -219,33 +190,29 @@ export default function NoteExplorer({
       } as MoaFile,
       parentId,
       user
-    );
-
-    // 폴더에 추가할 노트 이동
-    await Promise.all(
-      selectedNotes.map(async (noteId) => {
-        const note = await getFile(noteId, user);
-        if (note) {
-          await editFile(note, folderId, user);
+    ).then((result) => {
+      if (result) {
+        let count = selectedNotes.length;
+        for (const noteId of selectedNotes) {
+          getFile(noteId, user).then((result) => {
+            if (result) {
+              editFile(result, folderId, user).then(() => {
+                count -= 1;
+                if (count < 1) {
+                  reRoot();
+                }
+              });
+            }
+          });
         }
-      })
-    );
-
-    const rootFolder = await getFileTree(null, user);
-    console.log("폴더 수정 작업 이후 트리 구조 확인:", rootFolder);
-    setRoot(rootFolder);
-
-    // 모든 작업이 끝난 뒤 트리 새로고침
-    reRoot();
+        if (count == 0) reRoot();
+      }
+    });
   };
 
   const handleDeleteNote = (noteId: string) => {
-    console.log("노트 삭제 요청 noteId:", noteId);
-    console.log("노트 삭제 요청 userId:", user);
-
     deleteFile(noteId, user).then(() => {
-      reRoot(); // 트리 새로 고침
-      closeNoteEditModal(); // 삭제 후 모달 닫기
+      reRoot();
     });
   };
 
@@ -332,7 +299,10 @@ export default function NoteExplorer({
               </button>
               {showAddMenu && (
                 <AddMenu
-                  onAddNote={openNoteModal}
+                  onAddNote={() => {
+                    setShowAddMenu(false);
+                    setShowNoteModal(true);
+                  }}
                   onAddFolder={openFolderModal}
                   onClose={() => setShowAddMenu(false)}
                 />
@@ -347,7 +317,7 @@ export default function NoteExplorer({
                 selectedNoteId={selectedNoteId}
                 folderOpen={folderOpen}
                 onToggleFolder={handleToggleFolder}
-                onEditFolder={openFolderEditModal}
+                onEditFolder={openEditModal}
                 onEditNote={openNoteEditModal}
                 onNoteClick={(noteId) => router.push(`/doc/${noteId}`)}
               />
@@ -383,7 +353,7 @@ export default function NoteExplorer({
               folderId={editFolder.id}
               onDelete={handleDeleteFolder}
               onEdit={handleEditFolder}
-              onCancel={closeFolderEditModal}
+              onCancel={closeEditModal}
             />
           )}
 
