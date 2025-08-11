@@ -10,14 +10,23 @@ import {CRDTOperation} from "@/types/crdtOperation";
 import {TextNoteSegmentDTO} from "@/types/dto";
 import {Client} from "@stomp/stompjs";
 import toast from "react-hot-toast"
+import {SelectionRange} from "@/types/selectionRange";
 
 const SERVER_WS_URL = process.env.NEXT_PUBLIC_SERVER_WS_URL;
 
 export default function DocumentRenderer({user, uuid}: { user:User, uuid: string }) {
+  /*
+   * document 의 클로저가 잘못되어 state 가 롤백되는 현상이 있습니다.
+   * 확인하지 못했지만 treeNote 도 동일한 현상이 발생할 수 있습니다.
+   */
   const [treeNote, setTreeNote] = useState<TreeNote>(TreeNote.fromString(user.id, uuid, "loading...", "loading..."));
   const [document, setDocument] = useState<Note>({title: treeNote.title, id: uuid, content: treeNote.content}); // 현재 문서 내용
   const [isEditing, setEditing] = useState<boolean>(false); // 현재 편집중인가?
-  const [cursorPosition, setCursorPosition] = useState<number>(0); // 커서 위치
+  /*
+   * 커서 위치가 동시 편집 시에 내용 변경에 따라 자신이 실제 편집하던 위치와 다르게 위치하게 되는 현상이 있습니다.
+   * 내용 변경과 무관하게 기존 index 를 유지하기 때문입니다.
+   */
+  const [cursorPosition, setCursorPosition] = useState<SelectionRange>({baseOffset: 0, extentOffset: 0}); // 커서 위치
   const startEditing = () => setEditing(true);
 
   const clientRef = useRef<Client | null>(null);
@@ -44,7 +53,7 @@ export default function DocumentRenderer({user, uuid}: { user:User, uuid: string
   const send =
     (actions: CRDTOperation[]) => {
       console.log("Send ", actions);
-      broadcast(document.id, treeNoteRef.current.id, actions);
+      broadcast(uuid, treeNoteRef.current.id, actions);
     };
 
   // 다른데서 전파한 사항을 업데이트 하는거
@@ -141,7 +150,7 @@ export default function DocumentRenderer({user, uuid}: { user:User, uuid: string
             if (diff.removeLength > 0)
               treeNoteRef.current.remove(diff.removeFrom, diff.removeLength);
 
-            send(treeNoteRef.current.operationHistories[treeNote.operationHistories.length - 1]);
+            send(treeNoteRef.current.operationHistories[treeNoteRef.current.operationHistories.length - 1]);
             commitActions();
           }}
           lastCursorPosition={cursorPosition}
