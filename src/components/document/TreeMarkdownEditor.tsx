@@ -12,12 +12,11 @@ import TextareaAutosize from "react-textarea-autosize";
  * @param cursorHandler 커서 위치를 상위 컴포넌트로 전달하는 콜백 (optional)
  * @constructor
  */
-export function TreeMarkdownEditor({initialContent = null, updateContent = null, updateBlur = null, lastCursorPosition = null, cursorHandler = null}: {
+export function TreeMarkdownEditor({initialContent = null, updateContent, lastCursorPosition, cursorHandler}: {
   initialContent: string | null | undefined,
-  updateContent?: null | ((content: string) => void),
-  updateBlur?: null | (() => void),
-  lastCursorPosition?: number | null | undefined,
-  cursorHandler?: null | ((cursor: number) => void)
+  updateContent: (content: string) => void,
+  lastCursorPosition: SelectionRange,
+  cursorHandler: ((cursor: SelectionRange) => void)
 }) {
 
   const [cursorPosition, setCursor] = useState(lastCursorPosition ? lastCursorPosition : 0);

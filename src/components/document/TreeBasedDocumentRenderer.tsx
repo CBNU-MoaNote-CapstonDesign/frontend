@@ -19,7 +19,6 @@ export default function DocumentRenderer({user, uuid}: { user:User, uuid: string
   const [isEditing, setEditing] = useState<boolean>(false); // 현재 편집중인가?
   const [cursorPosition, setCursorPosition] = useState<number>(0); // 커서 위치
   const startEditing = () => setEditing(true);
-  const endEditing = () => setEditing(false);
 
   const clientRef = useRef<Client | null>(null);
   const textNoteSegmentsRef = useRef<TextNoteSegmentDTO[]>([]);
@@ -134,7 +133,6 @@ export default function DocumentRenderer({user, uuid}: { user:User, uuid: string
       {isEditing ? (
         <TreeMarkdownEditor
           initialContent={document.content}
-          updateBlur={endEditing}
           updateContent={(newContent: string) => {
             const diff = getDiff(document.content, newContent);
 
