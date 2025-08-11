@@ -7,7 +7,6 @@ import {MarkdownRenderer} from "@/components/document/MarkdownRenderer";
 import {TreeNote} from "@/libs/structures/treenote";
 import getDiff from "@/libs/simpledDiff";
 import {CRDTOperation} from "@/types/crdtOperation";
-import useFugueDocumentSync from "@/hooks/useFugueDocumentSync";
 import {TextNoteSegmentDTO} from "@/types/dto";
 import {Client} from "@stomp/stompjs";
 import toast from "react-hot-toast"
