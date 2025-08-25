@@ -52,13 +52,19 @@ export default function DocumentRenderer({
   ) => {
     if (clientRef.current && clientRef.current.connected) {
       clientRef.current.publish({
-        destination: `/app/docs/text/edit/${docId}/${segmentId}`,
+        destination: `/app/docs/text/edit/${docId}/${segmentId}`, // 문서 수정 API 엔드포인트
         body: JSON.stringify(actions),
       });
     }
   };
 
-  // 로컬 변경사항을 보내는거
+  /*
+   * 현재 노트 내용을 수정한 것이 반영이 안되는 버그가 있음.
+   * 아래 코드에서 로그를 출력해 보며 테스트 해본 결과 프론트엔드에서 수정 사항을 전송하는데 딱히 문제를 찾지 못했음
+   */
+
+  // 로컬 변경사항을 전송하는 함수
+  // 확인 사항1: Send 로그 출력 결과 변경사항 정상적으로 전송됨
   const send = (actions: CRDTOperation[]) => {
     console.log("Send ", actions);
     broadcast(document.id, treeNoteRef.current.id, actions);
@@ -85,26 +91,38 @@ export default function DocumentRenderer({
       segment.rootNode,
       segment.nodes
     );
-    console.log("initialized : " + initialTree.content);
+    treeNoteRef.current = initialTree;
+    setTreeNote(initialTree);
     setDocument({
-      ...document,
+      title: initialTree.title,
       id: uuid,
       content: initialTree.content,
     });
-    treeNoteRef.current = initialTree;
-    setTreeNote(treeNoteRef.current);
+
+    // 로그
+    console.log("initialized treeNoteRef:", treeNoteRef.current);
+    console.log("initialized document:", document);
   };
 
   const commitActions = () => {
     treeNoteRef.current.traversal();
-    console.log("applied : " + treeNoteRef.current.content);
     setDocument({
-      ...document,
+      title: treeNoteRef.current.title,
+      id: uuid,
       content: treeNoteRef.current.content,
     });
     setTreeNote(treeNoteRef.current);
+
+    // 노트 수정시 수정 내용 출력 로그
+    // 확인 사항2: 수정 내용 및 기록 정상적으로 출력됨
+    console.log("committed treeNoteRef:", treeNoteRef.current);
+
+    // 수정된 노트가 무엇인지 출력 로그
+    // 확인 사항3: 노트 ID 이상 없음
+    console.log("committed document:", document);
   };
 
+  // 노트 불러오기
   useEffect(() => {
     console.log("useFugueDocumentSync useEffect called");
     const client = new Client({
@@ -117,7 +135,12 @@ export default function DocumentRenderer({
           `/app/docs/text/participate/${uuid}`,
           (data) => {
             const body = JSON.parse(data.body);
-            if (body?.textNoteSegments) {
+
+            // 새로고침 등 처음 접속할 때 서버로 부터 받는 데이터 출력
+            // 확인 사항4: 여기서 TextNoteSegement가 빈 배열로 옴 <- 버그의 원인
+            console.log("서버로 부터 받은 초기 노트 데이터:", body);
+
+            if (body?.textNoteSegments && body.textNoteSegments.length > 0) {
               textNoteSegmentsRef.current =
                 body.textNoteSegments as TextNoteSegmentDTO[];
               initialize(textNoteSegmentsRef.current[0]);
@@ -194,23 +217,69 @@ export default function DocumentRenderer({
         {isEditing ? (
           <TreeMarkdownEditor
             initialContent={document.content}
-            updateBlur={endEditing}
+            updateBlur={() => {
+              // 편집 종료 시 마지막 diff를 한 번 더 서버에 publish
+              const latestContent = treeNoteRef.current.content;
+              if (latestContent !== document.content) {
+                const diff = getDiff(document.content, latestContent);
+                if (diff.insertedContent)
+                  treeNoteRef.current.insert(
+                    diff.removeFrom,
+                    diff.insertedContent
+                  );
+                if (diff.removeLength > 0)
+                  treeNoteRef.current.remove(
+                    diff.removeFrom,
+                    diff.removeLength
+                  );
+
+                send(
+                  treeNoteRef.current.operationHistories[
+                    treeNote.operationHistories.length - 1
+                  ]
+                );
+                commitActions();
+              }
+              endEditing();
+            }}
             updateContent={(newContent: string) => {
               const diff = getDiff(document.content, newContent);
+              console.log("diff:", diff);
 
-              if (diff.insertedContent)
+              if (diff.insertedContent) {
                 treeNoteRef.current.insert(
                   diff.removeFrom,
                   diff.insertedContent
                 );
-              if (diff.removeLength > 0)
+
+                // INSERT이후 트리 출력
+                // 확인 사항5: 로그 출력 이상없음
+                console.log("after insert:", treeNoteRef.current);
+              }
+              if (diff.removeLength > 0) {
                 treeNoteRef.current.remove(diff.removeFrom, diff.removeLength);
 
-              send(
-                treeNoteRef.current.operationHistories[
-                  treeNote.operationHistories.length - 1
-                ]
+                // REMOVE이후 트리 출력
+                // 확인 사항6: 로그 출력 이상없음
+                console.log("after remove:", treeNoteRef.current);
+              }
+
+              // 현재 까지 노트 수정 기록
+              // 확인 사항7: 로그 이상 없음
+              console.log(
+                "operationHistories:",
+                treeNoteRef.current.operationHistories
               );
+              const lastOp =
+                treeNoteRef.current.operationHistories[
+                  treeNoteRef.current.operationHistories.length - 1
+                ];
+
+              // 마지맏 수정 작업 출력
+              // 확인 사항8: 로그 이상 없음
+              console.log("last operation:", lastOp);
+
+              if (lastOp) send(lastOp);
               commitActions();
             }}
             lastCursorPosition={cursorPosition}
