@@ -1,5 +1,5 @@
-import {UUID} from "node:crypto";
-import {FileTypeDTO} from "@/types/dto";
+import { UUID } from "node:crypto";
+import { FileTypeDTO } from "@/types/dto";
 
 export interface MoaFile {
   id: UUID;
@@ -8,6 +8,4 @@ export interface MoaFile {
   children?: MoaFile[];
 }
 
-export interface Segment {
-
-}
+export interface Segment {}

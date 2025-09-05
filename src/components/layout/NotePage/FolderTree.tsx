@@ -1,16 +1,19 @@
-import FolderItem from "./FolderItem";
-import NoteItem from "./NoteItem";
-import {MoaFile} from "@/types/file";
+"use client";
+
+import type { MoaFile } from "@/types/file";
+
+import FolderItem from "@/components/layout/NotePage/FolderItem";
+import NoteItem from "@/components/layout/NotePage/NoteItem";
 
 export default function FolderTree({
-                                     file,
-                                     selectedNoteId,
-                                     folderOpen,
-                                     onToggleFolder,
-                                     onEditFolder,
-                                     onEditNote,
-                                     onNoteClick,
-                                   }: {
+  file,
+  selectedNoteId,
+  folderOpen,
+  onToggleFolder,
+  onEditFolder,
+  onEditNote,
+  onNoteClick,
+}: {
   file: MoaFile;
   selectedNoteId: string;
   folderOpen: Record<string, boolean>;
@@ -28,14 +31,16 @@ export default function FolderTree({
         note={file}
         selected={file.id === selectedNoteId}
         onClick={() => onNoteClick(file.id)}
-        onEdit={()=> onEditNote(file)}
+        onEdit={() => onEditNote(file)}
       />
     );
   } else if (file.type.toString() == "DIRECTORY") {
-    const notes = file.children ?
-      file.children.filter((file) => file.type.toString() === "DOCUMENT") : [];
-    const directories = file.children ?
-      file.children.filter((file) => file.type.toString() === "DIRECTORY") : [];
+    const notes = file.children
+      ? file.children.filter((file) => file.type.toString() === "DOCUMENT")
+      : [];
+    const directories = file.children
+      ? file.children.filter((file) => file.type.toString() === "DIRECTORY")
+      : [];
 
     console.log("노트들");
     console.log(notes);
@@ -43,37 +48,35 @@ export default function FolderTree({
       <FolderItem
         key={file.id}
         folder={file}
-        open={true/*folderOpen[file.id]*/}
+        open={folderOpen[file.id] ?? true} // 처음엔 폴더는 열린 상태로 보여짐
         onToggle={() => onToggleFolder(file.id)}
         onEdit={() => onEditFolder(file)}
       >
-        {
-          directories.map((directory) => (
-            FolderTree({
-              file: directory,
-              selectedNoteId: selectedNoteId,
-              folderOpen: folderOpen,
-              onToggleFolder: onToggleFolder,
-              onEditFolder: onEditFolder,
-              onEditNote: onEditNote,
-              onNoteClick: onNoteClick
-            })
-          ))
-        }
-        {
-          notes.map((note) => (
-            FolderTree({
-              file: note,
-              selectedNoteId: selectedNoteId,
-              folderOpen: folderOpen,
-              onToggleFolder: onToggleFolder,
-              onEditFolder: onEditFolder,
-              onEditNote: onEditNote,
-              onNoteClick: onNoteClick
-            })
-          ))
-        }
+        {directories.map((directory) => (
+          <FolderTree
+            key={directory.id}
+            file={directory}
+            selectedNoteId={selectedNoteId}
+            folderOpen={folderOpen}
+            onToggleFolder={onToggleFolder}
+            onEditFolder={onEditFolder}
+            onEditNote={onEditNote}
+            onNoteClick={onNoteClick}
+          />
+        ))}
+        {notes.map((note) => (
+          <FolderTree
+            key={note.id}
+            file={note}
+            selectedNoteId={selectedNoteId}
+            folderOpen={folderOpen}
+            onToggleFolder={onToggleFolder}
+            onEditFolder={onEditFolder}
+            onEditNote={onEditNote}
+            onNoteClick={onNoteClick}
+          />
+        ))}
       </FolderItem>
-    )
+    );
   }
 }

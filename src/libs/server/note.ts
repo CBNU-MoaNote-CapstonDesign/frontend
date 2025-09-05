@@ -1,6 +1,6 @@
-import {cookies} from "next/headers";
-import {Note} from "@/types/note";
-import {NoteDTO} from "@/types/dto";
+import { cookies } from "next/headers";
+import { Note } from "@/types/note";
+import { NoteDTO } from "@/types/dto";
 
 const SERVER_URL = process.env.NEXT_PUBLIC_SERVER_URL;
 
@@ -11,22 +11,28 @@ const SERVER_URL = process.env.NEXT_PUBLIC_SERVER_URL;
  * @param userId 요청을 보내는 유저의 id
  * @see NoteDTO
  */
-export async function fetchNote(fileId: string, userId: string): Promise<NoteDTO | null> {
+export async function fetchNote(
+  fileId: string,
+  userId: string
+): Promise<NoteDTO | null> {
   const cookie = (await cookies()).toString();
-  const res = await fetch(`${SERVER_URL}/api/notes/metadata/${fileId}?user=${userId}`, {
-    method: "GET",
-    credentials: "include",
-    headers: {
-      cookie,
-      "Content-Type": "application/json"
+  const res = await fetch(
+    `${SERVER_URL}/api/notes/metadata/${fileId}?user=${userId}`,
+    {
+      method: "GET",
+      credentials: "include",
+      headers: {
+        cookie,
+        "Content-Type": "application/json",
+      },
     }
-  });
+  );
 
   if (!res.ok) {
     return null;
   }
 
-  return await res.json() as NoteDTO;
+  return (await res.json()) as NoteDTO;
 }
 
 /**
@@ -69,7 +75,7 @@ export async function fetchNotesServerSide(userId: string) {
 
   if (!res.ok) return [];
   try {
-    return await res.json() as Array<Note>;
+    return (await res.json()) as Array<Note>;
   } catch {
     return [];
   }

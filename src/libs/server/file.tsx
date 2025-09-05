@@ -1,6 +1,6 @@
-import {MoaFile} from "@/types/file";
-import {FileDTO, FileTypeDTO, NoteDTO } from "@/types/dto";
-import {cookies} from "next/headers";
+import { MoaFile } from "@/types/file";
+import { FileDTO, FileTypeDTO, NoteDTO } from "@/types/dto";
+import { cookies } from "next/headers";
 
 const SERVER_URL = process.env.NEXT_PUBLIC_SERVER_URL;
 
@@ -8,7 +8,7 @@ const SERVER_URL = process.env.NEXT_PUBLIC_SERVER_URL;
  * 백엔드에 Get으로 API 호출하는 함수
  * @param location API 호출할 realative-location
  */
-async function getRequest(location:string) {
+async function getRequest(location: string) {
   const url = `${SERVER_URL}${location}`;
 
   const cookie = (await cookies()).toString();
@@ -41,17 +41,17 @@ async function getRequest(location:string) {
  * @param location API 호출할 Relative Location
  * @param stringfiedBody 담을 Body
  */
-async function postRequest(location:string, stringfiedBody?: string) {
+async function postRequest(location: string, stringfiedBody?: string) {
   const cookie = (await cookies()).toString();
 
   const res = await fetch(`${SERVER_URL}${location}`, {
     method: "POST",
     credentials: "include",
     body: stringfiedBody,
-    headers:{
+    headers: {
       cookie,
       "Content-Type": "application/json",
-    }
+    },
   });
 
   console.log(`postRequest[${res.status}]: ${location}`);
@@ -74,17 +74,17 @@ async function postRequest(location:string, stringfiedBody?: string) {
  * @param fileId 자식 구조를 가져올 파일들, null 이나 ''등으로 지정 안할 경우 루트부터
  * @param user 유저 ID
  */
-export async function getFileList(fileId:string|null, user:User) {
+export async function getFileList(fileId: string | null, user: User) {
   try {
-    let location = '';
+    let location = "";
 
-    if(fileId) {
+    if (fileId) {
       location = `/api/files/list/${fileId}?user=${user.id}`;
     } else {
       location = `/api/files/list?user=${user.id}`; // 루트 파일
     }
 
-    const data =  await getRequest(location);
+    const data = await getRequest(location);
 
     let fileDTOs: FileDTO[] = [];
 
@@ -93,7 +93,6 @@ export async function getFileList(fileId:string|null, user:User) {
     } catch {
       fileDTOs = [];
     }
-
 
     const files: Array<MoaFile> = [];
 
@@ -106,20 +105,19 @@ export async function getFileList(fileId:string|null, user:User) {
           type: fileDTO.type,
           name: fileDTO.name,
           children: children,
-        })
-      } else if(fileDTO.type == FileTypeDTO.DOCUMENT) {
+        });
+      } else if (fileDTO.type == FileTypeDTO.DOCUMENT) {
         // 문서 파일
         files.push({
           id: fileDTO.id,
           name: fileDTO.name,
           type: fileDTO.type,
-        })
+        });
       }
     }
 
     return files;
   } catch (error: unknown) {
-
     if (error instanceof Error) {
       console.log(error);
     } else {
@@ -135,10 +133,10 @@ export async function getFileList(fileId:string|null, user:User) {
  * @param fileId 조회할 파일 id
  * @param user
  */
-export async function getFile(fileId:string, user: User) {
+export async function getFile(fileId: string, user: User) {
   try {
     const location = `/api/files/metadata/${fileId}?user=${user.id}`;
-    const data =  await getRequest(location);
+    const data = await getRequest(location);
     if (!data) {
       return null;
     }
@@ -149,7 +147,6 @@ export async function getFile(fileId:string, user: User) {
       type: fileDTO.type,
       name: fileDTO.name,
     } as MoaFile;
-
   } catch (error: unknown) {
     console.log(error);
     return null;
@@ -163,8 +160,13 @@ export async function getFile(fileId:string, user: User) {
  * @param parentId
  * @param user
  */
-export async function createFile(name: string, type: FileTypeDTO, parentId:string|null, user: User) {
-  let location = '';
+export async function createFile(
+  name: string,
+  type: FileTypeDTO,
+  parentId: string | null,
+  user: User
+) {
+  let location = "";
   if (parentId) {
     location = `/api/files/create/${parentId}?user=${user.id}`;
   } else {
@@ -172,11 +174,11 @@ export async function createFile(name: string, type: FileTypeDTO, parentId:strin
   }
 
   const body = {
-    name : name,
-    type : type,
-  }
+    name: name,
+    type: type,
+  };
 
-  const result = await postRequest(location,JSON.stringify(body));
+  const result = await postRequest(location, JSON.stringify(body));
 
   if (!result) {
     return null;
@@ -194,7 +196,7 @@ export async function createFile(name: string, type: FileTypeDTO, parentId:strin
 export async function deleteFile(fileId: string, user: User) {
   const location = `/api/files/delete/${fileId}?user=${user.id}`;
 
-  const result = await postRequest(location,JSON.stringify(null));
+  const result = await postRequest(location, JSON.stringify(null));
 
   return !!result;
 }
@@ -228,7 +230,7 @@ export async function getNoteMeta(file: MoaFile, user: User) {
     credentials: "include",
   });
 
-  return await res.json() as NoteDTO;
+  return (await res.json()) as NoteDTO;
 }
 
 // TODO
@@ -246,14 +248,13 @@ export async function getNoteText(file: MoaFile, user: User) {
     credentials: "include",
     headers: {
       cookie,
-    }
+    },
   });
 
   const data = await res.json();
 
   return {
     note: data.note,
-
   };
 }
 
@@ -272,7 +273,7 @@ export async function getNoteDiagram(file: MoaFile, user: User) {
     credentials: "include",
     headers: {
       cookie,
-    }
+    },
   });
 
   const data = await res.json();

@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import TopNavigationBar from "@/components/layout/NotePage/TopNavigationBar";
 import NoteExplorer from "@/components/layout/NotePage/NoteExplorer";
@@ -16,13 +16,10 @@ export default function DocPageClient({
     <div className="flex flex-col justify-start w-full relative gap-[59px] bg-[#f0f8fe]">
       <TopNavigationBar user={user} selectedNoteId={selectedNoteId} />
       <div className="flex flex-row w-full pt-24">
-        <NoteExplorer
-          user={user}
-          selectedNoteId={selectedNoteId}
-        />
+        <NoteExplorer user={user} selectedNoteId={selectedNoteId} />
         <NoteUI user={user} noteId={selectedNoteId} />
       </div>
-      <ChatMenu uuid={"1234"} user={user}/>
+      <ChatMenu uuid={"1234"} user={user} />
     </div>
   );
 }

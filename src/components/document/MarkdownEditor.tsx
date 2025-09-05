@@ -1,5 +1,8 @@
-import invariant from 'tiny-invariant';
-import {useEffect, useRef, useState} from "react";
+// 더이상 사용하지 않는 컴포넌트로 보임
+// 대신 TreeMarkdownEditor.tsx에서 같은 기능이 구현된 것으로 보임
+
+import invariant from "tiny-invariant";
+import { useEffect, useRef, useState } from "react";
 import TextareaAutosize from "react-textarea-autosize";
 //import toast from "react-hot-toast";
 
@@ -12,26 +15,31 @@ import TextareaAutosize from "react-textarea-autosize";
  * @param cursorHandler 커서 위치를 상위 컴포넌트로 전달하는 콜백 (optional)
  * @constructor
  */
-export function MarkdownEditor({initialContent = null, updateContent = null, updateBlur = null, lastCursorPosition = null, cursorHandler = null}: {
-  initialContent: string | null | undefined,
-  updateContent?: null | ((content: string) => void),
-  updateBlur?: null | (() => void),
-  lastCursorPosition?: number | null | undefined,
-  cursorHandler?: null | ((cursor: number) => void)
+export function MarkdownEditor({
+  initialContent = null,
+  updateContent = null,
+  updateBlur = null,
+  lastCursorPosition = null,
+  cursorHandler = null,
+}: {
+  initialContent: string | null | undefined;
+  updateContent?: null | ((content: string) => void);
+  updateBlur?: null | (() => void);
+  lastCursorPosition?: number | null | undefined;
+  cursorHandler?: null | ((cursor: number) => void);
 }) {
-
-  const [cursorPosition, setCursor] = useState(lastCursorPosition ? lastCursorPosition : 0);
+  const [cursorPosition, setCursor] = useState(
+    lastCursorPosition ? lastCursorPosition : 0
+  );
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
 
   const handleSelect = () => {
     const el = textAreaRef.current;
     invariant(el, "textAreaRef is null");
-    if (!el)
-      return;
+    if (!el) return;
     setCursor(el.selectionStart);
-    if (cursorHandler)
-      cursorHandler(el.selectionStart);
-  }
+    if (cursorHandler) cursorHandler(el.selectionStart);
+  };
 
   useEffect(() => {
     if (textAreaRef.current) {
@@ -46,12 +54,11 @@ export function MarkdownEditor({initialContent = null, updateContent = null, upd
     if (el && updateContent) {
       updateContent(el.value);
     }
-  }
+  };
 
   const handleBlur = () => {
-    if (updateBlur)
-      updateBlur();
-  }
+    if (updateBlur) updateBlur();
+  };
 
   return (
     <div className="w-full">

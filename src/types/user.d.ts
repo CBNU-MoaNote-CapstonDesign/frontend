@@ -1,8 +1,8 @@
 export {};
 
 declare global {
-    interface User {
-        id: string,
-        name: string,
-    }
+  interface User {
+    id: string;
+    name: string;
+  }
 }

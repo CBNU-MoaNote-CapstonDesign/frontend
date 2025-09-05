@@ -1,7 +1,13 @@
 "use client";
-import {MoaFile} from "@/types/file";
-import {FileDTO, FileTypeDTO, NoteDTO, PermissionDTO, Collaborator} from "@/types/dto";
-import {UUID} from "node:crypto";
+import { MoaFile } from "@/types/file";
+import {
+  FileDTO,
+  FileTypeDTO,
+  NoteDTO,
+  PermissionDTO,
+  Collaborator,
+} from "@/types/dto";
+import { UUID } from "node:crypto";
 
 const SERVER_URL = process.env.NEXT_PUBLIC_SERVER_URL;
 
@@ -39,6 +45,9 @@ async function getRequest(location: string) {
  * @param stringifiedBody JSON stringified body
  */
 async function postRequest(location: string, stringifiedBody?: string) {
+  console.log("post요청 location:", location);
+  console.log("post요청 body:", stringifiedBody);
+
   const res = await fetch(`${SERVER_URL}${location}`, {
     method: "POST",
     credentials: "include",
@@ -54,10 +63,13 @@ async function postRequest(location: string, stringifiedBody?: string) {
     return null;
   }
 
-  if (!res.body) {
+  // 응답 본문이 없으면 true 반환
+  const contentLength = res.headers.get("content-length");
+  if (!contentLength || contentLength === "0") {
     return true;
   }
 
+  // 본문이 있으면 json 파싱
   return await res.json();
 }
 
@@ -80,8 +92,8 @@ export async function getFileTree(file: MoaFile | null, user: User) {
         rootFileDTOs = [];
       }
 
-      for(const fileDTO of rootFileDTOs) {
-        if(fileDTO.dir === null) {
+      for (const fileDTO of rootFileDTOs) {
+        if (fileDTO.dir === null) {
           const root = {
             id: fileDTO.id,
             name: fileDTO.name,
@@ -103,18 +115,16 @@ export async function getFileTree(file: MoaFile | null, user: User) {
 
     let fileDTOs: FileDTO[];
     try {
-     fileDTOs = data as FileDTO[];
+      fileDTOs = data as FileDTO[];
     } catch {
-     fileDTOs = [];
+      fileDTOs = [];
     }
 
-
     file.children = [];
-    for(const fileDTO of fileDTOs) {
-      if(fileDTO.id === file.id)
-        continue;
+    for (const fileDTO of fileDTOs) {
+      if (fileDTO.id === file.id) continue;
 
-      if(fileDTO.type.toString() == "DIRECTORY") {
+      if (fileDTO.type.toString() == "DIRECTORY") {
         let child = {
           id: fileDTO.id,
           name: fileDTO.name,
@@ -123,11 +133,9 @@ export async function getFileTree(file: MoaFile | null, user: User) {
         } as MoaFile;
 
         const tree = await getFileTree(child, user);
-        if(tree)
-          child = tree;
+        if (tree) child = tree;
 
-        if(child)
-          file.children.push(child);
+        if (child) file.children.push(child);
       } else if (fileDTO.type.toString() == "DOCUMENT") {
         const child = {
           id: fileDTO.id,
@@ -139,7 +147,7 @@ export async function getFileTree(file: MoaFile | null, user: User) {
     }
 
     return file;
-  } catch(error:unknown) {
+  } catch (error: unknown) {
     console.error(error);
     return null;
   }
@@ -211,7 +219,7 @@ export async function deleteFile(fileId: string, user: User) {
   try {
     await postRequest(location, JSON.stringify({}));
     return true;
-  } catch(error: unknown) {
+  } catch (error: unknown) {
     console.error(error);
     return false;
   }
@@ -235,7 +243,7 @@ export async function editFile(file: MoaFile, parentId: string, user: User) {
 
   fileDTO.type = file.type;
   fileDTO.name = file.name;
-  if(parentId) {
+  if (parentId) {
     fileDTO.dir = parentId as UUID;
   }
 
@@ -288,13 +296,18 @@ export async function getNoteDiagram(file: MoaFile, user: User) {
   return data as NoteDTO;
 }
 
-export async function invite(fileId: string, user:User, collaboratorName:string, permission: PermissionDTO) {
+export async function invite(
+  fileId: string,
+  user: User,
+  collaboratorName: string,
+  permission: PermissionDTO
+) {
   const location = `/api/files/share/${fileId}?user=${user.id}`;
   const body = {
-    "username": collaboratorName,
-    "permission": permission,
+    username: collaboratorName,
+    permission: permission,
   };
-  try{
+  try {
     await postRequest(location, JSON.stringify(body));
     return true;
   } catch {
@@ -302,7 +315,10 @@ export async function invite(fileId: string, user:User, collaboratorName:string,
   }
 }
 
-export async function getCollaborators(fildId:string, user:User): Collaborator[] {
+export async function getCollaborators(
+  fildId: string,
+  user: User
+): Promise<Collaborator[]> {
   const location = `/api/files/collaborators/${fildId}?user=${user.id}`;
   try {
     const data = await getRequest(location);
@@ -312,12 +328,11 @@ export async function getCollaborators(fildId:string, user:User): Collaborator[]
   }
 }
 
-export async function getSharedFiles(user:User) {
+export async function getSharedFiles(user: User): Promise<MoaFile[]> {
   const location = `/api/files/all/${user.id}`;
   try {
     const data = await getRequest(location);
     const fileDTOs = data as FileDTO[];
-
 
     console.log("공유받은 파일들 ");
     console.log(fileDTOs);
@@ -343,7 +358,7 @@ export async function addNoteSegment(fileId: string, type: number, user: User) {
   const location = `/api/notes/${fileId}/add/segment?user=${user.id}`;
   const body = {
     type: type,
-  }
+  };
   const data = await postRequest(location, JSON.stringify(body));
   return data;
 }
