@@ -43,6 +43,7 @@ async function getRequest(location: string) {
  * 백엔드에 POST로 API 호출하는 함수 (client-side)
  * @param location API 호출할 relative-location
  * @param stringifiedBody JSON stringified body
+ * @return 응답 본문이 있으면 파싱된 JSON, 그렇지 않은 경우 요청 성공 여부 (true/false)
  */
 async function postRequest(location: string, stringifiedBody?: string) {
   console.log("post요청 location:", location);
@@ -59,18 +60,13 @@ async function postRequest(location: string, stringifiedBody?: string) {
 
   console.log(`postRequest[${res.status}]: ${location}`);
 
-  if (!res.ok) {
-    return null;
-  }
-
-  // 응답 본문이 없으면 true 반환
-  const contentLength = res.headers.get("content-length");
-  if (!contentLength || contentLength === "0") {
-    return true;
-  }
 
   // 본문이 있으면 json 파싱
-  return await res.json();
+  const responseBody = await res.json();
+  if (!responseBody)
+    return res.ok;
+  else
+    return responseBody;
 }
 
 /**
