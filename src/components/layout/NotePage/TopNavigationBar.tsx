@@ -2,8 +2,7 @@
 
 import { useEffect, useState } from "react";
 import type { MoaFile } from "@/types/file";
-import { addNoteSegment, getCollaborators, getFile } from "@/libs/client/file";
-import toast from "react-hot-toast";
+import { getCollaborators, getFile } from "@/libs/client/file";
 import {
   UserPlus,
   MoreHorizontal,
@@ -25,26 +24,6 @@ export default function TopNavigationBar({
   const [note, setNote] = useState<MoaFile | null>(null);
   const [inviteOpen, setInviteOpen] = useState(false);
   const [sharedUsers, setSharedUsers] = useState<User[]>([]);
-
-  const handleAddDiagram = () => {
-    addNoteSegment(selectedNoteId, 1, user).then((data) => {
-      const segmentId = data as string;
-
-      const copyText = (text: string) => {
-        navigator.clipboard
-          .writeText(text)
-          .then(() => {
-            console.log("Text copied to clipboard!");
-          })
-          .catch((err) => {
-            console.error("Failed to copy text: ", err);
-          });
-      };
-
-      copyText(`/diagram/${segmentId}`);
-      toast.success("Digram 태그를 클립보드에 복사했습니다.");
-    });
-  };
 
   useEffect(() => {
     getFile(selectedNoteId, user).then((file) => {
@@ -91,7 +70,12 @@ export default function TopNavigationBar({
         <div className="flex gap-3">
           <button
             className="group flex items-center gap-1 px-3 py-1.5 rounded-lg bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200 text-purple-700 font-medium shadow-sm hover:shadow-md hover:from-purple-100 hover:to-blue-100 hover:border-purple-300 transition-all duration-200 text-sm"
-            onClick={handleAddDiagram}
+            onClick={() => {
+              // 디자인 블록 버튼 클릭 -> 그림 편집 창 토글 이벤트 발송
+              if (typeof window !== "undefined") {
+                window.dispatchEvent(new CustomEvent("moanote:toggle-diagram"));
+              }
+            }}
           >
             <Palette className="w-3.5 h-3.5 transition-transform duration-200 group-hover:scale-110" />
             <span>디자인 블록</span>

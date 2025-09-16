@@ -7,6 +7,8 @@ import { FileText, Plus, Sparkles, ArrowRight } from "lucide-react";
 
 import DocumentTitle from "@/components/document/DocumentTitle";
 import TreeBasedDocumentRenderer from "@/components/document/TreeBasedDocumentRenderer";
+import { Tldraw } from "@tldraw/tldraw";
+import "@tldraw/tldraw/tldraw.css";
 
 export default function NoteUI({
   user,
@@ -17,6 +19,9 @@ export default function NoteUI({
 }) {
   const [note, setNote] = useState<MoaFile | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+
+  // 디자인 블록(그림 편집) 표시 여부
+  const [showDiagram, setShowDiagram] = useState(false);
 
   useEffect(() => {
     if (noteId) {
@@ -30,6 +35,15 @@ export default function NoteUI({
         });
     }
   }, [user, noteId]);
+
+  // TopNavigationBar에서 디스패치하는 이벤트 구독
+  useEffect(() => {
+    const handler = () => setShowDiagram((v) => !v);
+    window.addEventListener("moanote:toggle-diagram", handler as EventListener);
+    return () => {
+      window.removeEventListener("moanote:toggle-diagram", handler as EventListener);
+    };
+  }, []);
 
   if (!noteId) {
     return (
@@ -128,7 +142,7 @@ export default function NoteUI({
   }
 
   return (
-    <main className="flex-1 h-[calc(100vh-6rem)] ml-0 bg-gradient-to-br from-slate-50 via-white to-blue-50 rounded-l-2xl shadow-lg border border-slate-200 overflow-auto flex flex-col items-center z-30 relative">
+    <main className="flex-1 h-[calc(100vh-6rem)] ml-0 bg-gradient-to-br from-slate-50 via-white to-blue-50 rounded-l-2xl shadow-lg border border-slate-200 overflow-auto flex flex-col items-center z-30 relative pb-24">
       {/* 배경 장식 */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 via-purple-500 to-blue-600 opacity-60"></div>
@@ -137,11 +151,24 @@ export default function NoteUI({
       </div>
 
       {/* 메인 콘텐츠 */}
-      <div className="relative w-full max-w-4xl min-h-full flex flex-col gap-6 px-8 py-10">
+      <div className="relative w-full max-w-4xl flex flex-col gap-6 px-8 pt-10">
         <DocumentTitle title={note ? note.name : ""} />
-        <div className="flex-1">
+
+        {/* 문서 영역: 다이어그램 표시 중에는 flex-1을 해제해서 공간 확보 */}
+        <div className={showDiagram ? "" : "flex-1"}>
           <TreeBasedDocumentRenderer user={user} uuid={note?.id as string} />
         </div>
+
+        {/* 디자인 블록(tldraw) 편집 창: DocumentRenderer 아래에 표시 */}
+        {showDiagram && (
+          <div
+            className="mt-6 mb-16 w-full border rounded-2xl shadow bg-white overflow-hidden
+                       h-[65vh] min-h-[520px] md:h-[72vh]"
+          >
+            <Tldraw />
+          </div>
+        )}
+        {showDiagram && <div className="h-10" />}
       </div>
     </main>
   );

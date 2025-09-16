@@ -13,6 +13,7 @@
     "@excalidraw/excalidraw": "^0.18.0",
     "@excalidraw/mermaid-to-excalidraw": "^1.1.2",
     "@stomp/stompjs": "^7.1.0",
+    "@tldraw/tldraw": "^3.15.4",
     "axios": "^1.8.3",
     "lucide-react": "^0.536.0",
     "next": "15.2.2",
