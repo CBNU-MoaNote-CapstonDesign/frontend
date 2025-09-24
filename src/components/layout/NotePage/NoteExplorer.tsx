@@ -22,6 +22,8 @@ import NoteEditModal from "@/components/layout/NotePage/NoteEditModal";
 import FolderEditModal from "@/components/layout/NotePage/FolderEditModal";
 import FolderTree from "@/components/layout/NotePage/FolderTree";
 import SharedNoteTree from "@/components/layout/NotePage/SharedNoteTree";
+import type { Language } from "@/types/note";
+import { NoteType } from "@/libs/note"
 
 interface NoteExplorerProps {
   user: User;
@@ -148,7 +150,8 @@ export default function NoteExplorer({
     );
   };
 
-  const handleAddNote = (noteName: string, parentId: string) => {
+  const handleAddNote = (noteName: string, parentId: string, noteType: NoteType, language?: Language | undefined) => {
+    // TODO noteType 이 소스 코드인 경우의 기능 추가 필요
     createFile(noteName, FileTypeDTO.DOCUMENT, parentId, user).then((file) => {
       // 첫번쨰 노트 세그먼트 생성
       if (file) {
