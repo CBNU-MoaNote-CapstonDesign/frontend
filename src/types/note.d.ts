@@ -6,3 +6,8 @@ export interface NoteMeta {
 export interface Note extends NoteMeta {
   content: string;
 }
+
+export interface Language {
+  value: string,
+  label: string
+}

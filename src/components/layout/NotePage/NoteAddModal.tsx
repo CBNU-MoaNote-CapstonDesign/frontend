@@ -2,13 +2,15 @@
 
 import React, { useState } from "react";
 import type { MoaFile } from "@/types/file";
+import type { Language } from "@/types/note";
+import { LANGUAGES, NoteType } from "@/libs/note";
 import { X, FileText, FolderOpen, Plus } from "lucide-react";
 
 import Portal from "@/components/common/Portal";
 
 interface Props {
   root: MoaFile;
-  onAdd: (noteId: string, parentId: string) => void;
+  onAdd: (noteName: string, parentId: string, noteType: NoteType, language?: Language) => void;
   onCancel: () => void;
   errorMsg?: string | null;
 }
@@ -16,11 +18,11 @@ interface Props {
 export default function NoteAddModal({ root, onAdd, onCancel }: Props) {
   const [noteName, setNoteName] = useState<string>("");
   const [parentId, setParentId] = useState<string>(root.id);
+  const [noteType, setNoteType] = useState<NoteType>(NoteType.normal);
+  const [language, setLanguage] = useState<Language>(LANGUAGES.javascript);
 
   // 모든 디렉토리 목록
   const renderFolderOptions = (folder: MoaFile, depth = 0): React.ReactNode => {
-    // 루트 폴더 가져오기
-
     if (folder.type.toString() !== "DIRECTORY") return null;
 
     return (
@@ -62,6 +64,49 @@ export default function NoteAddModal({ root, onAdd, onCancel }: Props) {
 
           {/* 폼 */}
           <div className="space-y-5">
+            {/* 문서 타입 스위치 */}
+            <div>
+              <label className="flex items-center gap-2 text-sm font-semibold text-slate-700 mb-2">
+                문서 종류
+              </label>
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  className={`px-4 py-2 rounded-xl ${noteType === "normal" ? "bg-blue-500 text-white" : "bg-slate-100 text-slate-700"} font-medium`}
+                  onClick={() => setNoteType(NoteType.normal)}
+                >
+                  일반 문서
+                </button>
+                <button
+                  type="button"
+                  className={`px-4 py-2 rounded-xl ${noteType === "code" ? "bg-blue-500 text-white" : "bg-slate-100 text-slate-700"} font-medium`}
+                  onClick={() => setNoteType(NoteType.code)}
+                >
+                  소스 코드
+                </button>
+              </div>
+            </div>
+
+            {/* 소스코드 언어 선택 (noteType이 code일 때만) */}
+            {noteType === "code" && (
+              <div>
+                <label className="flex items-center gap-2 text-sm font-semibold text-slate-700 mb-2">
+                  언어 선택
+                </label>
+                <select
+                  className="w-full border-2 border-slate-200 rounded-xl px-4 py-3 bg-slate-50 focus:outline-none focus:border-blue-400 focus:bg-white transition-all duration-200"
+                  value={language.value}
+                  onChange={(e) => setLanguage(LANGUAGES[e.target.value])}
+                >
+                  {Object.entries(LANGUAGES).map(([, lang]) => (
+                    <option key={lang.value} value={lang.value}>
+                      {lang.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
             {/* 노트 생성 위치 */}
             <div>
               <label className="flex items-center gap-2 text-sm font-semibold text-slate-700 mb-2">
@@ -104,7 +149,7 @@ export default function NoteAddModal({ root, onAdd, onCancel }: Props) {
             <button
               className="flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold transition-all duration-200 shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
               onClick={() => {
-                onAdd(noteName, parentId);
+                onAdd(noteName, parentId, noteType, noteType == NoteType.code ? language : undefined);
               }}
               disabled={!noteName.trim()}
             >
