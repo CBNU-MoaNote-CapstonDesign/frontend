@@ -7,6 +7,7 @@ import { FileText, Plus, Sparkles, ArrowRight } from "lucide-react";
 
 import DocumentTitle from "@/components/document/DocumentTitle";
 import TreeBasedDocumentRenderer from "@/components/document/TreeBasedDocumentRenderer";
+import CodeEditor from "@/components/document/CodeEditor";
 
 export default function NoteUI({
   user,
@@ -141,6 +142,11 @@ export default function NoteUI({
         <DocumentTitle title={note ? note.name : ""} />
         <div className="flex-1">
           <TreeBasedDocumentRenderer user={user} uuid={note?.id as string} />
+
+          {/* 코드 에디터 디자인 작업을 위해 임시로 CodeEditor 컴포넌트 삽입 */}
+          <br />
+          <p>↓↓↓↓ 코드 에디터 디자인 작업 위해 임시로 표시 ↓↓↓↓</p>
+          <CodeEditor user={user} uuid={note?.id as string} />
         </div>
       </div>
     </main>
