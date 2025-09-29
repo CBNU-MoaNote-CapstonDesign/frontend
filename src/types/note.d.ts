@@ -9,5 +9,6 @@ export interface Note extends NoteMeta {
 
 export interface Language {
   value: string,
-  label: string
+  label: string,
+  fileExtension: string
 }
