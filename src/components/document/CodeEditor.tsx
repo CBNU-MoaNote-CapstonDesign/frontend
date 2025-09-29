@@ -6,6 +6,8 @@ import type * as monacoType from "monaco-editor";
 import useFugueTextSync from "@/hooks/useFugueTextSync";
 import getDiff from "@/libs/simpledDiff";
 import { Code, Copy, Download, Terminal } from "lucide-react";
+import { LANGUAGES } from "@/libs/note";
+import { Language } from "@/types/note";
 
 const Editor = dynamic(() => import("@monaco-editor/react"), { ssr: false });
 
@@ -20,36 +22,7 @@ export default function CodeEditor({ user, uuid }: { user: User, uuid: string })
   const [isMounted, setIsMounted] = useState(false);
 
   // 선택 언어 상태 (기본 javascript)
-  const [language, setLanguage] = useState("javascript");
-
-  // 지원 언어 목록 (UI 선택용)
-  const languages = [
-    { value: "javascript", label: "JavaScript" },
-    { value: "typescript", label: "TypeScript" },
-    { value: "python", label: "Python" },
-    { value: "java", label: "Java" },
-    { value: "cpp", label: "C++" },
-    { value: "html", label: "HTML" },
-    { value: "css", label: "CSS" },
-    { value: "json", label: "JSON" },
-    { value: "markdown", label: "Markdown" },
-  ];
-
-  // 언어별 확장자 (다운로드 파일명에 표시하기 위함)
-  const langExt = (l: string) => {
-    switch (l) {
-      case "typescript": return "ts";
-      case "javascript": return "js";
-      case "python": return "py";
-      case "java": return "java";
-      case "cpp": return "cpp";
-      case "html": return "html";
-      case "css": return "css";
-      case "json": return "json";
-      case "markdown": return "md";
-      default: return "txt";
-    }
-  };
+  const [language, setLanguage] = useState<Language>(LANGUAGES.javascript);
 
   // 코드 복사
   const handleCopyCode = useCallback(() => {
@@ -62,7 +35,7 @@ export default function CodeEditor({ user, uuid }: { user: User, uuid: string })
     const url = URL.createObjectURL(blob);
     const a = window.document.createElement("a");
     a.href = url;
-    a.download = `code.${langExt(language)}`;
+    a.download = `code.${language.fileExtension}`;
     window.document.body.appendChild(a);
     a.click();
     setTimeout(() => {
@@ -151,13 +124,17 @@ export default function CodeEditor({ user, uuid }: { user: User, uuid: string })
             </div>
 
             <select
-              value={language}
-              onChange={(e) => setLanguage(e.target.value)}
+              value={language.value}
+              onChange={(e) => {
+                console.log(e.target.value);
+                const selectedLanguage = Object.values(LANGUAGES).find(lang => lang.value === e.target.value);
+                if (selectedLanguage) setLanguage(selectedLanguage);
+              }}
               className="px-3 py-2 bg-white border-2 border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100 transition-all duration-200"
             >
-              {languages.map((l) => (
-                <option key={l.value} value={l.value}>
-                  {l.label}
+              {Object.entries(LANGUAGES).map(([k, v]) => (
+                <option key={k} value={v.value}>
+                  {v.label}
                 </option>
               ))}
             </select>
@@ -189,8 +166,8 @@ export default function CodeEditor({ user, uuid }: { user: User, uuid: string })
           <div className="h-[500px] bg-white transition-all duration-300">
             <Editor
               height="100%"
-              language={language} // 선택한 언어
-              defaultValue={code} // 기존 defaultValue 유지
+              language={language.value}
+              defaultValue={code}
               onMount={handleEditorMount}
               options={{
                 minimap: { enabled: false },
@@ -212,7 +189,7 @@ export default function CodeEditor({ user, uuid }: { user: User, uuid: string })
             <div className="absolute bottom-4 right-4 flex items-center gap-2">
               <div className="flex items-center gap-2 px-3 py-2 bg-white/90 backdrop-blur-sm rounded-xl border border-slate-200 shadow-sm">
                 <Terminal className="w-3 h-3 text-slate-500" />
-                <span className="text-xs font-medium text-slate-600">{language.toUpperCase()}</span>
+                <span className="text-xs font-medium text-slate-600">{language.value.toUpperCase()}</span>
               </div>
             </div>
 
