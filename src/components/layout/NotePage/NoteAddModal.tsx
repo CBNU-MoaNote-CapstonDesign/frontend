@@ -96,7 +96,10 @@ export default function NoteAddModal({ root, onAdd, onCancel }: Props) {
                 <select
                   className="w-full border-2 border-slate-200 rounded-xl px-4 py-3 bg-slate-50 focus:outline-none focus:border-blue-400 focus:bg-white transition-all duration-200"
                   value={language.value}
-                  onChange={(e) => setLanguage(LANGUAGES[e.target.value])}
+                  onChange={(e) => {
+                    const selectedLanguage = Object.values(LANGUAGES).find(lang => lang.value === e.target.value);
+                    if (selectedLanguage) setLanguage(selectedLanguage);
+                  }}
                 >
                   {Object.entries(LANGUAGES).map(([, lang]) => (
                     <option key={lang.value} value={lang.value}>
@@ -149,7 +152,7 @@ export default function NoteAddModal({ root, onAdd, onCancel }: Props) {
             <button
               className="flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold transition-all duration-200 shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
               onClick={() => {
-                onAdd(noteName, parentId, language);
+                onAdd(noteName, parentId, noteType == NoteType.code ? language : undefined);
               }}
               disabled={!noteName.trim()}
             >
