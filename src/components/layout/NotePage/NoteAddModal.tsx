@@ -10,7 +10,7 @@ import Portal from "@/components/common/Portal";
 
 interface Props {
   root: MoaFile;
-  onAdd: (noteName: string, parentId: string, noteType: NoteType, language?: Language) => void;
+  onAdd: (noteName: string, parentId: string, language?: Language) => void;
   onCancel: () => void;
   errorMsg?: string | null;
 }
@@ -149,7 +149,7 @@ export default function NoteAddModal({ root, onAdd, onCancel }: Props) {
             <button
               className="flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold transition-all duration-200 shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
               onClick={() => {
-                onAdd(noteName, parentId, noteType, noteType == NoteType.code ? language : undefined);
+                onAdd(noteName, parentId, language);
               }}
               disabled={!noteName.trim()}
             >

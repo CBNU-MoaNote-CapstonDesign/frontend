@@ -150,9 +150,8 @@ export default function NoteExplorer({
     );
   };
 
-  const handleAddNote = (noteName: string, parentId: string, noteType: NoteType, language?: Language | undefined) => {
-    // TODO noteType 이 소스 코드인 경우의 기능 추가 필요
-    createFile(noteName, FileTypeDTO.DOCUMENT, parentId, user).then((file) => {
+  const handleAddNote = (noteName: string, parentId: string, language?: Language | undefined) => {
+    createFile(noteName, FileTypeDTO.DOCUMENT, parentId, user, language).then((file) => {
       // 첫번쨰 노트 세그먼트 생성
       if (file) {
         addNoteSegment(file.id, 0, user).then(() => {

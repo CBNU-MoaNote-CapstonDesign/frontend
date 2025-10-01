@@ -7,6 +7,7 @@ import {
   PermissionDTO,
   Collaborator,
 } from "@/types/dto";
+import { Language } from "@/types/note";
 import { UUID } from "node:crypto";
 
 const SERVER_URL = process.env.NEXT_PUBLIC_SERVER_URL;
@@ -183,15 +184,21 @@ export async function createFile(
   name: string,
   type: FileTypeDTO,
   parentId: string | null,
-  user: User
+  user: User,
+  codeLanguage?: Language | null
 ) {
   const location = parentId
     ? `/api/files/create/${parentId}?user=${user.id}`
     : `/api/files/create?user=${user.id}`;
 
-  const body = {
+  const body = codeLanguage ? {
     name,
     type,
+    isCode: true,
+    language: codeLanguage.value,
+  } : {
+    name,
+    type
   };
 
   const result = await postRequest(location, JSON.stringify(body));
