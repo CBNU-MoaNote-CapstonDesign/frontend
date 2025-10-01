@@ -6,11 +6,11 @@ export enum NoteType {
 }
 
 export const LANGUAGES : Record<string, Language> = {
-  javascript: { value: "javascript", label: "JavaScript",  fileExtension: "js" },
-  javascript_jsx: { value: "javascript_jsx", label: "JavaScript (JSX)", fileExtension: "jsx" },
-  typescript: { value: "typescript", label: "TypeScript", fileExtension: "ts" },
-  typescript_jsx: { value: "typescript_jsx", label: "TypeScript (TSX)", fileExtension: "tsx" },
-  python: { value: "python", label: "Python", fileExtension: "py" },
-  java: { value: "java", label: "Java", fileExtension: "java" },
-  csharp: { value: "csharp", label: "C#", fileExtension: "cs" },
+  javascript: { value: "JAVASCRIPT", label: "JavaScript",  fileExtension: "js" },
+  javascript_jsx: { value: "JAVASCRIPT_JSX", label: "JavaScript (JSX)", fileExtension: "jsx" },
+  typescript: { value: "TYPESCRIPT", label: "TypeScript", fileExtension: "ts" },
+  typescript_jsx: { value: "TYPESCRIPT_JSX", label: "TypeScript (TSX)", fileExtension: "tsx" },
+  python: { value: "PYTHON", label: "Python", fileExtension: "py" },
+  java: { value: "JAVA", label: "Java", fileExtension: "java" },
+  csharp: { value: "CSHARP", label: "C#", fileExtension: "cs" },
 }
