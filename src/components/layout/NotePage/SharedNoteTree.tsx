@@ -38,35 +38,39 @@ export default function SharedNoteTree({
   return (
     <div>
       <FolderItem
-        folder={
-          {
-            id: "00000000-0000-0000-0000-000000000000", // 공유 폴더의 임시 uuid
-            name: "공유받은 문서",
-            type: FileTypeDTO.DIRECTORY,
-            children: [],
-          } as MoaFile
-        }
-        open={folderOpen["00000000-0000-0000-0000-000000000000"] ?? true}
-        onToggle={() =>
-          handleToggleFolder("00000000-0000-0000-0000-000000000000")
-        }
-        onEdit={() => {}}
-        isShared={true}
+          folder={
+            {
+              id: "00000000-0000-0000-0000-000000000000", // 공유 폴더의 임시 uuid
+              name: "공유받은 문서",
+              type: FileTypeDTO.DIRECTORY,
+              children: [],
+            } as MoaFile
+          }
+          open={folderOpen["00000000-0000-0000-0000-000000000000"] ?? true}
+          onToggle={() =>
+              handleToggleFolder("00000000-0000-0000-0000-000000000000")
+          }
+          onEdit={() => {
+          }}
+          isShared={true}
       >
-        {sharedFiles.length > 0 &&
-          sharedFiles.map((file: MoaFile) => (
-            <div key={file.id} className={"my-1 ml-4"}>
-              <NoteItem
-                note={file}
-                onEdit={() => {}}
-                selected={selectedNoteId == file.id}
-                onClick={() => {
-                  router.push(`/doc/${file.id}`);
-                }}
-                isShared={true}
-              />
+        {sharedFiles.length > 0 && (
+            <div className="mt-2 space-y-1 animate-in slide-in-from-top-2 duration-200">
+              {sharedFiles.map((file: MoaFile) => (
+                  <NoteItem
+                      key={file.id}
+                      note={file}
+                      onEdit={() => {
+                      }}
+                      selected={selectedNoteId == file.id}
+                      onClick={() => {
+                        router.push(`/doc/${file.id}`);
+                      }}
+                      isShared={true}
+                  />
+              ))}
             </div>
-          ))}
+        )}
       </FolderItem>
     </div>
   );

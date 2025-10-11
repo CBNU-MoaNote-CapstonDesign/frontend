@@ -52,31 +52,43 @@ export default function FolderTree({
         onToggle={() => onToggleFolder(file.id)}
         onEdit={() => onEditFolder(file)}
       >
-        {directories.map((directory) => (
-          <FolderTree
-            key={directory.id}
-            file={directory}
-            selectedNoteId={selectedNoteId}
-            folderOpen={folderOpen}
-            onToggleFolder={onToggleFolder}
-            onEditFolder={onEditFolder}
-            onEditNote={onEditNote}
-            onNoteClick={onNoteClick}
-          />
-        ))}
-        {notes.map((note) => (
-          <FolderTree
-            key={note.id}
-            file={note}
-            selectedNoteId={selectedNoteId}
-            folderOpen={folderOpen}
-            onToggleFolder={onToggleFolder}
-            onEditFolder={onEditFolder}
-            onEditNote={onEditNote}
-            onNoteClick={onNoteClick}
-          />
-        ))}
+        <>
+          {directories.length > 0 && (
+              <div className="mt-2 space-y-1 animate-in slide-in-from-top-2 duration-200">
+                {directories.map((directory) => (
+                    <FolderTree
+                        key={directory.id}
+                        file={directory}
+                        selectedNoteId={selectedNoteId}
+                        folderOpen={folderOpen}
+                        onToggleFolder={onToggleFolder}
+                        onEditFolder={onEditFolder}
+                        onEditNote={onEditNote}
+                        onNoteClick={onNoteClick}
+                    />
+                ))}
+              </div>
+          )}
+          {notes.length > 0 && (
+              <div className="mt-2 space-y-1 animate-in slide-in-from-top-2 duration-200">
+                {notes.map((note) => (
+                    <FolderTree
+                        key={note.id}
+                        file={note}
+                        selectedNoteId={selectedNoteId}
+                        folderOpen={folderOpen}
+                        onToggleFolder={onToggleFolder}
+                        onEditFolder={onEditFolder}
+                        onEditNote={onEditNote}
+                        onNoteClick={onNoteClick}
+                    />
+                ))}
+              </div>
+          )}
+        </>
       </FolderItem>
     );
   }
+
+  return null;
 }

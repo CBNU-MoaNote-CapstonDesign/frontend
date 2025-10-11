@@ -114,11 +114,7 @@ export default function FolderItem({
         )}
       </div>
 
-      {open && (
-        <div className="ml-6 mt-2 space-y-1 animate-in slide-in-from-top-2 duration-200">
-          {children}
-        </div>
-      )}
+      {open && children}
     </div>
   );
 }
