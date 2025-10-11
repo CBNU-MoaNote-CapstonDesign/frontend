@@ -16,6 +16,8 @@ export enum FileTypeDTO {
 export interface NoteDTO {
   file: FileDTO;
   segments: SegmentDTO[];
+  sourceCode: boolean;
+  codeLanguage: string | null;
 }
 
 export interface SegmentDTO {

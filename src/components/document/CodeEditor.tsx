@@ -11,8 +11,22 @@ import { Language } from "@/types/note";
 
 const Editor = dynamic(() => import("@monaco-editor/react"), { ssr: false });
 
-export default function CodeEditor({ user, uuid }: { user: User, uuid: string })  {
-  const {treeNoteRef, document, send, commitActions} = useFugueTextSync(user, uuid);
+function resolveLanguage(value?: string | null): Language {
+  if (!value) {
+    return LANGUAGES.javascript;
+  }
+  const matched = Object.values(LANGUAGES).find(
+    (language) => language.value === value
+  );
+  return matched ?? LANGUAGES.javascript;
+}
+
+export default function CodeEditor({user, uuid, initialLanguage}: {
+  user: User;
+  uuid: string;
+  initialLanguage?: string | null;
+}) {
+  const {treeNoteRef, send, commitActions} = useFugueTextSync(user, uuid);
   const [code, setCode] = useState(treeNoteRef?.current.content || "");
   const editorRef = useRef<monacoType.editor.IStandaloneCodeEditor | null>(null);
 
@@ -22,7 +36,9 @@ export default function CodeEditor({ user, uuid }: { user: User, uuid: string })
   const [isMounted, setIsMounted] = useState(false);
 
   // 선택 언어 상태 (기본 javascript)
-  const [language, setLanguage] = useState<Language>(LANGUAGES.javascript);
+  const [language, setLanguage] = useState<Language>(() =>
+    resolveLanguage(initialLanguage)
+  );
 
   // 코드 복사
   const handleCopyCode = useCallback(() => {
@@ -94,6 +110,10 @@ export default function CodeEditor({ user, uuid }: { user: User, uuid: string })
     });
     setCode(treeNoteRef?.current.content || "");
   }, [isMounted, treeNoteRef?.current.content]);
+
+  useEffect(() => {
+    setLanguage(resolveLanguage(initialLanguage));
+  }, [initialLanguage]);
 
   return (
     // 코드 에디터 전체 레이아웃

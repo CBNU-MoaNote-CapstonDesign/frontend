@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getFile } from "@/libs/client/file";
+import { getFile, getNoteMeta } from "@/libs/client/file";
 import type { MoaFile } from "@/types/file";
 import { FileText, Plus, Sparkles, ArrowRight } from "lucide-react";
 
@@ -18,18 +18,60 @@ export default function NoteUI({
 }) {
   const [note, setNote] = useState<MoaFile | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [noteMeta, setNoteMeta] = useState<NoteDTO | null>(null);
 
   useEffect(() => {
-    if (noteId) {
-      setIsLoading(true);
-      getFile(noteId, user)
-        .then((file) => {
-          setNote(file);
-        })
-        .finally(() => {
+    let isCancelled = false;
+
+    const loadNote = async () => {
+      if (!noteId) {
+        if (!isCancelled) {
+          setNote(null);
+          setNoteMeta(null);
           setIsLoading(false);
-        });
-    }
+        }
+        return;
+      }
+
+      if (!isCancelled) {
+        setIsLoading(true);
+        setNoteMeta(null);
+      }
+
+      try {
+        const file = await getFile(noteId, user);
+        if (isCancelled) {
+          return;
+        }
+
+        setNote(file);
+
+        if (file) {
+          try {
+            const metadata = await getNoteMeta(file, user);
+            if (!isCancelled) {
+              setNoteMeta(metadata ?? null);
+            }
+          } catch {
+            if (!isCancelled) {
+              setNoteMeta(null);
+            }
+          }
+        } else {
+          setNoteMeta(null);
+        }
+      } finally {
+        if (!isCancelled) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    loadNote();
+
+    return () => {
+      isCancelled = true;
+    };
   }, [user, noteId]);
 
   if (!noteId) {
@@ -128,6 +170,28 @@ export default function NoteUI({
     );
   }
 
+  if (!note) {
+    return (
+        <main className="flex-1 h-[calc(100vh-6rem)] ml-0 bg-gradient-to-br from-slate-50 via-white to-blue-50 rounded-l-2xl shadow-lg border border-slate-200 overflow-auto flex flex-col items-center z-30">
+          <div className="w-full max-w-4xl min-h-full flex flex-col gap-8 px-8 py-10 items-center justify-center">
+            <div className="text-center space-y-4">
+              <div className="w-16 h-16 bg-gradient-to-br from-blue-100 to-purple-100 rounded-2xl flex items-center justify-center mx-auto">
+                <FileText className="w-8 h-8 text-slate-500" />
+              </div>
+              <div className="space-y-2">
+                <h3 className="text-lg font-semibold text-slate-700">
+                  노트를 불러오지 못했습니다
+                </h3>
+                <p className="text-sm text-slate-500">
+                  잠시 후 다시 시도해주세요.
+                </p>
+              </div>
+            </div>
+          </div>
+        </main>
+    );
+  }
+
   return (
     <main className="flex-1 h-[calc(100vh-6rem)] ml-0 bg-gradient-to-br from-slate-50 via-white to-blue-50 rounded-l-2xl shadow-lg border border-slate-200 overflow-auto flex flex-col items-center z-30 relative">
       {/* 배경 장식 */}
@@ -139,14 +203,17 @@ export default function NoteUI({
 
       {/* 메인 콘텐츠 */}
       <div className="relative w-full max-w-4xl min-h-full flex flex-col gap-6 px-8 py-10">
-        <DocumentTitle title={note ? note.name : ""} />
+        <DocumentTitle title={note.name} />
         <div className="flex-1">
-          <TreeBasedDocumentRenderer user={user} uuid={note?.id as string} />
-
-          {/* 코드 에디터 디자인 작업을 위해 임시로 CodeEditor 컴포넌트 삽입 */}
-          <br />
-          <p>↓↓↓↓ 코드 에디터 디자인 작업 위해 임시로 표시 ↓↓↓↓</p>
-          <CodeEditor user={user} uuid={note?.id as string} />
+          {noteMeta?.sourceCode ? (
+              <CodeEditor
+                  user={user}
+                  uuid={note.id as string}
+                  initialLanguage={noteMeta.codeLanguage}
+              />
+          ) : (
+              <TreeBasedDocumentRenderer user={user} uuid={note.id as string} />
+          )}
         </div>
       </div>
     </main>
