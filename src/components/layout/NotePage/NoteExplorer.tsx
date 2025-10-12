@@ -22,8 +22,8 @@ import NoteEditModal from "@/components/layout/NotePage/NoteEditModal";
 import FolderEditModal from "@/components/layout/NotePage/FolderEditModal";
 import FolderTree from "@/components/layout/NotePage/FolderTree";
 import SharedNoteTree from "@/components/layout/NotePage/SharedNoteTree";
+import GithubImportModal from "@/components/layout/NotePage/GithubImportModal";
 import type { Language } from "@/types/note";
-import { NoteType } from "@/libs/note"
 
 interface NoteExplorerProps {
   user: User;
@@ -40,6 +40,7 @@ export default function NoteExplorer({
   const [showFolderModal, setShowFolderModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showNoteEditModal, setShowNoteEditModal] = useState(false);
+  const [showGithubImportModal, setShowGithubImportModal] = useState(false);
   const [editFolder, setEditFolder] = useState<MoaFile | null>(null);
   const [editNote, setEditNote] = useState<MoaFile | null>(null);
   const [showNoteModal, setShowNoteModal] = useState(false);
@@ -319,6 +320,10 @@ export default function NoteExplorer({
                     setShowNoteModal(true);
                   }}
                   onAddFolder={openFolderModal}
+                  onImportGithub={() => {
+                    setShowAddMenu(false);
+                    setShowGithubImportModal(true);
+                  }}
                   onClose={() => setShowAddMenu(false)}
                 />
               )}
@@ -401,6 +406,18 @@ export default function NoteExplorer({
               onDelete={handleDeleteNote}
               onEdit={handleEditNote}
               onCancel={closeNoteEditModal}
+            />
+          )}
+
+          {showGithubImportModal && (
+            <GithubImportModal
+              user={user}
+              open={showGithubImportModal}
+              onClose={() => setShowGithubImportModal(false)}
+              onImported={() => {
+                reRoot();
+                setShowGithubImportModal(false);
+              }}
             />
           )}
         </aside>

@@ -10,10 +10,14 @@ import {
   Palette,
   Type,
   Sparkles,
+  RefreshCcw,
+  GitBranch,
 } from "lucide-react";
 
 import Profile from "@/components/layout/Profile";
 import InviteUserModal from "@/components/layout/NotePage/InviteUserModal";
+import GithubFetchModal from "@/components/layout/NotePage/GithubFetchModal";
+import GithubCommitModal from "@/components/layout/NotePage/GithubCommitModal";
 
 export default function TopNavigationBar({
   user,
@@ -25,6 +29,8 @@ export default function TopNavigationBar({
   const [note, setNote] = useState<MoaFile | null>(null);
   const [inviteOpen, setInviteOpen] = useState(false);
   const [sharedUsers, setSharedUsers] = useState<User[]>([]);
+  const [fetchOpen, setFetchOpen] = useState(false);
+  const [commitOpen, setCommitOpen] = useState(false);
 
   const handleAddDiagram = () => {
     addNoteSegment(selectedNoteId, 1, user).then((data) => {
@@ -148,6 +154,24 @@ export default function TopNavigationBar({
         />
       </div>
 
+      <div className="flex items-center gap-3 mr-6">
+        <button
+          className="group flex items-center gap-2 px-3 py-2 rounded-xl bg-gradient-to-r from-slate-100 to-slate-200 border border-slate-300 text-slate-700 font-medium shadow-sm hover:shadow-md hover:from-slate-200 hover:to-slate-300 hover:border-slate-400 transition-all duration-200"
+          onClick={() => setFetchOpen(true)}
+        >
+          <RefreshCcw className="w-4 h-4 group-hover:rotate-180 transition-transform duration-300" />
+          <span>GitHub Fetch</span>
+        </button>
+
+        <button
+          className="group flex items-center gap-2 px-3 py-2 rounded-xl bg-gradient-to-r from-purple-500 to-blue-600 text-white font-medium shadow-sm hover:shadow-md hover:from-purple-600 hover:to-blue-700 transition-all duration-200"
+          onClick={() => setCommitOpen(true)}
+        >
+          <GitBranch className="w-4 h-4" />
+          <span>브랜치 커밋</span>
+        </button>
+      </div>
+
       {/* 더보기 버튼 및 본인 프로필 */}
       <div className="flex items-center gap-4 min-w-[120px] justify-end">
         <button
@@ -162,6 +186,9 @@ export default function TopNavigationBar({
           <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></div>
         </div>
       </div>
+
+      <GithubFetchModal user={user} open={fetchOpen} onClose={() => setFetchOpen(false)} />
+      <GithubCommitModal user={user} open={commitOpen} onClose={() => setCommitOpen(false)} />
     </header>
   );
 }
