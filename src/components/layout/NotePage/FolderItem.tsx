@@ -9,6 +9,7 @@ import {
   FolderOpen,
   Edit3,
   Users,
+  Github,
 } from "lucide-react";
 import type { MoaFile } from "@/types/file";
 
@@ -97,6 +98,12 @@ export default function FolderItem({
           </span>
 
           {isShared && <Users className="w-3 h-3 text-green-600 ml-1" />}
+          {folder.githubImported && (
+            <Github
+              className="w-3 h-3 text-slate-600 ml-1"
+              title="GitHub에서 가져온 폴더"
+            />
+          )}
         </div>
 
         {!isShared && (

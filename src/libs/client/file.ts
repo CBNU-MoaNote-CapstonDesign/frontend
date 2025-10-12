@@ -96,6 +96,7 @@ export async function getFileTree(file: MoaFile | null, user: User) {
             name: fileDTO.name,
             type: fileDTO.type,
             children: [],
+            githubImported: fileDTO.githubImported,
           } as MoaFile;
 
           await getFileTree(root, user);
@@ -127,6 +128,7 @@ export async function getFileTree(file: MoaFile | null, user: User) {
           name: fileDTO.name,
           type: fileDTO.type,
           children: [],
+          githubImported: fileDTO.githubImported,
         } as MoaFile;
 
         const tree = await getFileTree(child, user);
@@ -138,6 +140,7 @@ export async function getFileTree(file: MoaFile | null, user: User) {
           id: fileDTO.id,
           name: fileDTO.name,
           type: fileDTO.type,
+          githubImported: fileDTO.githubImported,
         } as MoaFile;
         file.children.push(child);
       }
@@ -166,6 +169,7 @@ export async function getFile(fileId: string, user: User) {
       id: fileDTO.id,
       type: fileDTO.type,
       name: fileDTO.name,
+      githubImported: fileDTO.githubImported,
     } as MoaFile;
   } catch (error: unknown) {
     console.error(error);
@@ -348,6 +352,7 @@ export async function getSharedFiles(user: User): Promise<MoaFile[]> {
         id: fileDTO.id,
         name: fileDTO.name,
         type: fileDTO.type,
+        githubImported: fileDTO.githubImported,
       } as MoaFile);
     }
     console.log(files);

@@ -105,6 +105,7 @@ export async function getFileList(fileId: string | null, user: User) {
           type: fileDTO.type,
           name: fileDTO.name,
           children: children,
+          githubImported: fileDTO.githubImported,
         });
       } else if (fileDTO.type == FileTypeDTO.DOCUMENT) {
         // 문서 파일
@@ -112,6 +113,7 @@ export async function getFileList(fileId: string | null, user: User) {
           id: fileDTO.id,
           name: fileDTO.name,
           type: fileDTO.type,
+          githubImported: fileDTO.githubImported,
         });
       }
     }
@@ -146,6 +148,7 @@ export async function getFile(fileId: string, user: User) {
       id: fileDTO.id,
       type: fileDTO.type,
       name: fileDTO.name,
+      githubImported: fileDTO.githubImported,
     } as MoaFile;
   } catch (error: unknown) {
     console.log(error);
@@ -190,6 +193,7 @@ export async function createFile(
     id: fileDTO.id,
     type: fileDTO.type,
     name: fileDTO.name,
+    githubImported: fileDTO.githubImported,
   } as MoaFile;
 }
 

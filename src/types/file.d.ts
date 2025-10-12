@@ -6,6 +6,7 @@ export interface MoaFile {
   name: string;
   type: FileTypeDTO;
   children?: MoaFile[];
+  githubImported?: boolean;
 }
 
 export interface Segment {}

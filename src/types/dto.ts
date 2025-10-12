@@ -6,6 +6,7 @@ export interface FileDTO {
   owner: { id: UUID; name: string };
   type: FileTypeDTO;
   dir: UUID;
+  githubImported: boolean;
 }
 
 export enum FileTypeDTO {
