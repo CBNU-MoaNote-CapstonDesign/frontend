@@ -23,7 +23,7 @@ export default function TopNavigationBar() {
           alt="logo"
         />
         <p className="text-2xl md:text-4xl font-bold text-[#186370]">
-          모아노트
+          코드 포레스트
         </p>
       </div>
       <div className="hidden md:flex gap-10 text-lg font-medium text-black">
