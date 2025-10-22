@@ -4,8 +4,8 @@ import React from "react";
 import { Toaster } from "react-hot-toast";
 
 export const metadata: Metadata = {
-  title: "모아노트",
-  description: "세상의 모든 아이디어를 모아, 모아노트",
+  title: "코드 포레스트",
+  description: "코드 포레스트",
 };
 
 export default function RootLayout({

@@ -96,7 +96,7 @@ export default function TopNavigationBar({
         </div>
         <div className="flex flex-col">
           <span className="text-xl font-bold bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent tracking-tight select-none">
-            모아노트
+            코드 포레스트
           </span>
           <div className="w-8 h-0.5 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full"></div>
         </div>

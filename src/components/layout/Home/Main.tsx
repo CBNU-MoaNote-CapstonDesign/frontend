@@ -24,12 +24,12 @@ export default function Main() {
     <div className="w-full max-w-screen-xl px-4 mt-32 flex flex-col lg:flex-row items-center justify-between gap-10">
       <div className="flex flex-col gap-8">
         <p className="text-5xl md:text-6xl font-bold text-[#186370] leading-tight typing-effect">
-          세상의 모든
+          개발자들을 위한
           <br />
-          아이디어를 모아
+          웹 코드 에디터
         </p>
         <p className="text-5xl md:text-6xl font-light text-black typing-effect">
-          모아노트
+          코드 포레스트
         </p>
         <StartButton text="시작하기 →" onClick={handleStartButtonClick} />
       </div>
