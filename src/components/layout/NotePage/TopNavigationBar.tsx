@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import type { MoaFile } from "@/types/file";
 import { addNoteSegment, getCollaborators, getFile } from "@/libs/client/file";
@@ -18,6 +19,22 @@ import Profile from "@/components/layout/Profile";
 import InviteUserModal from "@/components/layout/NotePage/InviteUserModal";
 import GithubFetchModal from "@/components/layout/NotePage/GithubFetchModal";
 import GithubCommitModal from "@/components/layout/NotePage/GithubCommitModal";
+
+/**
+ * Navigational link that leads to the repository question page.
+ * @returns Styled link component matching the main navigation buttons.
+ */
+function RepositoryAskButton() {
+  return (
+    <Link
+      href="/main/ask"
+      className="group flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:-translate-y-0.5 hover:bg-slate-50"
+    >
+      <Sparkles className="h-4 w-4 text-purple-500 transition-transform duration-200 group-hover:scale-110" />
+      <span>코드 질문하기</span>
+    </Link>
+  );
+}
 
 export default function TopNavigationBar({
   user,
@@ -155,6 +172,7 @@ export default function TopNavigationBar({
       </div>
 
       <div className="flex items-center gap-3 mr-6">
+        <RepositoryAskButton />
         <button
           className="group flex items-center gap-2 px-3 py-2 rounded-xl bg-gradient-to-r from-slate-100 to-slate-200 border border-slate-300 text-slate-700 font-medium shadow-sm hover:shadow-md hover:from-slate-200 hover:to-slate-300 hover:border-slate-400 transition-all duration-200"
           onClick={() => setFetchOpen(true)}
