@@ -1,5 +1,5 @@
 import { UUID } from "node:crypto";
-import { FileTypeDTO } from "@/types/dto";
+import { FileTypeDTO, SegmentDTO } from "@/types/dto";
 
 export interface MoaFile {
   id: UUID;
@@ -9,4 +9,4 @@ export interface MoaFile {
   githubImported?: boolean;
 }
 
-export interface Segment {}
+export type Segment = SegmentDTO;

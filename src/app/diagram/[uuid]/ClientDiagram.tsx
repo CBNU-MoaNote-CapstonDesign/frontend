@@ -1,7 +1,6 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import TopNavigationBar from "@/components/layout/NotePage/TopNavigationBar";
 import ChatMenu from "@/components/chat/ChatMenu";
 
 export default function ClientDiagram({

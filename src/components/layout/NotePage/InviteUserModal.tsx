@@ -3,17 +3,7 @@
 import { useEffect, useState } from "react";
 import type { Collaborator, PermissionDTO } from "@/types/dto";
 import { getCollaborators, invite } from "@/libs/client/file";
-import {
-  X,
-  UserPlus,
-  Users,
-  Shield,
-  Eye,
-  Edit,
-  Crown,
-  Send,
-  Trash2,
-} from "lucide-react";
+import { X, UserPlus, Users, Send, Trash2 } from "lucide-react";
 
 import Portal from "@/components/common/Portal";
 
@@ -76,20 +66,7 @@ export default function InviteUserModal({
 
   const handleRemoveUser = (collaborator: Collaborator) => {
     // TODO api 호출
-    console.log("권한 제거 API 호출을 구현하십시오.");
-  };
-
-  const getPermissionIcon = (permission: PermissionDTO) => {
-    switch (permission) {
-      case "READ":
-        return <Eye className="w-4 h-4" />;
-      case "WRITE":
-        return <Edit className="w-4 h-4" />;
-      case "OWNER":
-        return <Crown className="w-4 h-4" />;
-      default:
-        return <Shield className="w-4 h-4" />;
-    }
+    console.log("권한 제거 API 호출을 구현하십시오.", collaborator);
   };
 
   const getPermissionColor = (permission: PermissionDTO) => {
