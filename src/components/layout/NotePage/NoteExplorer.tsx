@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Menu, ChevronLeft, Plus, FileText, Folder, Users } from "lucide-react";
 
 import type { MoaFile } from "@/types/file";
@@ -12,6 +12,7 @@ import {
   editFile,
   getFile,
   getFileTree,
+  listDirectoryChildren,
 } from "@/libs/client/file";
 import { FileTypeDTO } from "@/types/dto";
 
@@ -30,6 +31,105 @@ interface NoteExplorerProps {
   selectedNoteId: string;
 }
 
+type FileTreeNode = MoaFile & {
+  children?: FileTreeNode[];
+  childrenLoaded?: boolean;
+};
+
+const DIRECTORY_TYPE = "DIRECTORY";
+
+/**
+ * 디렉터리 여부를 판단합니다.
+ * @param file 검사할 파일
+ */
+function isDirectory(file: MoaFile) {
+  return file.type.toString() === DIRECTORY_TYPE;
+}
+
+interface ConvertOptions {
+  isRoot?: boolean;
+  subtreeLoaded: boolean;
+}
+
+/**
+ * API 응답으로 받은 MoaFile을 트리 노드로 변환합니다.
+ * @param file 변환할 파일
+ * @param options 변환 옵션
+ */
+function convertToNode(file: MoaFile, options: ConvertOptions): FileTreeNode {
+  const children = (file.children ?? []).map((child) =>
+    convertToNode(child, { subtreeLoaded: options.subtreeLoaded })
+  );
+
+  const node: FileTreeNode = {
+    ...file,
+    children,
+  };
+
+  if (isDirectory(file)) {
+    node.childrenLoaded = options.isRoot ? true : options.subtreeLoaded;
+  }
+
+  return node;
+}
+
+type NodeUpdater = (node: FileTreeNode) => FileTreeNode;
+
+/**
+ * 특정 ID를 가진 노드에 업데이트를 적용합니다.
+ * @param node 루트 노드
+ * @param targetId 수정할 노드 ID
+ * @param updater 적용할 업데이트 함수
+ */
+function updateNode(
+  node: FileTreeNode,
+  targetId: string,
+  updater: NodeUpdater
+): FileTreeNode {
+  if (node.id === targetId) {
+    return updater(node);
+  }
+
+  if (!node.children) {
+    return node;
+  }
+
+  let changed = false;
+  const nextChildren = node.children.map((child) => {
+    const updatedChild = updateNode(child, targetId, updater);
+    if (updatedChild !== child) {
+      changed = true;
+    }
+    return updatedChild;
+  });
+
+  if (!changed) {
+    return node;
+  }
+
+  return {
+    ...node,
+    children: nextChildren,
+  };
+}
+
+/**
+ * 주어진 ID의 노드를 찾습니다.
+ * @param node 탐색을 시작할 노드
+ * @param id 찾을 노드의 ID
+ */
+function findNode(node: FileTreeNode, id: string): FileTreeNode | null {
+  if (node.id === id) return node;
+  if (!node.children) return null;
+
+  for (const child of node.children) {
+    const found = findNode(child, id);
+    if (found) return found;
+  }
+
+  return null;
+}
+
 export default function NoteExplorer({
   user,
   selectedNoteId,
@@ -44,67 +144,103 @@ export default function NoteExplorer({
   const [editFolder, setEditFolder] = useState<MoaFile | null>(null);
   const [editNote, setEditNote] = useState<MoaFile | null>(null);
   const [showNoteModal, setShowNoteModal] = useState(false);
-  const [root, setRoot] = useState<MoaFile | null>(null);
+  const [root, setRoot] = useState<FileTreeNode | null>(null);
+  const [modalTree, setModalTree] = useState<FileTreeNode | null>(null);
   const [folderOpen, setFolderOpen] = useState<Record<string, boolean>>({});
+  const [loadingFolders, setLoadingFolders] = useState<Record<string, boolean>>({});
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const asideRef = useRef<HTMLDivElement>(null);
+  const rootRef = useRef<FileTreeNode | null>(null);
+  const loadingFoldersRef = useRef(new Set<string>());
+
+  const ensureInitialTree = useCallback(async () => {
+    loadingFoldersRef.current.clear();
+    const rootFolder = await getFileTree(null, user, { recursive: false });
+    if (rootFolder) {
+      const annotated = convertToNode(rootFolder, {
+        isRoot: true,
+        subtreeLoaded: false,
+      });
+      setRoot(annotated);
+      setFolderOpen({ [annotated.id]: true });
+    } else {
+      setRoot(null);
+      setFolderOpen({});
+    }
+    setLoadingFolders({});
+  }, [user]);
 
   // 폴더 데이터 초기화
   useEffect(() => {
-    getFileTree(null, user).then((rootFolder) => {
-      if (rootFolder) {
-        setRoot(rootFolder);
-      } else {
-        setRoot(null);
-      }
-    });
-  }, [user]);
+    void ensureInitialTree();
+  }, [ensureInitialTree]);
+
+  useEffect(() => {
+    rootRef.current = root;
+  }, [root]);
+
+  const prepareModalTree = useCallback(async () => {
+    const fullTree = await getFileTree(null, user, { recursive: true });
+    if (fullTree) {
+      return convertToNode(fullTree, { isRoot: true, subtreeLoaded: true });
+    }
+    return root;
+  }, [root, user]);
 
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
 
   const openFolderModal = () => {
     setShowAddMenu(false);
-    setShowFolderModal(true);
+    void (async () => {
+      const tree = await prepareModalTree();
+      setModalTree(tree ?? null);
+      setShowFolderModal(true);
+    })();
   };
 
   const openEditModal = (folder: MoaFile) => {
     setEditFolder(folder);
     setShowAddMenu(false);
-    setShowEditModal(true);
+    void (async () => {
+      const tree = await prepareModalTree();
+      setModalTree(tree ?? null);
+      setShowEditModal(true);
+    })();
   };
 
   const closeEditModal = () => {
     setEditFolder(null);
     setShowAddMenu(false);
     setShowEditModal(false);
+    setModalTree(null);
   };
 
   const openNoteEditModal = (note: MoaFile) => {
     setEditNote(note);
     setShowAddMenu(false);
-    setShowNoteEditModal(true);
+    void (async () => {
+      const tree = await prepareModalTree();
+      setModalTree(tree ?? null);
+      setShowNoteEditModal(true);
+    })();
   };
 
   const closeNoteEditModal = () => {
     setEditNote(null);
     setShowAddMenu(false);
     setShowNoteEditModal(false);
+    setModalTree(null);
   };
 
   const reRoot = () => {
-    // 파일 구조 초기화
-    getFileTree(null, user).then((rootFolder) => {
-      if (rootFolder) {
-        setRoot(rootFolder);
-      } else {
-        setRoot(null);
-      }
+    void ensureInitialTree().then(() => {
       setShowFolderModal(false);
       setShowNoteModal(false);
       setShowEditModal(false);
       setShowNoteEditModal(false);
       setErrorMsg(null);
+      setModalTree(null);
     });
   };
 
@@ -113,60 +249,40 @@ export default function NoteExplorer({
     parentId: string,
     selectedNotes: string[]
   ) => {
-    // if (!folderName.trim() || selectedNotes.length === 0) return;
-
-    console.log("폴더 생성 호출");
-    console.log(folderName);
-    console.log(parentId);
-    // 실제 폴더 생성 로직(API 호출 등) 추가 가능
-    createFile(folderName, FileTypeDTO.DIRECTORY, parentId, user).then(
-      (folder) => {
-        if (!folder) return;
-        // Selected Notes
-        for (const noteId of selectedNotes) {
-          getFile(noteId, user).then((note) => {
-            if (note) {
-              editFile(note, folder.id, user).then((result) => {
-                console.log(result ? "에딧 성공 " : "에딧 실패");
-                console.log(note.name);
-                console.log(note.id);
-              });
-            }
-          });
-        }
-
-        // 파일 구조 초기화
-        getFileTree(null, user).then((rootFolder) => {
-          if (rootFolder) {
-            setRoot(rootFolder);
-          } else {
-            setRoot(null);
+    createFile(folderName, FileTypeDTO.DIRECTORY, parentId, user).then((folder) => {
+      if (!folder) return;
+      for (const noteId of selectedNotes) {
+        getFile(noteId, user).then((note) => {
+          if (note) {
+            void editFile(note, folder.id, user);
           }
-          setShowFolderModal(false);
-          setShowNoteModal(false);
-          setShowEditModal(false);
-          setErrorMsg(null);
         });
       }
-    );
+
+      void ensureInitialTree().then(() => {
+        setShowFolderModal(false);
+        setShowNoteModal(false);
+        setShowEditModal(false);
+        setErrorMsg(null);
+        setModalTree(null);
+      });
+    });
   };
 
-  const handleAddNote = (noteName: string, parentId: string, language?: Language | undefined) => {
+  const handleAddNote = (
+    noteName: string,
+    parentId: string,
+    language?: Language | undefined
+  ) => {
     createFile(noteName, FileTypeDTO.DOCUMENT, parentId, user, language).then((file) => {
-      // 첫번쨰 노트 세그먼트 생성
       if (file) {
         addNoteSegment(file.id, 0, user).then(() => {
-          // 파일 구조 초기화
-          getFileTree(null, user).then((rootFolder) => {
-            if (rootFolder) {
-              setRoot(rootFolder);
-            } else {
-              setRoot(null);
-            }
+          void ensureInitialTree().then(() => {
             setShowFolderModal(false);
             setShowNoteModal(false);
             setShowEditModal(false);
             setErrorMsg(null);
+            setModalTree(null);
           });
         });
       }
@@ -197,9 +313,9 @@ export default function NoteExplorer({
       if (result) {
         let count = selectedNotes.length;
         for (const noteId of selectedNotes) {
-          getFile(noteId, user).then((result) => {
-            if (result) {
-              editFile(result, folderId, user).then(() => {
+          getFile(noteId, user).then((note) => {
+            if (note) {
+              editFile(note, folderId, user).then(() => {
                 count -= 1;
                 if (count < 1) {
                   reRoot();
@@ -208,7 +324,7 @@ export default function NoteExplorer({
             }
           });
         }
-        if (count == 0) reRoot();
+        if (count === 0) reRoot();
       }
     });
   };
@@ -242,10 +358,54 @@ export default function NoteExplorer({
   }, [showFolderModal]);
 
   const handleToggleFolder = (folderId: string) => {
+    const willOpen = !(folderOpen[folderId] ?? false);
     setFolderOpen((prev) => ({
       ...prev,
-      [folderId]: !prev[folderId],
+      [folderId]: willOpen,
     }));
+
+    if (willOpen) {
+      void (async () => {
+        if (loadingFoldersRef.current.has(folderId)) {
+          return;
+        }
+
+        const currentRoot = rootRef.current;
+        if (!currentRoot) return;
+        const target = findNode(currentRoot, folderId);
+        if (!target || !isDirectory(target) || target.childrenLoaded) {
+          return;
+        }
+
+        loadingFoldersRef.current.add(folderId);
+        setLoadingFolders((prev) => ({ ...prev, [folderId]: true }));
+
+        try {
+          const children = await listDirectoryChildren(folderId, user, {
+            recursive: false,
+          });
+          const mappedChildren = children.map((child) =>
+            convertToNode(child, { subtreeLoaded: false })
+          );
+
+          setRoot((prevRoot) => {
+            if (!prevRoot) return prevRoot;
+            return updateNode(prevRoot, folderId, (node) => ({
+              ...node,
+              children: mappedChildren,
+              childrenLoaded: true,
+            }));
+          });
+        } finally {
+          loadingFoldersRef.current.delete(folderId);
+          setLoadingFolders((prev) => {
+            const next = { ...prev };
+            delete next[folderId];
+            return next;
+          });
+        }
+      })();
+    }
   };
 
   return (
@@ -317,7 +477,11 @@ export default function NoteExplorer({
                 <AddMenu
                   onAddNote={() => {
                     setShowAddMenu(false);
-                    setShowNoteModal(true);
+                    void (async () => {
+                      const tree = await prepareModalTree();
+                      setModalTree(tree ?? null);
+                      setShowNoteModal(true);
+                    })();
                   }}
                   onAddFolder={openFolderModal}
                   onImportGithub={() => {
@@ -342,6 +506,8 @@ export default function NoteExplorer({
                   onEditFolder={openEditModal}
                   onEditNote={openNoteEditModal}
                   onNoteClick={(noteId) => router.push(`/doc/${noteId}`)}
+                  loadingFolders={loadingFolders}
+                  isRoot
                 />
               </div>
             ) : (
@@ -370,28 +536,32 @@ export default function NoteExplorer({
           </div>
 
           {/* 모달들 */}
-          {showNoteModal && root && (
+          {showNoteModal && (modalTree ?? root) && (
             <NoteAddModal
-              root={root}
+              root={(modalTree ?? root) as MoaFile}
               onAdd={handleAddNote}
               onCancel={() => {
                 setShowNoteModal(false);
+                setModalTree(null);
               }}
             />
           )}
 
-          {showFolderModal && root && (
+          {showFolderModal && (modalTree ?? root) && (
             <FolderAddModal
-              root={root}
-              onCancel={() => setShowFolderModal(false)}
+              root={(modalTree ?? root) as MoaFile}
+              onCancel={() => {
+                setShowFolderModal(false);
+                setModalTree(null);
+              }}
               onAdd={handleAddFolder}
               errorMsg={errorMsg}
             />
           )}
 
-          {showEditModal && root && editFolder && (
+          {showEditModal && (modalTree ?? root) && editFolder && (
             <FolderEditModal
-              root={root}
+              root={(modalTree ?? root) as MoaFile}
               folderId={editFolder.id}
               onDelete={handleDeleteFolder}
               onEdit={handleEditFolder}
@@ -399,9 +569,9 @@ export default function NoteExplorer({
             />
           )}
 
-          {showNoteEditModal && root && editNote && (
+          {showNoteEditModal && (modalTree ?? root) && editNote && (
             <NoteEditModal
-              root={root}
+              root={(modalTree ?? root) as MoaFile}
               noteId={editNote.id}
               onDelete={handleDeleteNote}
               onEdit={handleEditNote}
