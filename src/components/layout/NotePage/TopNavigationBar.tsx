@@ -164,7 +164,7 @@ export default function TopNavigationBar({
 
         <InviteUserModal
           user={user}
-          noteId={selectedNoteId}
+          fileId={selectedNoteId}
           onClose={() => setInviteOpen(false)}
           open={inviteOpen}
           onInvite={() => {}}

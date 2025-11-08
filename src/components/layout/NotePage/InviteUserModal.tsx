@@ -19,16 +19,24 @@ import Portal from "@/components/common/Portal";
 
 interface InviteUserModalProps {
   user: User;
-  noteId: string;
+  fileId: string;
   open: boolean;
   onClose: () => void;
   onInvite: () => void;
   initialUsers?: User[]; // 기존 공유자 목록을 받아옴
 }
 
+/**
+ * 사용자에게 파일 공유 초대장을 보낼 수 있는 모달 컴포넌트입니다.
+ * @param props.user 현재 로그인한 사용자 정보
+ * @param props.fileId 공유할 파일 또는 폴더의 식별자
+ * @param props.open 모달 표시 여부
+ * @param props.onClose 모달 닫기 콜백
+ * @param props.onInvite 초대가 완료되었을 때 실행할 콜백
+ */
 export default function InviteUserModal({
   user,
-  noteId,
+  fileId,
   open,
   onClose,
   onInvite,
@@ -39,17 +47,17 @@ export default function InviteUserModal({
 
   useEffect(() => {
     if (open) {
-      getCollaborators(noteId, user).then((collaborators) => {
+      getCollaborators(fileId, user).then((collaborators) => {
         console.log("체크");
         console.log(collaborators);
         setCollaborators(collaborators);
       });
     }
-  }, [noteId, user, open]);
+  }, [fileId, user, open]);
 
   const reload = () => {
     setIsLoading(true);
-    getCollaborators(noteId, user).then((collaborators) => {
+    getCollaborators(fileId, user).then((collaborators) => {
       setCollaborators(collaborators);
       setIsLoading(false);
     });
@@ -58,7 +66,7 @@ export default function InviteUserModal({
   const handleAddUser = () => {
     if (!input.trim()) return;
     setIsLoading(true);
-    invite(noteId, user, input, "READ").then(() => {
+    invite(fileId, user, input, "READ").then(() => {
       setInput("");
       reload();
     });
@@ -67,7 +75,7 @@ export default function InviteUserModal({
   const handlePermissionChange = (collaborator: Collaborator) => {
     console.log("collaborator", collaborator);
     setIsLoading(true);
-    invite(noteId, user, collaborator.user.name, collaborator.permission).then(
+    invite(fileId, user, collaborator.user.name, collaborator.permission).then(
       () => {
         reload();
       }

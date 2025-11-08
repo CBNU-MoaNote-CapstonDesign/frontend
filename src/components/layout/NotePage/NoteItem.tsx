@@ -1,5 +1,6 @@
 "use client";
 
+import type React from "react";
 import type { MoaFile } from "@/types/file";
 import { FileText, Edit3, Users } from "lucide-react";
 
@@ -9,12 +10,14 @@ export default function NoteItem({
   onEdit,
   onClick,
   isShared = false,
+  onContextMenu = () => {},
 }: {
   note: MoaFile;
   onEdit: () => void;
   selected: boolean;
   onClick: () => void;
   isShared?: boolean;
+  onContextMenu?: (event: React.MouseEvent) => void;
 }) {
   return (
     <div
@@ -37,6 +40,7 @@ export default function NoteItem({
         }
       `}
       onClick={onClick}
+      onContextMenu={onContextMenu}
     >
       <div
         className={`

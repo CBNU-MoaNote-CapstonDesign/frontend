@@ -7,6 +7,8 @@ export interface MoaFile {
   type: FileTypeDTO;
   children?: MoaFile[];
   githubImported?: boolean;
+  /** 하위 파일 정보를 불러왔는지 여부 */
+  childrenLoaded?: boolean;
 }
 
 export interface Segment {}

@@ -1,7 +1,8 @@
 "use client";
 
+import type React from "react";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Menu, ChevronLeft, Plus, FileText, Folder, Users } from "lucide-react";
 
 import type { MoaFile } from "@/types/file";
@@ -23,7 +24,83 @@ import FolderEditModal from "@/components/layout/NotePage/FolderEditModal";
 import FolderTree from "@/components/layout/NotePage/FolderTree";
 import SharedNoteTree from "@/components/layout/NotePage/SharedNoteTree";
 import GithubImportModal from "@/components/layout/NotePage/GithubImportModal";
+import InviteUserModal from "@/components/layout/NotePage/InviteUserModal";
+import FileContextMenu from "@/components/layout/NotePage/FileContextMenu";
 import type { Language } from "@/types/note";
+
+function isDirectory(file: MoaFile): boolean {
+  return (
+    file.type === FileTypeDTO.DIRECTORY ||
+    file.type?.toString?.() === "DIRECTORY"
+  );
+}
+
+/**
+ * 특정 폴더를 트리 구조에서 탐색합니다.
+ * @param node 탐색을 시작할 루트 노드
+ * @param folderId 찾을 폴더의 식별자
+ */
+export function findFolderById(node: MoaFile, folderId: string): MoaFile | null {
+  if (node.id === folderId && isDirectory(node)) {
+    return node;
+  }
+
+  if (!node.children) {
+    return null;
+  }
+
+  for (const child of node.children) {
+    if (!isDirectory(child)) continue;
+    const found = findFolderById(child, folderId);
+    if (found) {
+      return found;
+    }
+  }
+
+  return null;
+}
+
+/**
+ * 지정한 폴더를 최신 정보로 교체한 새로운 트리를 반환합니다.
+ * @param node 현재 트리의 루트 노드
+ * @param updatedFolder 새롭게 가져온 폴더 데이터
+ */
+export function updateFolderBranch(node: MoaFile, updatedFolder: MoaFile): MoaFile {
+  if (node.id === updatedFolder.id) {
+    return { ...updatedFolder };
+  }
+
+  if (!node.children) {
+    return node;
+  }
+
+  let changed = false;
+  const newChildren = node.children.map((child) => {
+    if (child.id === updatedFolder.id) {
+      changed = true;
+      return { ...updatedFolder };
+    }
+
+    if (isDirectory(child)) {
+      const replacedChild = updateFolderBranch(child, updatedFolder);
+      if (replacedChild !== child) {
+        changed = true;
+        return replacedChild;
+      }
+    }
+
+    return child;
+  });
+
+  if (!changed) {
+    return node;
+  }
+
+  return {
+    ...node,
+    children: newChildren,
+  };
+}
 
 interface NoteExplorerProps {
   user: User;
@@ -47,21 +124,118 @@ export default function NoteExplorer({
   const [root, setRoot] = useState<MoaFile | null>(null);
   const [folderOpen, setFolderOpen] = useState<Record<string, boolean>>({});
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [contextMenu, setContextMenu] = useState<{
+    position: { x: number; y: number };
+    target: MoaFile;
+  } | null>(null);
+  const [shareTarget, setShareTarget] = useState<MoaFile | null>(null);
   const asideRef = useRef<HTMLDivElement>(null);
+
+  /**
+   * 루트 폴더 정보를 상태에 반영하고 기본 폴더 열림 상태를 초기화합니다.
+   */
+  const applyRoot = useCallback((rootFolder: MoaFile | null) => {
+    if (rootFolder) {
+      setRoot(rootFolder);
+      setFolderOpen({ [rootFolder.id]: true });
+    } else {
+      setRoot(null);
+      setFolderOpen({});
+    }
+  }, []);
+
+  /**
+   * 폴더의 자식 목록을 비동기적으로 로드합니다. 이미 로딩된 폴더는 다시 요청하지 않습니다.
+   * @param folderId 자식 파일을 가져올 폴더 ID
+   */
+  const loadFolderChildren = useCallback(
+    async (folderId: string) => {
+      if (!root) return;
+
+      const currentTarget = findFolderById(root, folderId);
+      if (!currentTarget || currentTarget.childrenLoaded) {
+        return;
+      }
+
+      const folderForFetch: MoaFile = {
+        id: currentTarget.id,
+        name: currentTarget.name,
+        type: currentTarget.type,
+        githubImported: currentTarget.githubImported,
+        children: [],
+      };
+
+      const loadedFolder = await getFileTree(folderForFetch, user, {
+        recursive: false,
+      });
+
+      if (!loadedFolder) {
+        return;
+      }
+
+      setRoot((prevRoot) => {
+        if (!prevRoot) return prevRoot;
+        const exists = findFolderById(prevRoot, folderId);
+        if (!exists) return prevRoot;
+        return updateFolderBranch(prevRoot, loadedFolder);
+      });
+    },
+    [root, user]
+  );
 
   // 폴더 데이터 초기화
   useEffect(() => {
-    getFileTree(null, user).then((rootFolder) => {
-      if (rootFolder) {
-        setRoot(rootFolder);
-      } else {
-        setRoot(null);
-      }
+    getFileTree(null, user, { recursive: false }).then((rootFolder) => {
+      applyRoot(rootFolder);
     });
-  }, [user]);
+  }, [user, applyRoot]);
 
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
+
+  /**
+   * 폴더 또는 노트 카드에서 우클릭이 발생했을 때 컨텍스트 메뉴 정보를 저장합니다.
+   * @param file 우클릭된 파일 또는 폴더
+   * @param event 마우스 이벤트 객체
+   */
+  const handleContextMenu = (file: MoaFile, event: React.MouseEvent) => {
+    event.preventDefault();
+    setContextMenu({
+      position: { x: event.clientX, y: event.clientY },
+      target: file,
+    });
+  };
+
+  useEffect(() => {
+    if (!contextMenu) return undefined;
+
+    const handleKeyDown = (keyboardEvent: KeyboardEvent) => {
+      if (keyboardEvent.key === "Escape") {
+        setContextMenu(null);
+      }
+    };
+
+    const handleScroll = () => setContextMenu(null);
+
+    window.addEventListener("keydown", handleKeyDown);
+    window.addEventListener("scroll", handleScroll, true);
+    window.addEventListener("resize", handleScroll);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("scroll", handleScroll, true);
+      window.removeEventListener("resize", handleScroll);
+    };
+  }, [contextMenu]);
+
+  /**
+   * 컨텍스트 메뉴의 공유 버튼을 눌렀을 때 공유 대상 파일을 설정합니다.
+   */
+  const handleShareFromContextMenu = () => {
+    if (!contextMenu) return;
+    setShareTarget(contextMenu.target);
+    setContextMenu(null);
+  };
 
   const openFolderModal = () => {
     setShowAddMenu(false);
@@ -94,12 +268,8 @@ export default function NoteExplorer({
 
   const reRoot = () => {
     // 파일 구조 초기화
-    getFileTree(null, user).then((rootFolder) => {
-      if (rootFolder) {
-        setRoot(rootFolder);
-      } else {
-        setRoot(null);
-      }
+    getFileTree(null, user, { recursive: false }).then((rootFolder) => {
+      applyRoot(rootFolder);
       setShowFolderModal(false);
       setShowNoteModal(false);
       setShowEditModal(false);
@@ -136,17 +306,7 @@ export default function NoteExplorer({
         }
 
         // 파일 구조 초기화
-        getFileTree(null, user).then((rootFolder) => {
-          if (rootFolder) {
-            setRoot(rootFolder);
-          } else {
-            setRoot(null);
-          }
-          setShowFolderModal(false);
-          setShowNoteModal(false);
-          setShowEditModal(false);
-          setErrorMsg(null);
-        });
+        reRoot();
       }
     );
   };
@@ -157,17 +317,7 @@ export default function NoteExplorer({
       if (file) {
         addNoteSegment(file.id, 0, user).then(() => {
           // 파일 구조 초기화
-          getFileTree(null, user).then((rootFolder) => {
-            if (rootFolder) {
-              setRoot(rootFolder);
-            } else {
-              setRoot(null);
-            }
-            setShowFolderModal(false);
-            setShowNoteModal(false);
-            setShowEditModal(false);
-            setErrorMsg(null);
-          });
+          reRoot();
         });
       }
     });
@@ -242,10 +392,16 @@ export default function NoteExplorer({
   }, [showFolderModal]);
 
   const handleToggleFolder = (folderId: string) => {
-    setFolderOpen((prev) => ({
-      ...prev,
-      [folderId]: !prev[folderId],
-    }));
+    setFolderOpen((prev) => {
+      const nextOpen = !prev[folderId];
+      if (nextOpen) {
+        void loadFolderChildren(folderId);
+      }
+      return {
+        ...prev,
+        [folderId]: nextOpen,
+      };
+    });
   };
 
   return (
@@ -342,6 +498,7 @@ export default function NoteExplorer({
                   onEditFolder={openEditModal}
                   onEditNote={openNoteEditModal}
                   onNoteClick={(noteId) => router.push(`/doc/${noteId}`)}
+                  onContextMenu={handleContextMenu}
                 />
               </div>
             ) : (
@@ -418,6 +575,22 @@ export default function NoteExplorer({
                 reRoot();
                 setShowGithubImportModal(false);
               }}
+            />
+          )}
+
+          <FileContextMenu
+            anchorPoint={contextMenu?.position ?? null}
+            onClose={() => setContextMenu(null)}
+            onShare={handleShareFromContextMenu}
+          />
+
+          {shareTarget && (
+            <InviteUserModal
+              user={user}
+              fileId={shareTarget.id}
+              open={!!shareTarget}
+              onClose={() => setShareTarget(null)}
+              onInvite={() => {}}
             />
           )}
         </aside>

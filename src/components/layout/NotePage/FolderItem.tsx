@@ -20,6 +20,7 @@ export default function FolderItem({
   onEdit,
   children,
   isShared = false,
+  onContextMenu = () => {},
 }: {
   folder: MoaFile;
   open: boolean;
@@ -27,6 +28,7 @@ export default function FolderItem({
   onEdit: () => void;
   children: React.ReactNode;
   isShared?: boolean;
+  onContextMenu?: (event: React.MouseEvent) => void;
 }) {
   return (
     <div className="mb-2">
@@ -39,6 +41,7 @@ export default function FolderItem({
               : "bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200 hover:from-purple-100 hover:to-blue-100 hover:border-purple-300"
           }
         `}
+        onContextMenu={onContextMenu}
       >
         <button
           className="flex items-center justify-center w-6 h-6 rounded-lg transition-all duration-200 hover:bg-white/60 hover:scale-110"

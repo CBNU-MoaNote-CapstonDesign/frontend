@@ -70,16 +70,29 @@ async function postRequest(location: string, stringifiedBody?: string) {
     return responseBody;
 }
 
+export interface GetFileTreeOptions {
+  /** 하위 디렉토리를 재귀적으로 불러올지 여부 */
+  recursive?: boolean;
+}
+
 /**
  * MoaFile을 디렉토리 구조로 네스팅하여 반환
  * @param file 가져올 파일 (루트부터 가져오려면 null)
  * @param user 유저 ID
+ * @param options 재귀 호출 여부 설정
  */
-export async function getFileTree(file: MoaFile | null, user: User) {
+export async function getFileTree(
+  file: MoaFile | null,
+  user: User,
+  options: GetFileTreeOptions = {}
+) {
   try {
+    const { recursive = true } = options;
+    const recursiveQuery = `&recursive=${recursive ? "true" : "false"}`;
+
     // file 지정 안되면 면저 Root File 부터 찾기
     if (!file) {
-      const rootLocation = `/api/files/list?user=${user.id}`;
+      const rootLocation = `/api/files/list?user=${user.id}${recursiveQuery}`;
       const rootData = await getRequest(rootLocation);
 
       let rootFileDTOs: FileDTO[] = [];
@@ -97,17 +110,18 @@ export async function getFileTree(file: MoaFile | null, user: User) {
             type: fileDTO.type,
             children: [],
             githubImported: fileDTO.githubImported,
+            childrenLoaded: false,
           } as MoaFile;
 
-          await getFileTree(root, user);
-          return root;
+          const tree = await getFileTree(root, user, options);
+          return tree;
         }
       }
 
       return null;
     }
 
-    const location = `/api/files/list/${file.id}?user=${user.id}`;
+    const location = `/api/files/list/${file.id}?user=${user.id}${recursiveQuery}`;
 
     const data = await getRequest(location);
 
@@ -129,10 +143,16 @@ export async function getFileTree(file: MoaFile | null, user: User) {
           type: fileDTO.type,
           children: [],
           githubImported: fileDTO.githubImported,
+          childrenLoaded: recursive,
         } as MoaFile;
 
-        const tree = await getFileTree(child, user);
-        if (tree) child = tree;
+        if (recursive) {
+          const tree = await getFileTree(child, user, options);
+          if (tree) child = tree;
+        } else {
+          child.children = [];
+          child.childrenLoaded = false;
+        }
 
         if (child) file.children.push(child);
       } else if (fileDTO.type.toString() == "DOCUMENT") {
@@ -146,6 +166,7 @@ export async function getFileTree(file: MoaFile | null, user: User) {
       }
     }
 
+    file.childrenLoaded = true;
     return file;
   } catch (error: unknown) {
     console.error(error);

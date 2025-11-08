@@ -1,5 +1,6 @@
 "use client";
 
+import type React from "react";
 import type { MoaFile } from "@/types/file";
 
 import FolderItem from "@/components/layout/NotePage/FolderItem";
@@ -13,6 +14,7 @@ export default function FolderTree({
   onEditFolder,
   onEditNote,
   onNoteClick,
+  onContextMenu,
 }: {
   file: MoaFile;
   selectedNoteId: string;
@@ -22,6 +24,7 @@ export default function FolderTree({
   onEditNote: (note: MoaFile) => void;
   onNoteClick: (noteId: string) => void;
   parentId?: string | null;
+  onContextMenu: (file: MoaFile, event: React.MouseEvent) => void;
 }) {
   console.log(file);
   if (file.type.toString() == "DOCUMENT") {
@@ -32,9 +35,11 @@ export default function FolderTree({
         selected={file.id === selectedNoteId}
         onClick={() => onNoteClick(file.id)}
         onEdit={() => onEditNote(file)}
+        onContextMenu={(event) => onContextMenu(file, event)}
       />
     );
   } else if (file.type.toString() == "DIRECTORY") {
+    const isRoot = !parentId;
     const notes = file.children
       ? file.children.filter((file) => file.type.toString() === "DOCUMENT")
       : [];
@@ -48,9 +53,10 @@ export default function FolderTree({
       <FolderItem
         key={file.id}
         folder={file}
-        open={folderOpen[file.id] ?? true} // 처음엔 폴더는 열린 상태로 보여짐
+        open={isRoot ? folderOpen[file.id] ?? true : folderOpen[file.id] ?? false}
         onToggle={() => onToggleFolder(file.id)}
         onEdit={() => onEditFolder(file)}
+        onContextMenu={(event) => onContextMenu(file, event)}
       >
         <>
           {directories.length > 0 && (
@@ -65,6 +71,8 @@ export default function FolderTree({
                         onEditFolder={onEditFolder}
                         onEditNote={onEditNote}
                         onNoteClick={onNoteClick}
+                        onContextMenu={onContextMenu}
+                        parentId={file.id}
                     />
                 ))}
               </div>
@@ -81,6 +89,8 @@ export default function FolderTree({
                         onEditFolder={onEditFolder}
                         onEditNote={onEditNote}
                         onNoteClick={onNoteClick}
+                        onContextMenu={onContextMenu}
+                        parentId={file.id}
                     />
                 ))}
               </div>
