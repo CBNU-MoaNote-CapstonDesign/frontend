@@ -10,14 +10,14 @@ import {
 import { Language } from "@/types/note";
 import { UUID } from "node:crypto";
 
-const SERVER_URL = process.env.NEXT_PUBLIC_SERVER_URL;
+const getServerUrl = () => process.env.NEXT_PUBLIC_SERVER_URL ?? "";
 
 /**
  * 백엔드에 GET으로 API 호출하는 함수 (client-side)
  * @param location API 호출할 relative-location
  */
 async function getRequest(location: string) {
-  const url = `${SERVER_URL}${location}`;
+  const url = `${getServerUrl()}${location}`;
 
   const res = await fetch(url, {
     method: "GET",
@@ -50,7 +50,7 @@ async function postRequest(location: string, stringifiedBody?: string) {
   console.log("post요청 location:", location);
   console.log("post요청 body:", stringifiedBody);
 
-  const res = await fetch(`${SERVER_URL}${location}`, {
+  const res = await fetch(`${getServerUrl()}${location}`, {
     method: "POST",
     credentials: "include",
     body: stringifiedBody,
@@ -70,16 +70,84 @@ async function postRequest(location: string, stringifiedBody?: string) {
     return responseBody;
 }
 
+export interface GetFileTreeOptions {
+  /**
+   * 하위 디렉토리를 재귀적으로 로드할지 여부.
+   * `false`일 경우 바로 아래 자식만 로드합니다.
+   */
+  recursive?: boolean;
+}
+
 /**
- * MoaFile을 디렉토리 구조로 네스팅하여 반환
- * @param file 가져올 파일 (루트부터 가져오려면 null)
- * @param user 유저 ID
+ * FileDTO를 MoaFile로 변환합니다.
+ * @param dto 변환할 DTO
  */
-export async function getFileTree(file: MoaFile | null, user: User) {
+function mapDtoToMoaFile(dto: FileDTO): MoaFile {
+  return {
+    id: dto.id,
+    name: dto.name,
+    type: dto.type,
+    children: dto.type.toString() === "DIRECTORY" ? [] : undefined,
+    githubImported: dto.githubImported,
+  } as MoaFile;
+}
+
+/**
+ * 디렉터리 하위의 파일 목록을 조회합니다.
+ * @param directoryId 조회할 디렉터리 ID
+ * @param user 유저 정보
+ * @param options 조회 옵션
+ */
+export async function listDirectoryChildren(
+  directoryId: string,
+  user: User,
+  options?: GetFileTreeOptions
+) {
+  const recursive = options?.recursive ?? false;
+  const location = `/api/files/list/${directoryId}?user=${user.id}&recursive=${recursive}`;
+  const data = await getRequest(location);
+
+  let fileDTOs: FileDTO[];
   try {
-    // file 지정 안되면 면저 Root File 부터 찾기
+    fileDTOs = data as FileDTO[];
+  } catch {
+    fileDTOs = [];
+  }
+
+  const children: MoaFile[] = [];
+  for (const fileDTO of fileDTOs) {
+    if (fileDTO.id === directoryId) continue;
+
+    if (fileDTO.type.toString() === "DIRECTORY") {
+      const childDirectory = mapDtoToMoaFile(fileDTO);
+      if (recursive) {
+        childDirectory.children = await listDirectoryChildren(childDirectory.id, user, options);
+      }
+      children.push(childDirectory);
+    } else if (fileDTO.type.toString() === "DOCUMENT") {
+      children.push(mapDtoToMoaFile(fileDTO));
+    }
+  }
+
+  return children;
+}
+
+/**
+ * MoaFile을 디렉토리 구조로 네스팅하여 반환합니다.
+ * @param file 가져올 파일 (루트부터 가져오려면 null)
+ * @param user 유저 정보
+ * @param options 조회 옵션
+ */
+export async function getFileTree(
+  file: MoaFile | null,
+  user: User,
+  options?: GetFileTreeOptions
+) {
+  const recursive = options?.recursive ?? true;
+
+  try {
     if (!file) {
-      const rootLocation = `/api/files/list?user=${user.id}`;
+      const rootLocation = `/api/files/list?user=${user.id}&recursive=${recursive}`;
       const rootData = await getRequest(rootLocation);
 
       let rootFileDTOs: FileDTO[] = [];
@@ -91,15 +159,8 @@ export async function getFileTree(file: MoaFile | null, user: User) {
 
       for (const fileDTO of rootFileDTOs) {
         if (fileDTO.dir === null) {
-          const root = {
-            id: fileDTO.id,
-            name: fileDTO.name,
-            type: fileDTO.type,
-            children: [],
-            githubImported: fileDTO.githubImported,
-          } as MoaFile;
-
-          await getFileTree(root, user);
+          const root = mapDtoToMoaFile(fileDTO);
+          root.children = await listDirectoryChildren(root.id, user, options);
           return root;
         }
       }
@@ -107,46 +168,15 @@ export async function getFileTree(file: MoaFile | null, user: User) {
       return null;
     }
 
-    const location = `/api/files/list/${file.id}?user=${user.id}`;
-
-    const data = await getRequest(location);
-
-    let fileDTOs: FileDTO[];
-    try {
-      fileDTOs = data as FileDTO[];
-    } catch {
-      fileDTOs = [];
-    }
-
-    file.children = [];
-    for (const fileDTO of fileDTOs) {
-      if (fileDTO.id === file.id) continue;
-
-      if (fileDTO.type.toString() == "DIRECTORY") {
-        let child = {
-          id: fileDTO.id,
-          name: fileDTO.name,
-          type: fileDTO.type,
-          children: [],
-          githubImported: fileDTO.githubImported,
-        } as MoaFile;
-
-        const tree = await getFileTree(child, user);
-        if (tree) child = tree;
-
-        if (child) file.children.push(child);
-      } else if (fileDTO.type.toString() == "DOCUMENT") {
-        const child = {
-          id: fileDTO.id,
-          name: fileDTO.name,
-          type: fileDTO.type,
-          githubImported: fileDTO.githubImported,
-        } as MoaFile;
-        file.children.push(child);
-      }
-    }
-
-    return file;
+    const targetFile: MoaFile = {
+      id: file.id,
+      name: file.name,
+      type: file.type,
+      githubImported: file.githubImported,
+      children: [],
+    };
+    targetFile.children = await listDirectoryChildren(file.id, user, options);
+    return targetFile;
   } catch (error: unknown) {
     console.error(error);
     return null;
@@ -266,7 +296,7 @@ export async function editFile(file: MoaFile, parentId: string, user: User) {
  */
 export async function getNoteMeta(file: MoaFile, user: User) {
   const location = `/api/notes/metadata/${file.id}?user=${user.id}`;
-  const res = await fetch(`${SERVER_URL}${location}`, {
+  const res = await fetch(`${getServerUrl()}${location}`, {
     credentials: "include",
   });
 
@@ -280,7 +310,7 @@ export async function getNoteMeta(file: MoaFile, user: User) {
  */
 export async function getNoteText(file: MoaFile, user: User) {
   const location = `/api/notes/text/${file.id}?user=${user.id}`;
-  const res = await fetch(`${SERVER_URL}${location}`, {
+  const res = await fetch(`${getServerUrl()}${location}`, {
     credentials: "include",
   });
   const data = await res.json();
@@ -295,7 +325,7 @@ export async function getNoteText(file: MoaFile, user: User) {
  */
 export async function getNoteDiagram(file: MoaFile, user: User) {
   const location = `/api/notes/diagram/${file.id}?user=${user.id}`;
-  const res = await fetch(`${SERVER_URL}${location}`, {
+  const res = await fetch(`${getServerUrl()}${location}`, {
     credentials: "include",
   });
 

@@ -23,6 +23,8 @@ export default function TreeTest({ user }: { user: User }) {
         onEditFolder={() => {}}
         onEditNote={() => {}}
         onNoteClick={() => {}}
+        loadingFolders={{}}
+        isRoot
       />
     );
   }

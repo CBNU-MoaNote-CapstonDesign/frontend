@@ -13,6 +13,8 @@ export default function FolderTree({
   onEditFolder,
   onEditNote,
   onNoteClick,
+  loadingFolders = {},
+  isRoot = false,
 }: {
   file: MoaFile;
   selectedNoteId: string;
@@ -22,8 +24,9 @@ export default function FolderTree({
   onEditNote: (note: MoaFile) => void;
   onNoteClick: (noteId: string) => void;
   parentId?: string | null;
+  loadingFolders?: Record<string, boolean>;
+  isRoot?: boolean;
 }) {
-  console.log(file);
   if (file.type.toString() == "DOCUMENT") {
     return (
       <NoteItem
@@ -35,24 +38,27 @@ export default function FolderTree({
       />
     );
   } else if (file.type.toString() == "DIRECTORY") {
+    const isOpen = folderOpen[file.id] ?? isRoot;
     const notes = file.children
       ? file.children.filter((file) => file.type.toString() === "DOCUMENT")
       : [];
     const directories = file.children
       ? file.children.filter((file) => file.type.toString() === "DIRECTORY")
       : [];
+    const isLoading = loadingFolders[file.id] ?? false;
 
-    console.log("노트들");
-    console.log(notes);
     return (
       <FolderItem
         key={file.id}
         folder={file}
-        open={folderOpen[file.id] ?? true} // 처음엔 폴더는 열린 상태로 보여짐
+        open={isOpen}
         onToggle={() => onToggleFolder(file.id)}
         onEdit={() => onEditFolder(file)}
       >
         <>
+          {isLoading && (
+            <div className="pl-10 py-1 text-xs text-slate-500">로딩 중...</div>
+          )}
           {directories.length > 0 && (
               <div className="mt-2 space-y-1 animate-in slide-in-from-top-2 duration-200">
                 {directories.map((directory) => (
@@ -65,6 +71,8 @@ export default function FolderTree({
                         onEditFolder={onEditFolder}
                         onEditNote={onEditNote}
                         onNoteClick={onNoteClick}
+                        loadingFolders={loadingFolders}
+                        isRoot={false}
                     />
                 ))}
               </div>
@@ -81,6 +89,8 @@ export default function FolderTree({
                         onEditFolder={onEditFolder}
                         onEditNote={onEditNote}
                         onNoteClick={onNoteClick}
+                        loadingFolders={loadingFolders}
+                        isRoot={false}
                     />
                 ))}
               </div>
