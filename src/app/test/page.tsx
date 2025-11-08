@@ -1,10 +1,4 @@
-import {
-  createFile,
-  deleteFile,
-  editFile,
-  getFile,
-  getFileList,
-} from "@/libs/server/file";
+import { createFile, deleteFile, editFile } from "@/libs/server/file";
 import { fetchCurrentUserServerSide } from "@/libs/server/user";
 import { FileDTO, FileTypeDTO } from "@/types/dto";
 

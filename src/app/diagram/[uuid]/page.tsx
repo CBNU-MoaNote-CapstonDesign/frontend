@@ -4,7 +4,7 @@ import ClientDiagram from "@/app/diagram/[uuid]/ClientDiagram";
 export default async function Diagram({
   params,
 }: {
-  params: { uuid: string };
+  params: Promise<{ uuid: string }>;
 }) {
   const { uuid } = await params;
 

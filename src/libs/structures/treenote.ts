@@ -2,7 +2,6 @@ import { TreeNode } from "@/types/treenode";
 import { CRDTOperation } from "@/types/crdtOperation";
 import invariant from "tiny-invariant";
 import { TreeNodeDTO } from "@/types/dto";
-import { codeText } from "micromark-core-commonmark";
 
 /**
  * Tree based document 를 표현하는 클래스
