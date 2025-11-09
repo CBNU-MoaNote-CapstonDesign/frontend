@@ -181,6 +181,8 @@ export default function NoteExplorer({
   const rootRef = useRef<FileTreeNode | null>(null);
   const loadingFoldersRef = useRef(new Set<string>());
 
+  const modalTreeLoadingRef = useRef(false);
+
   const loadModalTree = useCallback(async () => {
     try {
       const fullTree = await getFileTree(null, user, { recursive: true });
@@ -200,19 +202,21 @@ export default function NoteExplorer({
       setModalTree(null);
       setModalTreeError("폴더 정보를 불러오는 중 문제가 발생했습니다.");
     } finally {
+      modalTreeLoadingRef.current = false;
       setIsModalTreeLoading(false);
     }
   }, [user]);
 
   const refreshModalTree = useCallback(() => {
-    if (isModalTreeLoading) {
+    if (modalTreeLoadingRef.current) {
       return;
     }
+    modalTreeLoadingRef.current = true;
     setIsModalTreeLoading(true);
     setModalTree(null);
     setModalTreeError(null);
     void loadModalTree();
-  }, [isModalTreeLoading, loadModalTree]);
+  }, [loadModalTree]);
 
   const ensureInitialTree = useCallback(async () => {
     loadingFoldersRef.current.clear();
