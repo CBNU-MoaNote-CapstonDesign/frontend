@@ -11,6 +11,9 @@ import { Language } from "@/types/note";
 
 const Editor = dynamic(() => import("@monaco-editor/react"), { ssr: false });
 
+const detectLineEnding = (value: string): "LF" | "CRLF" =>
+    value.includes("\r\n") ? "CRLF" : "LF";
+
 function resolveLanguage(value?: string | null): Language {
   if (!value) {
     return LANGUAGES.javascript;
@@ -29,6 +32,9 @@ export default function CodeEditor({user, uuid, initialLanguage}: {
   const {treeNoteRef, send, commitActions} = useFugueTextSync(user, uuid);
   const [code, setCode] = useState(treeNoteRef?.current.content || "");
   const editorRef = useRef<monacoType.editor.IStandaloneCodeEditor | null>(null);
+  const [lineEnding, setLineEnding] = useState<"LF" | "CRLF">(() =>
+      detectLineEnding(treeNoteRef?.current.content || "")
+  );
 
   // 마지막 edit 이 원격인지 로컬인지 플래그
   // 실제로는 동시성 문제로 인해 remote edit 처리 중 사용자 입력이 들어오면 입력이 remote user 에게 broadcast 되지 않아서 수정 필요
@@ -64,11 +70,23 @@ export default function CodeEditor({user, uuid, initialLanguage}: {
     editorRef.current = editor;
     setIsMounted(true);
 
+    const model = editor.getModel();
+    if (model) {
+      import("monaco-editor").then((monaco) => {
+        model.setEOL(
+            lineEnding === "CRLF"
+                ? monaco.editor.EndOfLineSequence.CRLF
+                : monaco.editor.EndOfLineSequence.LF
+        );
+      });
+    }
+
     editor.onDidChangeModelContent(() => {
       if (isRemoteEditRef.current) return;
       const newContent = editor.getValue();
       const diff = getDiff(treeNoteRef?.current.content, newContent);
       setCode(newContent);
+      setLineEnding(detectLineEnding(newContent));
       if (!diff) return;
 
       if (diff.insertedContent)
@@ -82,6 +100,9 @@ export default function CodeEditor({user, uuid, initialLanguage}: {
   };
 
   useEffect(() => {
+    const currentContent = treeNoteRef?.current.content || "";
+    setLineEnding(detectLineEnding(currentContent));
+
     const editor = editorRef.current;
     if (!editor) return;
     const model = editor.getModel();
@@ -110,6 +131,22 @@ export default function CodeEditor({user, uuid, initialLanguage}: {
     });
     setCode(treeNoteRef?.current.content || "");
   }, [isMounted, treeNoteRef?.current.content]);
+
+  useEffect(() => {
+    if (!isMounted) return;
+    const editor = editorRef.current;
+    if (!editor) return;
+    const model = editor.getModel();
+    if (!model) return;
+
+    import("monaco-editor").then((monaco) => {
+      model.setEOL(
+          lineEnding === "CRLF"
+              ? monaco.editor.EndOfLineSequence.CRLF
+              : monaco.editor.EndOfLineSequence.LF
+      );
+    });
+  }, [isMounted, lineEnding]);
 
   useEffect(() => {
     setLanguage(resolveLanguage(initialLanguage));
