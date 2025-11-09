@@ -92,6 +92,25 @@ function mapDtoToMoaFile(dto: FileDTO): MoaFile {
   } as MoaFile;
 }
 
+function getParentId(dto: FileDTO) {
+  return dto.dir as unknown as string | null;
+}
+
+function buildTreeFromDtos(fileDTOs: FileDTO[], parentId: string | null): MoaFile[] {
+  return fileDTOs
+    .filter((dto) => {
+      const parent = getParentId(dto);
+      return parentId === null ? parent === null : parent === parentId;
+    })
+    .map((dto) => {
+      const node = mapDtoToMoaFile(dto);
+      if (dto.type.toString() === "DIRECTORY") {
+        node.children = buildTreeFromDtos(fileDTOs, String(dto.id));
+      }
+      return node;
+    });
+}
+
 /**
  * 디렉터리 하위의 파일 목록을 조회합니다.
  * @param directoryId 조회할 디렉터리 ID
@@ -114,15 +133,17 @@ export async function listDirectoryChildren(
     fileDTOs = [];
   }
 
+  if (recursive) {
+    return buildTreeFromDtos(fileDTOs, directoryId);
+  }
+
   const children: MoaFile[] = [];
   for (const fileDTO of fileDTOs) {
     if (fileDTO.id === directoryId) continue;
 
     if (fileDTO.type.toString() === "DIRECTORY") {
       const childDirectory = mapDtoToMoaFile(fileDTO);
-      if (recursive) {
-        childDirectory.children = await listDirectoryChildren(childDirectory.id, user, options);
-      }
+      childDirectory.children = [];
       children.push(childDirectory);
     } else if (fileDTO.type.toString() === "DOCUMENT") {
       children.push(mapDtoToMoaFile(fileDTO));
@@ -157,15 +178,18 @@ export async function getFileTree(
         rootFileDTOs = [];
       }
 
-      for (const fileDTO of rootFileDTOs) {
-        if (fileDTO.dir === null) {
-          const root = mapDtoToMoaFile(fileDTO);
-          root.children = await listDirectoryChildren(root.id, user, options);
-          return root;
-        }
+      const rootDto = rootFileDTOs.find((fileDTO) => fileDTO.dir === null);
+      if (!rootDto) {
+        return null;
       }
 
-      return null;
+      const root = mapDtoToMoaFile(rootDto);
+      if (recursive) {
+        root.children = buildTreeFromDtos(rootFileDTOs, String(root.id));
+      } else {
+        root.children = await listDirectoryChildren(root.id, user, options);
+      }
+      return root;
     }
 
     const targetFile: MoaFile = {

@@ -85,27 +85,17 @@ describe("file client tree loading", () => {
   });
 
   it("recursively loads nested directories when requested", async () => {
-    mockFetchSequence(
-      [createDirectoryDto("root", null)],
-      [createDirectoryDto("dir-1", "root")],
-      [createDocumentDto("doc-1", "dir-1")]
-    );
+    mockFetchSequence([
+      createDirectoryDto("root", null),
+      createDirectoryDto("dir-1", "root"),
+      createDocumentDto("doc-1", "dir-1"),
+    ]);
 
     const tree = await getFileTree(null, user, { recursive: true });
 
-    expect(global.fetch).toHaveBeenNthCalledWith(
-      1,
+    expect(global.fetch).toHaveBeenCalledTimes(1);
+    expect(global.fetch).toHaveBeenCalledWith(
       "https://server/api/files/list?user=user-1&recursive=true",
-      expect.objectContaining({ method: "GET" })
-    );
-    expect(global.fetch).toHaveBeenNthCalledWith(
-      2,
-      "https://server/api/files/list/root?user=user-1&recursive=true",
-      expect.objectContaining({ method: "GET" })
-    );
-    expect(global.fetch).toHaveBeenNthCalledWith(
-      3,
-      "https://server/api/files/list/dir-1?user=user-1&recursive=true",
       expect.objectContaining({ method: "GET" })
     );
     const directory = tree?.children?.[0];
@@ -126,6 +116,25 @@ describe("file client tree loading", () => {
     );
     const directoryChild = children.find((child) => child.id === "dir-2");
     expect(directoryChild?.children).toEqual([]);
+  });
+
+  it("builds nested children from a single request when recursive=true", async () => {
+    mockFetchSequence([
+      createDirectoryDto("dir-1", "root"),
+      createDirectoryDto("dir-2", "dir-1"),
+      createDocumentDto("doc-2", "dir-2"),
+    ]);
+
+    const children = await listDirectoryChildren("dir-1", user, { recursive: true });
+
+    expect(global.fetch).toHaveBeenCalledTimes(1);
+    expect(global.fetch).toHaveBeenCalledWith(
+      "https://server/api/files/list/dir-1?user=user-1&recursive=true",
+      expect.objectContaining({ method: "GET" })
+    );
+
+    const nestedDirectory = children.find((child) => child.id === "dir-2");
+    expect(nestedDirectory?.children?.[0]?.id).toBe("doc-2");
   });
 });
 
