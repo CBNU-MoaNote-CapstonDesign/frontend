@@ -11,7 +11,6 @@ import {
   createFile,
   deleteFile,
   editFile,
-  getFile,
   getFileTree,
   listDirectoryChildren,
 } from "@/libs/client/file";
@@ -270,20 +269,9 @@ export default function NoteExplorer({
     });
   };
 
-  const handleAddFolder = (
-    folderName: string,
-    parentId: string,
-    selectedNotes: string[]
-  ) => {
+  const handleAddFolder = (folderName: string, parentId: string) => {
     createFile(folderName, FileTypeDTO.DIRECTORY, parentId, user).then((folder) => {
       if (!folder) return;
-      for (const noteId of selectedNotes) {
-        getFile(noteId, user).then((note) => {
-          if (note) {
-            void editFile(note, folder.id, user);
-          }
-        });
-      }
 
       void ensureInitialTree().then(() => {
         setShowFolderModal(false);
@@ -324,8 +312,7 @@ export default function NoteExplorer({
   const handleEditFolder = (
     folderId: string,
     folderName: string,
-    parentId: string,
-    selectedNotes: string[]
+    parentId: string
   ) => {
     editFile(
       {
@@ -337,20 +324,7 @@ export default function NoteExplorer({
       user
     ).then((result) => {
       if (result) {
-        let count = selectedNotes.length;
-        for (const noteId of selectedNotes) {
-          getFile(noteId, user).then((note) => {
-            if (note) {
-              editFile(note, folderId, user).then(() => {
-                count -= 1;
-                if (count < 1) {
-                  reRoot();
-                }
-              });
-            }
-          });
-        }
-        if (count === 0) reRoot();
+        reRoot();
       }
     });
   };

@@ -6,7 +6,6 @@ import {
   X,
   FolderPlus,
   FolderOpen,
-  FileText,
   Plus,
   AlertCircle,
 } from "lucide-react";
@@ -15,11 +14,7 @@ import Portal from "@/components/common/Portal";
 
 interface Props {
   root: MoaFile;
-  onAdd: (
-    folderName: string,
-    parentId: string,
-    selectedNotes: string[]
-  ) => void;
+  onAdd: (folderName: string, parentId: string) => void;
   onCancel: () => void;
   errorMsg?: string | null;
 }
@@ -32,7 +27,6 @@ export default function FolderAddModal({
 }: Props) {
   const [folderName, setFolderName] = useState<string>("");
   const [parentId, setParentId] = useState<string>(root.id);
-  const [selectedNotes, setSelectedNotes] = useState<string[]>([]);
 
   // 모든 부모 목록
   const renderFolderOptions = (folder: MoaFile, depth = 0): React.ReactNode => {
@@ -48,22 +42,6 @@ export default function FolderAddModal({
       </React.Fragment>
     );
   };
-
-  // 모든 노트 목록
-  const getNoteList = (folder: MoaFile) => {
-    const notes = [];
-    if (folder.type.toString() === "DOCUMENT") {
-      notes.push(folder);
-    }
-    if (folder.children) {
-      folder.children.forEach((child) => {
-        notes.push(...getNoteList(child));
-      });
-    }
-    return notes;
-  };
-
-  const notes = getNoteList(root);
 
   return (
     <Portal>
@@ -133,55 +111,6 @@ export default function FolderAddModal({
               />
             </div>
 
-            {/* 폴더에 추가할 노트 선택 */}
-            <div>
-              <label className="flex items-center gap-2 text-sm font-semibold text-slate-700 mb-3">
-                <FileText className="w-4 h-4" />
-                폴더에 추가할 노트 선택
-                <span className="text-xs text-slate-500 font-normal">
-                  ({selectedNotes.length}개 선택됨)
-                </span>
-              </label>
-
-              <div className="max-h-48 overflow-y-auto border-2 border-slate-200 rounded-xl bg-slate-50 p-3">
-                {notes.length === 0 ? (
-                  <div className="text-center py-8">
-                    <FileText className="w-8 h-8 text-slate-400 mx-auto mb-2" />
-                    <p className="text-sm text-slate-500">노트가 없습니다</p>
-                  </div>
-                ) : (
-                  <div className="space-y-2">
-                    {notes.map((note) => (
-                      <label
-                        key={note.id}
-                        className="flex items-center gap-3 p-2 rounded-lg hover:bg-white transition-colors duration-200 cursor-pointer group"
-                      >
-                        <input
-                          type="checkbox"
-                          checked={selectedNotes.some((n) => n === note.id)}
-                          onChange={(e) => {
-                            if (e.target.checked) {
-                              setSelectedNotes([...selectedNotes, note.id]);
-                            } else {
-                              setSelectedNotes(
-                                selectedNotes.filter((n) => n !== note.id)
-                              );
-                            }
-                          }}
-                          className="w-4 h-4 text-purple-600 bg-white border-2 border-slate-300 rounded focus:ring-purple-500 focus:ring-2 cursor-pointer"
-                        />
-                        <div className="flex items-center gap-2 flex-1">
-                          <FileText className="w-4 h-4 text-slate-500 group-hover:text-purple-600 transition-colors duration-200" />
-                          <span className="text-sm text-slate-700 group-hover:text-slate-900 transition-colors duration-200">
-                            {note.name}
-                          </span>
-                        </div>
-                      </label>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
           </div>
 
           {/* 버튼 영역 */}
@@ -195,10 +124,7 @@ export default function FolderAddModal({
             <button
               className="flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white font-semibold transition-all duration-200 shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
               onClick={() => {
-                console.log("삽입 테스트");
-                console.log(folderName);
-                console.log(parentId);
-                onAdd(folderName, parentId, selectedNotes);
+                onAdd(folderName, parentId);
               }}
               disabled={!folderName.trim()}
             >
