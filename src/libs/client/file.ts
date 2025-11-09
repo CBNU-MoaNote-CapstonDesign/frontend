@@ -365,6 +365,36 @@ export async function getCollaborators(
   }
 }
 
+/**
+ * 선택한 문서의 협업자 권한을 해제합니다.
+ * @param fileId 협업 해제 대상 문서 ID
+ * @param user 요청을 수행하는 사용자
+ * @param targetUsername 협업 해제 대상 사용자 username
+ * @returns 요청 성공 여부
+ */
+export async function unshare(
+    fileId: string,
+    user: User,
+    targetUsername: string
+): Promise<boolean> {
+  const location = `/api/files/unshare/${fileId}?user=${user.id}&targetUser=${targetUsername}`;
+
+  try {
+    const response = await fetch(`${getServerUrl()}${location}`, {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    return response.ok;
+  } catch (error) {
+    console.error("Failed to unshare collaborator", error);
+    return false;
+  }
+}
+
 export async function getSharedFiles(user: User): Promise<MoaFile[]> {
   const location = `/api/files/all/${user.id}`;
   try {

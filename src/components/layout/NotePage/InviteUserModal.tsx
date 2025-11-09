@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type { Collaborator, PermissionDTO } from "@/types/dto";
-import { getCollaborators, invite } from "@/libs/client/file";
+import { getCollaborators, invite, unshare } from "@/libs/client/file";
 import { X, UserPlus, Users, Send, Trash2 } from "lucide-react";
 
 import Portal from "@/components/common/Portal";
@@ -27,46 +27,69 @@ export default function InviteUserModal({
   const [collaborators, setCollaborators] = useState<Collaborator[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
+  /**
+   * 협업자 목록을 최신 상태로 다시 불러옵니다.
+   */
+  const reload = useCallback(async () => {
+    const collaboratorList = await getCollaborators(noteId, user);
+    setCollaborators(collaboratorList);
+  }, [noteId, user]);
+
   useEffect(() => {
     if (open) {
-      getCollaborators(noteId, user).then((collaborators) => {
-        console.log("체크");
-        console.log(collaborators);
-        setCollaborators(collaborators);
-      });
+      void reload();
     }
-  }, [noteId, user, open]);
+  }, [noteId, user, open, reload]);
 
-  const reload = () => {
-    setIsLoading(true);
-    getCollaborators(noteId, user).then((collaborators) => {
-      setCollaborators(collaborators);
-      setIsLoading(false);
-    });
-  };
-
-  const handleAddUser = () => {
+  /**
+   * 입력된 사용자 이름을 기반으로 새 협업자를 초대합니다.
+   */
+  const handleAddUser = async () => {
     if (!input.trim()) return;
+
     setIsLoading(true);
-    invite(noteId, user, input, "READ").then(() => {
+    try {
+      await invite(noteId, user, input, "READ");
       setInput("");
-      reload();
-    });
+      await reload();
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handlePermissionChange = (collaborator: Collaborator) => {
-    console.log("collaborator", collaborator);
+  /**
+   * 협업자의 권한 변경을 서버에 반영합니다.
+   * @param collaborator 권한이 수정된 협업자
+   */
+  const handlePermissionChange = async (collaborator: Collaborator) => {
     setIsLoading(true);
-    invite(noteId, user, collaborator.user.name, collaborator.permission).then(
-      () => {
-        reload();
-      }
-    );
+    try {
+      await invite(
+          noteId,
+          user,
+          collaborator.user.name,
+          collaborator.permission
+      );
+      await reload();
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleRemoveUser = (collaborator: Collaborator) => {
-    // TODO api 호출
-    console.log("권한 제거 API 호출을 구현하십시오.", collaborator);
+  /**
+   * 선택한 협업자를 문서에서 제거합니다.
+   * @param collaborator 제거할 협업자
+   */
+  const handleRemoveUser = async (collaborator: Collaborator) => {
+    setIsLoading(true);
+    try {
+      const success = await unshare(noteId, user, collaborator.user.name);
+      if (success) {
+        await reload();
+      }
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const getPermissionColor = (permission: PermissionDTO) => {
@@ -122,14 +145,14 @@ export default function InviteUserModal({
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => {
-                  if (e.key === "Enter") handleAddUser();
+                  if (e.key === "Enter") void handleAddUser();
                 }}
                 disabled={isLoading}
               />
             </div>
             <button
               className="flex items-center gap-2 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold px-6 py-3 rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow-md"
-              onClick={handleAddUser}
+              onClick={() => void handleAddUser()}
               disabled={isLoading || !input.trim()}
               type="button"
             >
@@ -171,7 +194,7 @@ export default function InviteUserModal({
                         onChange={(e) => {
                           collaborator.permission = e.target
                             .value as PermissionDTO;
-                          handlePermissionChange(collaborator);
+                          void handlePermissionChange(collaborator);
                         }}
                         className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-sm font-medium transition-colors duration-200 ${getPermissionColor(
                           collaborator.permission
@@ -185,7 +208,7 @@ export default function InviteUserModal({
 
                       <button
                         className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-red-100 text-red-500 hover:text-red-600 transition-colors duration-200"
-                        onClick={() => handleRemoveUser(collaborator)}
+                        onClick={() => void handleRemoveUser(collaborator)}
                         title="제거"
                       >
                         <Trash2 className="w-4 h-4" />

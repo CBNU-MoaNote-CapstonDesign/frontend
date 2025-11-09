@@ -1,4 +1,4 @@
-import { getFileTree, listDirectoryChildren } from "@/libs/client/file";
+import { getFileTree, listDirectoryChildren, unshare } from "@/libs/client/file";
 import type { FileDTO } from "@/types/dto";
 import { FileTypeDTO } from "@/types/dto";
 import type { UUID } from "node:crypto";
@@ -126,5 +126,68 @@ describe("file client tree loading", () => {
     );
     const directoryChild = children.find((child) => child.id === "dir-2");
     expect(directoryChild?.children).toEqual([]);
+  });
+});
+
+
+describe("unshare", () => {
+  const originalEnv = process.env.NEXT_PUBLIC_SERVER_URL;
+  const user: User = { id: "owner-id", name: "owner" };
+  let consoleErrorSpy: jest.SpyInstance;
+
+  beforeEach(() => {
+    process.env.NEXT_PUBLIC_SERVER_URL = "https://example.com";
+    consoleErrorSpy = jest
+      .spyOn(console, "error")
+      .mockImplementation(() => undefined);
+  });
+
+  afterEach(() => {
+    process.env.NEXT_PUBLIC_SERVER_URL = originalEnv;
+    jest.resetAllMocks();
+    consoleErrorSpy.mockRestore();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    delete (global as any).fetch;
+  });
+
+  it("sends a POST request to the unshare endpoint and resolves true for ok responses", async () => {
+    const mockFetch = jest.fn().mockResolvedValue({
+      ok: true,
+    });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (global as any).fetch = mockFetch;
+
+    const result = await unshare("file-123", user, "target-456");
+
+    expect(mockFetch).toHaveBeenCalledWith(
+      "https://example.com/api/files/unshare/file-123?user=owner-id&targetUser=target-456",
+      expect.objectContaining({
+        method: "POST",
+        credentials: "include",
+      })
+    );
+    expect(result).toBe(true);
+  });
+
+  it("returns false when the request fails", async () => {
+    const mockFetch = jest.fn().mockRejectedValue(new Error("network"));
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (global as any).fetch = mockFetch;
+
+    const result = await unshare("file-123", user, "target-456");
+
+    expect(result).toBe(false);
+  });
+
+  it("returns false when the server responds with a non-ok status", async () => {
+    const mockFetch = jest.fn().mockResolvedValue({
+      ok: false,
+    });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (global as any).fetch = mockFetch;
+
+    const result = await unshare("file-123", user, "target-456");
+
+    expect(result).toBe(false);
   });
 });
