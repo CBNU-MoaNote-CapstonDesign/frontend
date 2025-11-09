@@ -2,14 +2,7 @@
 
 import type { MoaFile } from "@/types/file";
 import React, { useEffect, useState } from "react";
-import {
-  X,
-  FolderOpen,
-  FileText,
-  Save,
-  Trash2,
-  AlertTriangle,
-} from "lucide-react";
+import { X, FolderOpen, Save, Trash2, AlertTriangle } from "lucide-react";
 
 import Portal from "@/components/common/Portal";
 
@@ -17,12 +10,7 @@ interface Props {
   root: MoaFile;
   folderId: string;
   onDelete: (folderId: string) => void;
-  onEdit: (
-    folderId: string,
-    folderName: string,
-    parentId: string,
-    selectedNotes: string[]
-  ) => void;
+  onEdit: (folderId: string, folderName: string, parentId: string) => void;
   onCancel: () => void;
 }
 
@@ -67,20 +55,6 @@ export const getParent = (
   return null;
 };
 
-// 모든 노트 목록
-function getNoteList(folder: MoaFile) {
-  const notes = [];
-  if (folder.type.toString() === "DOCUMENT") {
-    notes.push(folder);
-  }
-  if (folder.children) {
-    folder.children.forEach((child) => {
-      notes.push(...getNoteList(child));
-    });
-  }
-  return notes;
-}
-
 // 모든 디렉토리 목록
 function renderFolderOptions(folder: MoaFile, depth = 0): React.ReactNode {
   // 루트 폴더 가져오기
@@ -105,29 +79,19 @@ export default function FolderEditModal({
 }: Props) {
   const [folderName, setFolderName] = useState<string>("");
   const [parentId, setParentId] = useState<string | null>(null);
-  const [selectedNotes, setSelectedNotes] = useState<MoaFile[]>([]);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
-  // 부모 ID 찾고, Selected Notes 에 children 추가하고, folder name에 이름 바꾸기
+  // 부모 ID와 폴더 이름 초기화
 
   useEffect(() => {
     const newParentId = getParent(folderId, root, root.id);
     const folder = getFileById(folderId, root);
 
-    if (parent && folder) {
-      setParentId(newParentId);
+    if (folder) {
+      setParentId(newParentId ?? root.id);
       setFolderName(folder.name);
-      const newSelectedNotes: MoaFile[] = [];
-      if (folder.children) {
-        for (const file of folder.children) {
-          newSelectedNotes.push(file);
-        }
-      }
-      setSelectedNotes(newSelectedNotes);
     }
   }, [folderId, root]);
-
-  const notes = getNoteList(root);
 
   const handleDelete = () => {
     onDelete(folderId);
@@ -190,55 +154,6 @@ export default function FolderEditModal({
               </select>
             </div>
 
-            {/* 폴더에 포함된 노트 */}
-            <div>
-              <label className="flex items-center gap-2 text-sm font-semibold text-slate-700 mb-3">
-                <FileText className="w-4 h-4" />
-                폴더에 추가할 노트 선택
-                <span className="text-xs text-slate-500 font-normal">
-                  ({selectedNotes.length}개 선택됨)
-                </span>
-              </label>
-
-              <div className="max-h-48 overflow-y-auto border-2 border-slate-200 rounded-xl bg-slate-50 p-3">
-                {notes.length === 0 ? (
-                  <div className="text-center py-8">
-                    <FileText className="w-8 h-8 text-slate-400 mx-auto mb-2" />
-                    <p className="text-sm text-slate-500">노트가 없습니다</p>
-                  </div>
-                ) : (
-                  <div className="space-y-2">
-                    {notes.map((note) => (
-                      <label
-                        key={note.id}
-                        className="flex items-center gap-3 p-2 rounded-lg hover:bg-white transition-colors duration-200 cursor-pointer group"
-                      >
-                        <input
-                          type="checkbox"
-                          checked={selectedNotes.some((n) => n.id === note.id)}
-                          onChange={(e) => {
-                            if (e.target.checked) {
-                              setSelectedNotes([...selectedNotes, note]);
-                            } else {
-                              setSelectedNotes(
-                                selectedNotes.filter((n) => n.id !== note.id)
-                              );
-                            }
-                          }}
-                          className="w-4 h-4 text-purple-600 bg-white border-2 border-slate-300 rounded focus:ring-purple-500 focus:ring-2 cursor-pointer"
-                        />
-                        <div className="flex items-center gap-2 flex-1">
-                          <FileText className="w-4 h-4 text-slate-500 group-hover:text-purple-600 transition-colors duration-200" />
-                          <span className="text-sm text-slate-700 group-hover:text-slate-900 transition-colors duration-200">
-                            {note.name}
-                          </span>
-                        </div>
-                      </label>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
           </div>
 
           {/* 삭제 확인 모달 */}
@@ -299,12 +214,7 @@ export default function FolderEditModal({
               <button
                 className="flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white font-semibold transition-all duration-200 shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
                 onClick={() => {
-                  onEdit(
-                    folderId,
-                    folderName,
-                    parentId ? parentId : "",
-                    selectedNotes.map((file) => file.id)
-                  );
+                  onEdit(folderId, folderName, parentId ?? root.id);
                 }}
                 disabled={!folderName.trim()}
               >
