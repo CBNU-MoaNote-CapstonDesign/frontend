@@ -107,26 +107,6 @@ export default function NoteUI({
                 작업을 시작하세요.
               </p>
             </div>
-
-            {/* 액션 버튼들 */}
-            <div className="flex flex-col sm:flex-row gap-4 items-center justify-center">
-              <button className="group flex items-center gap-3 px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold rounded-xl shadow-sm hover:shadow-md transition-all duration-200">
-                <Plus className="w-4 h-4 transition-transform duration-200 group-hover:rotate-90" />
-                새 노트 만들기
-                <ArrowRight className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-all duration-200 transform translate-x-0 group-hover:translate-x-1" />
-              </button>
-
-              <div className="flex items-center gap-2 text-sm text-slate-500">
-                <span>또는</span>
-                <kbd className="px-2 py-1 bg-slate-100 border border-slate-300 rounded text-xs font-mono">
-                  Ctrl
-                </kbd>
-                <span>+</span>
-                <kbd className="px-2 py-1 bg-slate-100 border border-slate-300 rounded text-xs font-mono">
-                  N
-                </kbd>
-              </div>
-            </div>
           </div>
 
           {/* 장식적 요소 */}

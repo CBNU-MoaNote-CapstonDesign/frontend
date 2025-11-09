@@ -110,22 +110,6 @@ export default function TopNavigationBar({
             {note ? note.name : "문서 없음"}
           </span>
         </div>
-
-        <div className="flex gap-3">
-          <button
-            className="group flex items-center gap-1 px-3 py-1.5 rounded-lg bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200 text-purple-700 font-medium shadow-sm hover:shadow-md hover:from-purple-100 hover:to-blue-100 hover:border-purple-300 transition-all duration-200 text-sm"
-            onClick={handleAddDiagram}
-          >
-            <Palette className="w-3.5 h-3.5 transition-transform duration-200 group-hover:scale-110" />
-            <span>디자인 블록</span>
-            <Sparkles className="w-3 h-3 opacity-60" />
-          </button>
-
-          <button className="group flex items-center gap-1 px-3 py-1.5 rounded-lg bg-gradient-to-r from-blue-50 to-slate-50 border border-blue-200 text-blue-700 font-medium shadow-sm hover:shadow-md hover:from-blue-100 hover:to-slate-100 hover:border-blue-300 transition-all duration-200 text-sm">
-            <Type className="w-3.5 h-3.5 transition-transform duration-200 group-hover:scale-110" />
-            <span>텍스트 블록</span>
-          </button>
-        </div>
       </div>
 
       {/* 공유자 프로필 + 초대 버튼 */}
