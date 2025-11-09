@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import type { MouseEvent as ReactMouseEvent } from "react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Menu, ChevronLeft, Plus, FileText, Folder, Users } from "lucide-react";
 
@@ -24,6 +25,9 @@ import FolderEditModal from "@/components/layout/NotePage/FolderEditModal";
 import FolderTree from "@/components/layout/NotePage/FolderTree";
 import SharedNoteTree from "@/components/layout/NotePage/SharedNoteTree";
 import GithubImportModal from "@/components/layout/NotePage/GithubImportModal";
+import InviteUserModal from "@/components/layout/NotePage/InviteUserModal";
+import FileContextMenu from "@/components/layout/NotePage/FileContextMenu";
+import useFileContextMenu from "@/hooks/useFileContextMenu";
 import type { Language } from "@/types/note";
 
 interface NoteExplorerProps {
@@ -149,6 +153,9 @@ export default function NoteExplorer({
   const [folderOpen, setFolderOpen] = useState<Record<string, boolean>>({});
   const [loadingFolders, setLoadingFolders] = useState<Record<string, boolean>>({});
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const { contextMenu, openContextMenu, closeContextMenu } = useFileContextMenu();
+  const [shareTarget, setShareTarget] = useState<MoaFile | null>(null);
+  const [shareModalOpen, setShareModalOpen] = useState(false);
   const asideRef = useRef<HTMLDivElement>(null);
   const rootRef = useRef<FileTreeNode | null>(null);
   const loadingFoldersRef = useRef(new Set<string>());
@@ -189,6 +196,25 @@ export default function NoteExplorer({
 
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
+
+  const handleContextMenu = useCallback(
+      (file: MoaFile, event: ReactMouseEvent<HTMLDivElement>) => {
+        event.preventDefault();
+        openContextMenu(file, { x: event.clientX, y: event.clientY });
+      },
+      [openContextMenu]
+  );
+
+  const handleShareTarget = useCallback((file: MoaFile) => {
+    // 폴더 공유 시 하위 항목 처리는 백엔드에서 담당하므로 별도 재귀 호출이 필요하지 않습니다.
+    setShareTarget(file);
+    setShareModalOpen(true);
+  }, []);
+
+  const closeShareModal = useCallback(() => {
+    setShareModalOpen(false);
+    setShareTarget(null);
+  }, []);
 
   const openFolderModal = () => {
     setShowAddMenu(false);
@@ -506,6 +532,7 @@ export default function NoteExplorer({
                   onEditFolder={openEditModal}
                   onEditNote={openNoteEditModal}
                   onNoteClick={(noteId) => router.push(`/doc/${noteId}`)}
+                  onContextMenu={handleContextMenu}
                   loadingFolders={loadingFolders}
                   isRoot
                 />
@@ -592,6 +619,21 @@ export default function NoteExplorer({
           )}
         </aside>
       )}
+      {contextMenu && (
+          <FileContextMenu
+              file={contextMenu.file}
+              position={contextMenu.position}
+              onShare={handleShareTarget}
+              onClose={closeContextMenu}
+          />
+      )}
+      <InviteUserModal
+          user={user}
+          noteId={shareTarget?.id ?? ""}
+          open={shareModalOpen && !!shareTarget}
+          onClose={closeShareModal}
+          onInvite={() => {}}
+      />
     </>
   );
 }

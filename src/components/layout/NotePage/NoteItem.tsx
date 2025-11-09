@@ -1,20 +1,33 @@
 "use client";
 
+import type { MouseEvent } from "react";
+
 import type { MoaFile } from "@/types/file";
 import { FileText, Edit3, Users } from "lucide-react";
 
+/**
+ * 노트 항목을 렌더링합니다.
+ * @param note 표시할 문서 파일
+ * @param selected 현재 선택 여부
+ * @param onEdit 문서 편집 핸들러
+ * @param onClick 문서 선택 핸들러
+ * @param isShared 공유 여부
+ * @param onContextMenu 우클릭 컨텍스트 메뉴 호출 핸들러
+ */
 export default function NoteItem({
   note,
   selected,
   onEdit,
   onClick,
   isShared = false,
+  onContextMenu,
 }: {
   note: MoaFile;
   onEdit: () => void;
   selected: boolean;
   onClick: () => void;
   isShared?: boolean;
+  onContextMenu?: (note: MoaFile, event: MouseEvent<HTMLDivElement>) => void;
 }) {
   return (
     <div
@@ -37,6 +50,11 @@ export default function NoteItem({
         }
       `}
       onClick={onClick}
+      onContextMenu={(event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        onContextMenu?.(note, event);
+      }}
     >
       <div
         className={`
