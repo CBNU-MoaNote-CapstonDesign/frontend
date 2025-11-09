@@ -3,7 +3,16 @@
 import { useRouter } from "next/navigation";
 import type { MouseEvent as ReactMouseEvent } from "react";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Menu, ChevronLeft, Plus, FileText, Folder, Users } from "lucide-react";
+import {
+  Menu,
+  ChevronLeft,
+  Plus,
+  FileText,
+  Folder,
+  Users,
+  Loader2,
+  AlertCircle,
+} from "lucide-react";
 
 import type { MoaFile } from "@/types/file";
 import {
@@ -27,6 +36,7 @@ import GithubImportModal from "@/components/layout/NotePage/GithubImportModal";
 import InviteUserModal from "@/components/layout/NotePage/InviteUserModal";
 import FileContextMenu from "@/components/layout/NotePage/FileContextMenu";
 import useFileContextMenu from "@/hooks/useFileContextMenu";
+import Portal from "@/components/common/Portal";
 import type { Language } from "@/types/note";
 
 interface NoteExplorerProps {
@@ -38,6 +48,12 @@ type FileTreeNode = MoaFile & {
   children?: FileTreeNode[];
   childrenLoaded?: boolean;
 };
+
+type PendingModalAction =
+  | { type: "note-add" }
+  | { type: "folder-add" }
+  | { type: "folder-edit"; targetId: string }
+  | { type: "note-edit"; targetId: string };
 
 const DIRECTORY_TYPE = "DIRECTORY";
 
@@ -149,6 +165,12 @@ export default function NoteExplorer({
   const [showNoteModal, setShowNoteModal] = useState(false);
   const [root, setRoot] = useState<FileTreeNode | null>(null);
   const [modalTree, setModalTree] = useState<FileTreeNode | null>(null);
+  const [isModalTreeLoading, setIsModalTreeLoading] = useState(false);
+  const [modalTreeError, setModalTreeError] = useState<string | null>(null);
+  const [showModalLoading, setShowModalLoading] = useState(false);
+  const [pendingModalAction, setPendingModalAction] = useState<
+    PendingModalAction | null
+  >(null);
   const [folderOpen, setFolderOpen] = useState<Record<string, boolean>>({});
   const [loadingFolders, setLoadingFolders] = useState<Record<string, boolean>>({});
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -158,6 +180,39 @@ export default function NoteExplorer({
   const asideRef = useRef<HTMLDivElement>(null);
   const rootRef = useRef<FileTreeNode | null>(null);
   const loadingFoldersRef = useRef(new Set<string>());
+
+  const loadModalTree = useCallback(async () => {
+    try {
+      const fullTree = await getFileTree(null, user, { recursive: true });
+      if (fullTree) {
+        const annotated = convertToNode(fullTree, {
+          isRoot: true,
+          subtreeLoaded: true,
+        });
+        setModalTree(annotated);
+        setModalTreeError(null);
+      } else {
+        setModalTree(null);
+        setModalTreeError("폴더 정보를 불러올 수 없습니다.");
+      }
+    } catch (error) {
+      console.error(error);
+      setModalTree(null);
+      setModalTreeError("폴더 정보를 불러오는 중 문제가 발생했습니다.");
+    } finally {
+      setIsModalTreeLoading(false);
+    }
+  }, [user]);
+
+  const refreshModalTree = useCallback(() => {
+    if (isModalTreeLoading) {
+      return;
+    }
+    setIsModalTreeLoading(true);
+    setModalTree(null);
+    setModalTreeError(null);
+    void loadModalTree();
+  }, [isModalTreeLoading, loadModalTree]);
 
   const ensureInitialTree = useCallback(async () => {
     loadingFoldersRef.current.clear();
@@ -174,7 +229,8 @@ export default function NoteExplorer({
       setFolderOpen({});
     }
     setLoadingFolders({});
-  }, [user]);
+    refreshModalTree();
+  }, [refreshModalTree, user]);
 
   // 폴더 데이터 초기화
   useEffect(() => {
@@ -185,13 +241,44 @@ export default function NoteExplorer({
     rootRef.current = root;
   }, [root]);
 
-  const prepareModalTree = useCallback(async () => {
-    const fullTree = await getFileTree(null, user, { recursive: true });
-    if (fullTree) {
-      return convertToNode(fullTree, { isRoot: true, subtreeLoaded: true });
+  useEffect(() => {
+    if (isModalTreeLoading || !pendingModalAction) {
+      return;
     }
-    return root;
-  }, [root, user]);
+
+    if (modalTree) {
+      const action = pendingModalAction;
+      setShowModalLoading(false);
+      setPendingModalAction(null);
+
+      switch (action.type) {
+        case "note-add":
+          setShowNoteModal(true);
+          break;
+        case "folder-add":
+          setShowFolderModal(true);
+          break;
+        case "folder-edit":
+          if (editFolder && editFolder.id === action.targetId) {
+            setShowEditModal(true);
+          }
+          break;
+        case "note-edit":
+          if (editNote && editNote.id === action.targetId) {
+            setShowNoteEditModal(true);
+          }
+          break;
+        default:
+          break;
+      }
+    }
+  }, [
+    editFolder,
+    editNote,
+    isModalTreeLoading,
+    modalTree,
+    pendingModalAction,
+  ]);
 
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
@@ -215,47 +302,60 @@ export default function NoteExplorer({
     setShareTarget(null);
   }, []);
 
+  const requestModalAction = useCallback(
+    (action: PendingModalAction) => {
+      setPendingModalAction(action);
+      setShowModalLoading(true);
+      if (!isModalTreeLoading) {
+        refreshModalTree();
+      }
+    },
+    [isModalTreeLoading, refreshModalTree]
+  );
+
   const openFolderModal = () => {
     setShowAddMenu(false);
-    void (async () => {
-      const tree = await prepareModalTree();
-      setModalTree(tree ?? null);
-      setShowFolderModal(true);
-    })();
+    if (!modalTree || isModalTreeLoading) {
+      requestModalAction({ type: "folder-add" });
+      return;
+    }
+    setShowFolderModal(true);
   };
 
   const openEditModal = (folder: MoaFile) => {
     setEditFolder(folder);
     setShowAddMenu(false);
-    void (async () => {
-      const tree = await prepareModalTree();
-      setModalTree(tree ?? null);
-      setShowEditModal(true);
-    })();
+    if (!modalTree || isModalTreeLoading) {
+      requestModalAction({ type: "folder-edit", targetId: folder.id });
+      return;
+    }
+    setShowEditModal(true);
   };
 
   const closeEditModal = () => {
     setEditFolder(null);
     setShowAddMenu(false);
     setShowEditModal(false);
-    setModalTree(null);
+    setPendingModalAction(null);
+    setShowModalLoading(false);
   };
 
   const openNoteEditModal = (note: MoaFile) => {
     setEditNote(note);
     setShowAddMenu(false);
-    void (async () => {
-      const tree = await prepareModalTree();
-      setModalTree(tree ?? null);
-      setShowNoteEditModal(true);
-    })();
+    if (!modalTree || isModalTreeLoading) {
+      requestModalAction({ type: "note-edit", targetId: note.id });
+      return;
+    }
+    setShowNoteEditModal(true);
   };
 
   const closeNoteEditModal = () => {
     setEditNote(null);
     setShowAddMenu(false);
     setShowNoteEditModal(false);
-    setModalTree(null);
+    setPendingModalAction(null);
+    setShowModalLoading(false);
   };
 
   const reRoot = () => {
@@ -265,7 +365,8 @@ export default function NoteExplorer({
       setShowEditModal(false);
       setShowNoteEditModal(false);
       setErrorMsg(null);
-      setModalTree(null);
+      setPendingModalAction(null);
+      setShowModalLoading(false);
     });
   };
 
@@ -277,8 +378,10 @@ export default function NoteExplorer({
         setShowFolderModal(false);
         setShowNoteModal(false);
         setShowEditModal(false);
+        setShowNoteEditModal(false);
         setErrorMsg(null);
-        setModalTree(null);
+        setPendingModalAction(null);
+        setShowModalLoading(false);
       });
     });
   };
@@ -295,8 +398,10 @@ export default function NoteExplorer({
             setShowFolderModal(false);
             setShowNoteModal(false);
             setShowEditModal(false);
+            setShowNoteEditModal(false);
             setErrorMsg(null);
-            setModalTree(null);
+            setPendingModalAction(null);
+            setShowModalLoading(false);
           });
         });
       }
@@ -477,11 +582,11 @@ export default function NoteExplorer({
                 <AddMenu
                   onAddNote={() => {
                     setShowAddMenu(false);
-                    void (async () => {
-                      const tree = await prepareModalTree();
-                      setModalTree(tree ?? null);
-                      setShowNoteModal(true);
-                    })();
+                    if (!modalTree || isModalTreeLoading) {
+                      requestModalAction({ type: "note-add" });
+                      return;
+                    }
+                    setShowNoteModal(true);
                   }}
                   onAddFolder={openFolderModal}
                   onImportGithub={() => {
@@ -537,32 +642,34 @@ export default function NoteExplorer({
           </div>
 
           {/* 모달들 */}
-          {showNoteModal && (modalTree ?? root) && (
+          {showNoteModal && modalTree && (
             <NoteAddModal
-              root={(modalTree ?? root) as MoaFile}
+              root={modalTree as MoaFile}
               onAdd={handleAddNote}
               onCancel={() => {
                 setShowNoteModal(false);
-                setModalTree(null);
+                setPendingModalAction(null);
+                setShowModalLoading(false);
               }}
             />
           )}
 
-          {showFolderModal && (modalTree ?? root) && (
+          {showFolderModal && modalTree && (
             <FolderAddModal
-              root={(modalTree ?? root) as MoaFile}
+              root={modalTree as MoaFile}
               onCancel={() => {
                 setShowFolderModal(false);
-                setModalTree(null);
+                setPendingModalAction(null);
+                setShowModalLoading(false);
               }}
               onAdd={handleAddFolder}
               errorMsg={errorMsg}
             />
           )}
 
-          {showEditModal && (modalTree ?? root) && editFolder && (
+          {showEditModal && modalTree && editFolder && (
             <FolderEditModal
-              root={(modalTree ?? root) as MoaFile}
+              root={modalTree as MoaFile}
               folderId={editFolder.id}
               onDelete={handleDeleteFolder}
               onEdit={handleEditFolder}
@@ -570,9 +677,9 @@ export default function NoteExplorer({
             />
           )}
 
-          {showNoteEditModal && (modalTree ?? root) && editNote && (
+          {showNoteEditModal && modalTree && editNote && (
             <NoteEditModal
-              root={(modalTree ?? root) as MoaFile}
+              root={modalTree as MoaFile}
               noteId={editNote.id}
               onDelete={handleDeleteNote}
               onEdit={handleEditNote}
@@ -608,6 +715,63 @@ export default function NoteExplorer({
           onClose={closeShareModal}
           onInvite={() => {}}
       />
+
+      {showModalLoading && (
+        <Portal>
+          <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-[9999] animate-in fade-in-0 duration-200">
+            <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 p-8 w-full max-w-sm mx-4 text-center space-y-6 animate-in zoom-in-95 duration-200">
+              {isModalTreeLoading ? (
+                <>
+                  <div className="w-16 h-16 mx-auto rounded-full bg-blue-50 flex items-center justify-center">
+                    <Loader2 className="w-8 h-8 text-blue-500 animate-spin" />
+                  </div>
+                  <div>
+                    <p className="text-lg font-semibold text-slate-800">폴더 정보를 불러오는 중입니다</p>
+                    <p className="text-sm text-slate-500 mt-2">잠시만 기다려 주세요...</p>
+                  </div>
+                </>
+              ) : modalTreeError ? (
+                <>
+                  <div className="w-16 h-16 mx-auto rounded-full bg-red-50 flex items-center justify-center">
+                    <AlertCircle className="w-8 h-8 text-red-500" />
+                  </div>
+                  <div>
+                    <p className="text-lg font-semibold text-slate-800">폴더 정보를 불러오지 못했습니다</p>
+                    <p className="text-sm text-slate-500 mt-2">{modalTreeError}</p>
+                  </div>
+                  <div className="flex justify-center gap-3">
+                    <button
+                      className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium transition-all duration-200"
+                      onClick={() => {
+                        if (pendingModalAction?.type === "folder-edit") {
+                          setEditFolder(null);
+                        } else if (pendingModalAction?.type === "note-edit") {
+                          setEditNote(null);
+                        }
+                        setShowModalLoading(false);
+                        setPendingModalAction(null);
+                      }}
+                    >
+                      닫기
+                    </button>
+                    <button
+                      className="px-4 py-2 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold transition-all duration-200 shadow-sm hover:shadow-md"
+                      onClick={() => {
+                        setShowModalLoading(true);
+                        if (!isModalTreeLoading) {
+                          refreshModalTree();
+                        }
+                      }}
+                    >
+                      다시 시도
+                    </button>
+                  </div>
+                </>
+              ) : null}
+            </div>
+          </div>
+        </Portal>
+      )}
     </>
   );
 }
