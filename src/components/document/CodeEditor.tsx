@@ -3,14 +3,17 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import dynamic from "next/dynamic";
 import type * as monacoType from "monaco-editor";
-import useFugueTextSync from "@/hooks/useFugueTextSync";
+import useFugueTextSync, { RemoteCaret } from "@/hooks/useFugueTextSync";
 import getDiff from "@/libs/simpledDiff";
 import { Code, Copy, Download, Eye, EyeOff, Terminal } from "lucide-react";
 import { LANGUAGES } from "@/libs/note";
 import { Language } from "@/types/note";
 import { MarkdownRenderer } from "@/components/document/MarkdownRenderer";
 
-const Editor = dynamic(() => import("@monaco-editor/react"), { ssr: false });
+const Editor = dynamic(() => import("@monaco-editor/react"), {
+  ssr: false,
+}) as typeof import("@monaco-editor/react").default;
+
 
 const detectLineEnding = (value: string): "LF" | "CRLF" =>
     value.includes("\r\n") ? "CRLF" : "LF";
@@ -30,9 +33,16 @@ export default function CodeEditor({user, uuid, initialLanguage}: {
   uuid: string;
   initialLanguage?: string | null;
 }) {
-  const {treeNoteRef, send, commitActions} = useFugueTextSync(user, uuid);
+  const {
+    treeNoteRef,
+    send,
+    commitActions,
+    subscribeToCarets,
+    sendCaret,
+  } = useFugueTextSync(user, uuid);
   const [code, setCode] = useState(treeNoteRef?.current.content || "");
   const editorRef = useRef<monacoType.editor.IStandaloneCodeEditor | null>(null);
+  const monacoModuleRef = useRef<typeof import("monaco-editor") | undefined>(undefined);
   const [lineEnding, setLineEnding] = useState<"LF" | "CRLF">(() =>
       detectLineEnding(treeNoteRef?.current.content || "")
   );
@@ -41,6 +51,20 @@ export default function CodeEditor({user, uuid, initialLanguage}: {
   // 실제로는 동시성 문제로 인해 remote edit 처리 중 사용자 입력이 들어오면 입력이 remote user 에게 broadcast 되지 않아서 수정 필요
   const isRemoteEditRef = useRef(false);
   const [isMounted, setIsMounted] = useState(false);
+  const [remoteCarets, setRemoteCarets] = useState<Record<string, RemoteCaret>>({});
+  const caretDecorationCollectionRef = useRef<
+    monacoType.editor.IEditorDecorationsCollection | null
+  >(null);
+  const caretStyleElementRef = useRef<HTMLStyleElement | null>(null);
+  const caretThrottleRef = useRef<{
+    lastSent: number;
+    timeoutId: number | null;
+    pending: { lineNumber: number; columnNumber: number } | null;
+  }>({
+    lastSent: 0,
+    timeoutId: null,
+    pending: null,
+  });
 
   // 선택 언어 상태 (기본 javascript)
   const [language, setLanguage] = useState<Language>(() =>
@@ -67,13 +91,31 @@ export default function CodeEditor({user, uuid, initialLanguage}: {
     }, 0);
   }, [code, language]);
 
+  const getMonaco = useCallback(async () => {
+    if (monacoModuleRef.current) return monacoModuleRef.current;
+    const monaco = await import("monaco-editor");
+    monacoModuleRef.current = monaco;
+    return monaco;
+  }, []);
+
+  const sanitizeCaretClass = useCallback(
+    (value: string) => value.replace(/[^a-zA-Z0-9_-]/g, "-"),
+    []
+  );
+
+  const escapeCssContent = useCallback(
+    (value: string) => value.replace(/\\/g, "\\\\").replace(/"/g, '\\"'),
+    []
+  );
+
+
   const handleEditorMount = (editor: monacoType.editor.IStandaloneCodeEditor) => {
     editorRef.current = editor;
     setIsMounted(true);
 
     const model = editor.getModel();
     if (model) {
-      import("monaco-editor").then((monaco) => {
+      getMonaco().then((monaco) => {
         model.setEOL(
             lineEnding === "CRLF"
                 ? monaco.editor.EndOfLineSequence.CRLF
@@ -140,14 +182,14 @@ export default function CodeEditor({user, uuid, initialLanguage}: {
     const model = editor.getModel();
     if (!model) return;
 
-    import("monaco-editor").then((monaco) => {
+    getMonaco().then((monaco) => {
       model.setEOL(
           lineEnding === "CRLF"
               ? monaco.editor.EndOfLineSequence.CRLF
               : monaco.editor.EndOfLineSequence.LF
       );
     });
-  }, [isMounted, lineEnding]);
+  }, [getMonaco, isMounted, lineEnding]);
 
   useEffect(() => {
     setLanguage(resolveLanguage(initialLanguage));
@@ -159,6 +201,162 @@ export default function CodeEditor({user, uuid, initialLanguage}: {
       setShowMarkdownPreview(false);
     }
   }, [language, showMarkdownPreview]);
+
+  useEffect(() => {
+    return subscribeToCarets((carets) => {
+      setRemoteCarets(carets);
+    });
+  }, [subscribeToCarets]);
+
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    const styleElement = document.createElement("style");
+    styleElement.setAttribute("data-remote-caret", "true");
+    document.head.appendChild(styleElement);
+    caretStyleElementRef.current = styleElement;
+    return () => {
+      styleElement.remove();
+      caretStyleElementRef.current = null;
+    };
+  }, []);
+
+  useEffect(() => {
+    const styleElement = caretStyleElementRef.current;
+    if (!styleElement) return;
+    styleElement.innerHTML = Object.values(remoteCarets)
+      .map((caret) => {
+        const classSuffix = sanitizeCaretClass(caret.userId);
+        const escapedName = escapeCssContent(caret.username || "");
+        return `
+.monaco-editor .remote-caret-${classSuffix} {
+  border-left-color: ${caret.color};
+}
+.monaco-editor .remote-caret-label-${classSuffix}::after {
+  background-color: ${caret.color};
+  content: "${escapedName}";
+}`;
+      })
+      .join("\n");
+  }, [escapeCssContent, remoteCarets, sanitizeCaretClass]);
+
+  useEffect(() => {
+    if (!isMounted) return;
+    const editor = editorRef.current;
+    if (!editor) return;
+
+    const throttleState = caretThrottleRef.current;
+
+    const scheduleSend = (delay: number) => {
+      if (throttleState.timeoutId !== null) return;
+      throttleState.timeoutId = window.setTimeout(() => {
+        throttleState.timeoutId = null;
+        const pending = throttleState.pending;
+        if (!pending) return;
+        throttleState.pending = null;
+        throttleState.lastSent = Date.now();
+        sendCaret(pending.lineNumber, pending.columnNumber);
+      }, delay);
+    };
+
+    const listener = editor.onDidChangeCursorSelection((event: monacoType.editor.ICursorSelectionChangedEvent) => {
+      const position = event.selection.getPosition();
+      const lineNumber = position.lineNumber;
+      const columnNumber = position.column;
+      const now = Date.now();
+
+      if (now - throttleState.lastSent >= 80) {
+        if (throttleState.timeoutId !== null) {
+          clearTimeout(throttleState.timeoutId);
+          throttleState.timeoutId = null;
+        }
+        throttleState.pending = null;
+        throttleState.lastSent = now;
+        sendCaret(lineNumber, columnNumber);
+      } else {
+        throttleState.pending = {lineNumber, columnNumber};
+        const delay = Math.max(0, 80 - (now - throttleState.lastSent));
+        scheduleSend(delay);
+      }
+    });
+
+    const initialPosition = editor.getPosition();
+    if (initialPosition) {
+      sendCaret(initialPosition.lineNumber, initialPosition.column);
+    }
+
+    return () => {
+      listener.dispose();
+      const timeoutId = throttleState.timeoutId;
+      if (timeoutId !== null) {
+        clearTimeout(timeoutId);
+        throttleState.timeoutId = null;
+      }
+      throttleState.pending = null;
+    };
+  }, [isMounted, sendCaret]);
+
+  useEffect(() => {
+    if (!isMounted) return;
+    const editor = editorRef.current;
+    if (!editor) return;
+    const model = editor.getModel();
+    if (!model) return;
+
+    const collection = caretDecorationCollectionRef.current
+      ?? editor.createDecorationsCollection();
+    caretDecorationCollectionRef.current = collection;
+
+    if (Object.keys(remoteCarets).length === 0) {
+      collection.set([]);
+      return;
+    }
+
+    getMonaco().then((monaco) => {
+      const decorations = Object.values(remoteCarets).map((caret) => {
+        let lineNumber = Number.isFinite(caret.lineNumber)
+          ? caret.lineNumber
+          : 1;
+        if (lineNumber < 1) lineNumber = 1;
+        const lineCount = model.getLineCount();
+        if (lineNumber > lineCount) lineNumber = lineCount;
+
+        let columnNumber = Number.isFinite(caret.columnNumber)
+          ? caret.columnNumber
+          : 1;
+        if (columnNumber < 1) columnNumber = 1;
+        const maxColumn = model.getLineMaxColumn(lineNumber);
+        if (columnNumber > maxColumn) columnNumber = maxColumn;
+
+        const classSuffix = sanitizeCaretClass(caret.userId);
+        const inlineClassName = `remote-caret remote-caret-${classSuffix}`;
+        const afterContentClassName = `remote-caret-label remote-caret-label-${classSuffix}`;
+
+        const decoration: monacoType.editor.IModelDeltaDecoration = {
+          range: new monaco.Range(lineNumber, columnNumber, lineNumber, columnNumber),
+          options: {
+            stickiness: monaco.editor.TrackedRangeStickiness.NeverGrowsWhenTypingAtEdges,
+            inlineClassName,
+            afterContentClassName,
+            hoverMessage: [{value: caret.username}],
+          },
+        };
+        return decoration;
+      });
+
+      collection.set(decorations);
+    });
+
+    return () => {
+      collection.set([]);
+    };
+  }, [getMonaco, isMounted, remoteCarets, sanitizeCaretClass]);
+
+  useEffect(() => {
+    return () => {
+      caretDecorationCollectionRef.current?.clear();
+      caretDecorationCollectionRef.current = null;
+    };
+  }, []);
 
   return (
     // 코드 에디터 전체 레이아웃
