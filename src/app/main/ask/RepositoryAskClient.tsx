@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { listImportedRepositories } from "@/libs/client/github";
@@ -108,10 +109,13 @@ export default function RepositoryAskClient({
         <div className="mx-auto flex w-full max-w-5xl items-center justify-between px-6 py-5">
           <div className="flex items-center gap-3">
             <div className="relative">
-              <img
+              <Image
                 src="/moanote_logo/logo1.png"
                 alt="logo"
                 className="h-10 w-10 object-contain"
+                width={40}
+                height={40}
+                priority
               />
               <span className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-gradient-to-r from-blue-500 to-purple-500"></span>
             </div>

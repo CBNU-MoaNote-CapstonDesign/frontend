@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 
 function StartButton({ text, onClick }: { text: string; onClick: () => void }) {
@@ -33,10 +34,13 @@ export default function Main() {
         </p>
         <StartButton text="시작하기 →" onClick={handleStartButtonClick} />
       </div>
-      <img
+      <Image
         src="/home_img/memo.png"
         className="w-64 md:w-80 object-contain drop-shadow-lg"
         alt="memo"
+        width={320}
+        height={320}
+        priority
       />
     </div>
   );

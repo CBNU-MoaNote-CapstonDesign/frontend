@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   GithubSearchRepositoryItem,
@@ -240,10 +241,12 @@ export default function GithubImportModal({
                   >
                     <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                       <div className="flex items-start gap-3">
-                        <img
+                        <Image
                           src={repo.owner.avatar_url}
                           alt={repo.owner.login}
                           className="w-10 h-10 rounded-full border border-slate-200"
+                          width={40}
+                          height={40}
                         />
                         <div className="space-y-1">
                           <div className="text-base font-semibold text-slate-800">

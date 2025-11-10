@@ -1,5 +1,7 @@
 "use client";
 
+import Image from "next/image";
+
 export default function AIChatBot() {
   return (
     <button
@@ -23,10 +25,13 @@ export default function AIChatBot() {
       title="모아 AI 챗봇 열기"
       aria-label="모아 AI 챗봇 열기"
     >
-      <img
+      <Image
         src="/icon/chatbot.png"
         alt="모아 AI"
         className="w-10 h-10 object-contain"
+        width={40}
+        height={40}
+        priority
       />
     </button>
   );
