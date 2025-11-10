@@ -184,8 +184,8 @@ export default function NoteUI({
       </div>
 
       {/* 메인 콘텐츠 */}
-      <div className="relative w-full max-w-4xl min-h-full flex flex-col gap-6 px-8 py-10">
-        <DocumentTitle title={note.name} />
+      <div className="relative w-full min-h-full flex flex-col gap-6 px-8 py-10">
+        <DocumentTitle title={note.name}/>
         <div className="flex-1">
           <CodeEditor
             user={user}

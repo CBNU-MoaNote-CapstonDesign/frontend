@@ -162,7 +162,7 @@ export default function CodeEditor({user, uuid, initialLanguage}: {
 
   return (
     // 코드 에디터 전체 레이아웃
-    <main className="flex flex-col items-center justify-start p-0 w-full">
+    <main className="flex flex-col items-stretch justify-start p-0 w-full">
       {/* 카드 형태 컨테이너 */}
       <div
         className="
@@ -171,17 +171,21 @@ export default function CodeEditor({user, uuid, initialLanguage}: {
         "
       >
         {/* 상단 장식 바 */}
-        <div className="w-full h-1 bg-gradient-to-r from-green-500 via-blue-500 to-purple-600 opacity-60 group-hover:opacity-100 transition-opacity duration-300"></div>
+        <div
+          className="w-full h-1 bg-gradient-to-r from-green-500 via-blue-500 to-purple-600 opacity-60 group-hover:opacity-100 transition-opacity duration-300"></div>
 
         {/* 코드 에디터 헤더 */}
-        <div className="flex items-center justify-between px-6 py-4 bg-gradient-to-r from-slate-50 to-white border-b border-slate-200">
+        <div
+          className="flex items-center justify-between px-6 py-4 bg-gradient-to-r from-slate-50 to-white border-b border-slate-200">
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-blue-600 rounded-xl flex items-center justify-center shadow-sm">
-                <Code className="w-5 h-5 text-white" />
+              <div
+                className="w-10 h-10 bg-gradient-to-br from-green-500 to-blue-600 rounded-xl flex items-center justify-center shadow-sm">
+                <Code className="w-5 h-5 text-white"/>
               </div>
               <div>
-                <h3 className="text-lg font-bold bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent">
+                <h3
+                  className="text-lg font-bold bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent">
                   편집
                 </h3>
                 <div className="w-8 h-0.5 bg-gradient-to-r from-green-500 to-blue-600 rounded-full mt-1"></div>
@@ -203,7 +207,7 @@ export default function CodeEditor({user, uuid, initialLanguage}: {
               ))}
             </select>
           </div>
-          
+
           <div className="flex items-center gap-2">
             {language.value === "MARKDOWN" && (
               <button
@@ -213,13 +217,16 @@ export default function CodeEditor({user, uuid, initialLanguage}: {
               >
                 {showMarkdownPreview ? (
                   <>
-                    <EyeOff className="w-4 h-4 text-slate-600 group-hover/btn:text-purple-600 transition-colors duration-200" />
+                    <EyeOff
+                      className="w-4 h-4 text-slate-600 group-hover/btn:text-purple-600 transition-colors duration-200"/>
                     <span className="text-slate-600 group-hover/btn:text-purple-600 transition-colors duration-200">미리보기 숨기기</span>
                   </>
                 ) : (
                   <>
-                    <Eye className="w-4 h-4 text-slate-600 group-hover/btn:text-blue-600 transition-colors duration-200" />
-                    <span className="text-slate-600 group-hover/btn:text-blue-600 transition-colors duration-200">미리보기</span>
+                    <Eye
+                      className="w-4 h-4 text-slate-600 group-hover/btn:text-blue-600 transition-colors duration-200"/>
+                    <span
+                      className="text-slate-600 group-hover/btn:text-blue-600 transition-colors duration-200">미리보기</span>
                   </>
                 )}
               </button>
@@ -230,16 +237,17 @@ export default function CodeEditor({user, uuid, initialLanguage}: {
               className="group/btn p-2 rounded-xl hover:bg-white/80 transition-all duration-200 border border-transparent hover:border-slate-200 hover:shadow-sm"
               title="코드 복사"
             >
-              <Copy className="w-4 h-4 text-slate-600 group-hover/btn:text-blue-600 transition-colors duration-200" />
+              <Copy className="w-4 h-4 text-slate-600 group-hover/btn:text-blue-600 transition-colors duration-200"/>
             </button>
-            
+
             {/* 코드 다운로드 버튼 */}
             <button
               onClick={handleDownloadCode}
               className="group/btn p-2 rounded-xl hover:bg-white/80 transition-all duration-200 border border-transparent hover:border-slate-200 hover:shadow-sm"
               title="코드 다운로드"
             >
-              <Download className="w-4 h-4 text-slate-600 group-hover/btn:text-green-600 transition-colors duration-200" />
+              <Download
+                className="w-4 h-4 text-slate-600 group-hover/btn:text-green-600 transition-colors duration-200"/>
             </button>
           </div>
         </div>
@@ -283,7 +291,7 @@ export default function CodeEditor({user, uuid, initialLanguage}: {
               <div className="text-center space-y-4">
                 <div
                   className="w-12 h-12 bg-gradient-to-br from-green-100 to-blue-100 rounded-xl flex items-center justify-center mx-auto">
-                  <Code className="w-6 h-6 text-slate-500 animate-pulse" />
+                  <Code className="w-6 h-6 text-slate-500 animate-pulse"/>
                 </div>
                 <p className="text-sm font-medium text-slate-700">코드 에디터를 불러오는 중...</p>
               </div>
@@ -296,13 +304,14 @@ export default function CodeEditor({user, uuid, initialLanguage}: {
               <h4 className="text-sm font-semibold text-slate-700">Markdown 미리보기</h4>
             </div>
             <div className="px-6 py-6">
-              <MarkdownRenderer content={code} />
+              <MarkdownRenderer content={code}/>
             </div>
           </div>
         )}
 
         {/* 하단 상태 바 */}
-        <div className="flex items-center justify-between px-6 py-3 bg-gradient-to-r from-slate-50 to-white border-t border-slate-200 text-xs text-slate-600">
+        <div
+          className="flex items-center justify-between px-6 py-3 bg-gradient-to-r from-slate-50 to-white border-t border-slate-200 text-xs text-slate-600">
           <div className="flex items-center gap-4">
             <span>라인: {code.split("\n").length}</span>
             <span>문자: {code.length}</span>
