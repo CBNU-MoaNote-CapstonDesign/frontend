@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 
 function NavigationLink({ text, link }: { text: string; link: string }) {
@@ -17,10 +18,13 @@ export default function TopNavigationBar() {
   return (
     <div className="fixed top-0 left-0 w-full h-24 bg-gradient-to-r from-[#f0f8fe] to-[#e0e7ff] z-50 flex justify-between items-center px-8 shadow-md">
       <div className="flex items-center gap-4">
-        <img
+        <Image
           src="/moanote_logo/logo1.png"
           className="w-12 h-12 object-contain"
           alt="logo"
+          width={48}
+          height={48}
+          priority
         />
         <p className="text-2xl md:text-4xl font-bold text-[#186370]">
           코드 포레스트

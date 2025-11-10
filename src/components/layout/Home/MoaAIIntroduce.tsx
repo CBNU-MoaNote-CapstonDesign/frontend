@@ -1,3 +1,4 @@
+import Image from "next/image";
 import FadeInOnView from "@/components/common/FadeInOnView";
 
 export default function MoaAIIntroduce() {
@@ -16,10 +17,13 @@ export default function MoaAIIntroduce() {
           {/* 가운데 정렬 + 카드 max-width 지정 */}
           <div className="grid grid-cols-1 place-items-center w-full">
             <div className="w-full max-w-xl md:max-w-2xl bg-[#db49e8] p-8 md:p-10 rounded-2xl text-white shadow-md flex flex-col items-start">
-              <img
+              <Image
                 src="/home_img/chat.png"
                 className="w-20 h-20 object-contain mb-4"
                 alt="AI 코드 베이스 탐색"
+                width={80}
+                height={80}
+                priority
               />
               <h3 className="text-3xl font-semibold mb-2">AI 코드 베이스 탐색</h3>
               <p className="text-xl font-medium">

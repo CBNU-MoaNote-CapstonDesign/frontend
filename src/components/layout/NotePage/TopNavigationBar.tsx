@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import type { MoaFile } from "@/types/file";
@@ -64,10 +65,13 @@ export default function TopNavigationBar({
       {/* 로고 및 제목 */}
       <div className="flex items-center gap-4 min-w-[200px]">
         <div className="relative">
-          <img
+          <Image
             src="/moanote_logo/logo1.png"
             className="w-10 h-10 object-contain transition-transform duration-200 hover:scale-110"
             alt="logo"
+            width={40}
+            height={40}
+            priority
           />
           <div className="absolute -top-1 -right-1 w-3 h-3 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full opacity-80"></div>
         </div>
