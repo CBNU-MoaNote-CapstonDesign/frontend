@@ -103,6 +103,7 @@ function setSelectionRangeCaret(element: HTMLElement, baseOffset: number, extent
 
 /**
  * 마크다운 에디터
+ * @deprecated
  * @param initialContent 초기 내용
  * @param updateContent 에디터에서 내용 업데이트할 때 콜백
  * @param lastCursorPosition 커서 위치 초기값

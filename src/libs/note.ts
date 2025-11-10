@@ -13,4 +13,10 @@ export const LANGUAGES : Record<string, Language> = {
   python: { value: "PYTHON", label: "Python", fileExtension: "py" },
   java: { value: "JAVA", label: "Java", fileExtension: "java" },
   csharp: { value: "CSHARP", label: "C#", fileExtension: "cs" },
+  c: { value: "C", label: "C", fileExtension: "c" },
+  cpp: { value: "CPP", label: "C++", fileExtension: "cpp" },
+  kotlin: { value: "KOTLIN", label: "Kotlin", fileExtension: "kt" },
+  markdown: { value: "MARKDOWN", label: "Markdown", fileExtension: "md" },
+  json: { value: "JSON", label: "JSON", fileExtension: "json" },
+  text: { value: "TEXT", label: "Plain Text", fileExtension: "txt" },
 }

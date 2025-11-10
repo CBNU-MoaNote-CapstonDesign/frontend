@@ -9,6 +9,9 @@ import { MarkdownEditor } from "@/components/document/MarkdownEditor";
 import { MarkdownRenderer } from "@/components/document/MarkdownRenderer";
 import useDocumentSync from "@/hooks/useDocumentSync";
 
+/**
+ * @deprecated
+ */
 export default function DocumentRenderer({
   user,
   uuid,

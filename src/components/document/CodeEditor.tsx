@@ -5,9 +5,10 @@ import dynamic from "next/dynamic";
 import type * as monacoType from "monaco-editor";
 import useFugueTextSync from "@/hooks/useFugueTextSync";
 import getDiff from "@/libs/simpledDiff";
-import { Code, Copy, Download, Terminal } from "lucide-react";
+import { Code, Copy, Download, Eye, EyeOff, Terminal } from "lucide-react";
 import { LANGUAGES } from "@/libs/note";
 import { Language } from "@/types/note";
+import { MarkdownRenderer } from "@/components/document/MarkdownRenderer";
 
 const Editor = dynamic(() => import("@monaco-editor/react"), { ssr: false });
 
@@ -16,12 +17,12 @@ const detectLineEnding = (value: string): "LF" | "CRLF" =>
 
 function resolveLanguage(value?: string | null): Language {
   if (!value) {
-    return LANGUAGES.javascript;
+    return LANGUAGES.text;
   }
   const matched = Object.values(LANGUAGES).find(
     (language) => language.value === value
   );
-  return matched ?? LANGUAGES.javascript;
+  return matched ?? LANGUAGES.text;
 }
 
 export default function CodeEditor({user, uuid, initialLanguage}: {
@@ -45,7 +46,7 @@ export default function CodeEditor({user, uuid, initialLanguage}: {
   const [language, setLanguage] = useState<Language>(() =>
     resolveLanguage(initialLanguage)
   );
-
+  const [showMarkdownPreview, setShowMarkdownPreview] = useState(false);
   // 코드 복사
   const handleCopyCode = useCallback(() => {
     navigator.clipboard.writeText(code);
@@ -152,6 +153,13 @@ export default function CodeEditor({user, uuid, initialLanguage}: {
     setLanguage(resolveLanguage(initialLanguage));
   }, [initialLanguage]);
 
+
+  useEffect(() => {
+    if (language.value !== "MARKDOWN" && showMarkdownPreview) {
+      setShowMarkdownPreview(false);
+    }
+  }, [language, showMarkdownPreview]);
+
   return (
     // 코드 에디터 전체 레이아웃
     <main className="flex flex-col items-center justify-start p-0 w-full">
@@ -174,7 +182,7 @@ export default function CodeEditor({user, uuid, initialLanguage}: {
               </div>
               <div>
                 <h3 className="text-lg font-bold bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent">
-                  코드 에디터
+                  편집
                 </h3>
                 <div className="w-8 h-0.5 bg-gradient-to-r from-green-500 to-blue-600 rounded-full mt-1"></div>
               </div>
@@ -183,7 +191,6 @@ export default function CodeEditor({user, uuid, initialLanguage}: {
             <select
               value={language.value}
               onChange={(e) => {
-                console.log(e.target.value);
                 const selectedLanguage = Object.values(LANGUAGES).find(lang => lang.value === e.target.value);
                 if (selectedLanguage) setLanguage(selectedLanguage);
               }}
@@ -198,6 +205,25 @@ export default function CodeEditor({user, uuid, initialLanguage}: {
           </div>
           
           <div className="flex items-center gap-2">
+            {language.value === "MARKDOWN" && (
+              <button
+                onClick={() => setShowMarkdownPreview((prev) => !prev)}
+                className="group/btn px-3 py-2 rounded-xl hover:bg-white/80 transition-all duration-200 border border-transparent hover:border-slate-200 hover:shadow-sm flex items-center gap-2 text-sm font-medium"
+                title="Markdown 미리보기"
+              >
+                {showMarkdownPreview ? (
+                  <>
+                    <EyeOff className="w-4 h-4 text-slate-600 group-hover/btn:text-purple-600 transition-colors duration-200" />
+                    <span className="text-slate-600 group-hover/btn:text-purple-600 transition-colors duration-200">미리보기 숨기기</span>
+                  </>
+                ) : (
+                  <>
+                    <Eye className="w-4 h-4 text-slate-600 group-hover/btn:text-blue-600 transition-colors duration-200" />
+                    <span className="text-slate-600 group-hover/btn:text-blue-600 transition-colors duration-200">미리보기</span>
+                  </>
+                )}
+              </button>
+            )}
             {/* 코드 복사 버튼 */}
             <button
               onClick={handleCopyCode}
@@ -220,41 +246,43 @@ export default function CodeEditor({user, uuid, initialLanguage}: {
 
         {/* 코드 에디터 영역 */}
         <div className="relative">
-          <div className="h-[500px] bg-white transition-all duration-300">
+          <div className="h-[720px] bg-white transition-all duration-300">
             <Editor
               height="100%"
               language={language.value}
               defaultValue={code}
               onMount={handleEditorMount}
               options={{
-                minimap: { enabled: false },
+                minimap: {enabled: false},
                 fontSize: 14,
                 scrollBeyondLastLine: false,
                 fontFamily: "'JetBrains Mono','Fira Code','Cascadia Code',monospace",
                 lineHeight: 1.6,
-                padding: { top: 16, bottom: 16 },
+                padding: {top: 16, bottom: 16},
                 smoothScrolling: true,
                 cursorBlinking: "smooth",
                 renderLineHighlight: "gutter",
-                bracketPairColorization: { enabled: true },
-                guides: { bracketPairs: true, indentation: true },
+                bracketPairColorization: {enabled: true},
+                guides: {bracketPairs: true, indentation: true},
               }}
             />
           </div>
 
           {/* 언어 표시 배지 */}
-            <div className="absolute bottom-4 right-4 flex items-center gap-2">
-              <div className="flex items-center gap-2 px-3 py-2 bg-white/90 backdrop-blur-sm rounded-xl border border-slate-200 shadow-sm">
-                <Terminal className="w-3 h-3 text-slate-500" />
-                <span className="text-xs font-medium text-slate-600">{language.value.toUpperCase()}</span>
-              </div>
+          <div className="absolute bottom-4 right-4 flex items-center gap-2">
+            <div
+              className="flex items-center gap-2 px-3 py-2 bg-white/90 backdrop-blur-sm rounded-xl border border-slate-200 shadow-sm">
+              <Terminal className="w-3 h-3 text-slate-500"/>
+              <span className="text-xs font-medium text-slate-600">{language.value.toUpperCase()}</span>
             </div>
+          </div>
 
           {/* 로딩 */}
           {!isMounted && (
             <div className="absolute inset-0 bg-white/90 backdrop-blur-sm flex items-center justify-center">
               <div className="text-center space-y-4">
-                <div className="w-12 h-12 bg-gradient-to-br from-green-100 to-blue-100 rounded-xl flex items-center justify-center mx-auto">
+                <div
+                  className="w-12 h-12 bg-gradient-to-br from-green-100 to-blue-100 rounded-xl flex items-center justify-center mx-auto">
                   <Code className="w-6 h-6 text-slate-500 animate-pulse" />
                 </div>
                 <p className="text-sm font-medium text-slate-700">코드 에디터를 불러오는 중...</p>
@@ -262,6 +290,16 @@ export default function CodeEditor({user, uuid, initialLanguage}: {
             </div>
           )}
         </div>
+        {showMarkdownPreview && (
+          <div className="border-t border-slate-200 bg-white/90">
+            <div className="px-6 py-3 bg-gradient-to-r from-slate-50 to-white border-b border-slate-200">
+              <h4 className="text-sm font-semibold text-slate-700">Markdown 미리보기</h4>
+            </div>
+            <div className="px-6 py-6">
+              <MarkdownRenderer content={code} />
+            </div>
+          </div>
+        )}
 
         {/* 하단 상태 바 */}
         <div className="flex items-center justify-between px-6 py-3 bg-gradient-to-r from-slate-50 to-white border-t border-slate-200 text-xs text-slate-600">

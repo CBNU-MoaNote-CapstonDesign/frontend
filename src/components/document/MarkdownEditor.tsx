@@ -8,6 +8,7 @@ import TextareaAutosize from "react-textarea-autosize";
 
 /**
  * 마크다운 에디터
+ * @deprecated
  * @param initialContent 초기 내용
  * @param updateContent 에디터에서 내용 업데이트할 때 콜백 (optional)
  * @param updateBlur 사용자가 에디터의 포커스를 잃었을 때 콜백 (optional)

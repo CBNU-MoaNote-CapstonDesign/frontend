@@ -8,6 +8,9 @@ import { SelectionRange } from "@/types/selectionRange";
 import { Edit3, Eye } from "lucide-react";
 import useFugueTextSync from "@/hooks/useFugueTextSync";
 
+/**
+ * @deprecated
+ */
 export default function DocumentRenderer({ user, uuid }: { user: User, uuid: string }) {
   const {treeNoteRef, document, send, commitActions} = useFugueTextSync(user, uuid);
   const [isEditing, setEditing] = useState<boolean>(false);

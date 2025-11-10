@@ -7,7 +7,6 @@ import type { NoteDTO } from "@/types/dto";
 import { FileText, Plus, Sparkles } from "lucide-react";
 
 import DocumentTitle from "@/components/document/DocumentTitle";
-import TreeBasedDocumentRenderer from "@/components/document/TreeBasedDocumentRenderer";
 import CodeEditor from "@/components/document/CodeEditor";
 
 export default function NoteUI({
@@ -20,6 +19,8 @@ export default function NoteUI({
   const [note, setNote] = useState<MoaFile | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [noteMeta, setNoteMeta] = useState<NoteDTO | null>(null);
+  const isCodeNote = noteMeta?.sourceCode ?? false;
+  const resolvedInitialLanguage = noteMeta?.codeLanguage ?? (isCodeNote ? undefined : "markdown");
 
   useEffect(() => {
     let isCancelled = false;
@@ -186,15 +187,11 @@ export default function NoteUI({
       <div className="relative w-full max-w-4xl min-h-full flex flex-col gap-6 px-8 py-10">
         <DocumentTitle title={note.name} />
         <div className="flex-1">
-          {noteMeta?.sourceCode ? (
-              <CodeEditor
-                  user={user}
-                  uuid={note.id as string}
-                  initialLanguage={noteMeta.codeLanguage}
-              />
-          ) : (
-              <TreeBasedDocumentRenderer user={user} uuid={note.id as string} />
-          )}
+          <CodeEditor
+            user={user}
+            uuid={note.id as string}
+            initialLanguage={resolvedInitialLanguage}
+          />
         </div>
       </div>
     </main>
