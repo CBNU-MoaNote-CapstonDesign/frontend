@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { getFile, getNoteMeta } from "@/libs/client/file";
 import type { MoaFile } from "@/types/file";
 import type { NoteDTO } from "@/types/dto";
-import { FileText, Plus, Sparkles, ArrowRight } from "lucide-react";
+import { FileText, Plus, Sparkles } from "lucide-react";
 
 import DocumentTitle from "@/components/document/DocumentTitle";
 import TreeBasedDocumentRenderer from "@/components/document/TreeBasedDocumentRenderer";

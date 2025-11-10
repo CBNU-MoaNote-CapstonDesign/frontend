@@ -3,13 +3,10 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import type { MoaFile } from "@/types/file";
-import { addNoteSegment, getCollaborators, getFile } from "@/libs/client/file";
-import toast from "react-hot-toast";
+import { getCollaborators, getFile } from "@/libs/client/file";
 import {
   UserPlus,
   MoreHorizontal,
-  Palette,
-  Type,
   Sparkles,
   RefreshCcw,
   GitBranch,
@@ -48,26 +45,6 @@ export default function TopNavigationBar({
   const [sharedUsers, setSharedUsers] = useState<User[]>([]);
   const [fetchOpen, setFetchOpen] = useState(false);
   const [commitOpen, setCommitOpen] = useState(false);
-
-  const handleAddDiagram = () => {
-    addNoteSegment(selectedNoteId, 1, user).then((data) => {
-      const segmentId = data as string;
-
-      const copyText = (text: string) => {
-        navigator.clipboard
-          .writeText(text)
-          .then(() => {
-            console.log("Text copied to clipboard!");
-          })
-          .catch((err) => {
-            console.error("Failed to copy text: ", err);
-          });
-      };
-
-      copyText(`/diagram/${segmentId}`);
-      toast.success("Digram 태그를 클립보드에 복사했습니다.");
-    });
-  };
 
   useEffect(() => {
     getFile(selectedNoteId, user).then((file) => {
