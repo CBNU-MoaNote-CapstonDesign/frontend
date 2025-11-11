@@ -8,6 +8,31 @@ import FolderItem from "@/components/layout/NotePage/FolderItem";
 import NoteItem from "@/components/layout/NotePage/NoteItem";
 
 /**
+ * 주어진 자식 파일 목록을 디렉터리와 문서로 분리합니다.
+ * @param children 분리할 자식 파일 목록
+ */
+export function partitionChildren(children?: MoaFile[]): {
+  directories: MoaFile[];
+  notes: MoaFile[];
+} {
+  if (!children?.length) {
+    return { directories: [], notes: [] };
+  }
+
+  return children.reduce(
+    (acc, child) => {
+      if (child.type.toString() === "DIRECTORY") {
+        acc.directories.push(child);
+      } else if (child.type.toString() === "DOCUMENT") {
+        acc.notes.push(child);
+      }
+      return acc;
+    },
+    { directories: [] as MoaFile[], notes: [] as MoaFile[] }
+  );
+}
+
+/**
  * 파일 트리를 재귀적으로 렌더링합니다.
  * @param file 렌더링할 루트 파일
  * @param selectedNoteId 선택된 문서 ID
@@ -57,12 +82,7 @@ export default function FolderTree({
     );
   } else if (file.type.toString() == "DIRECTORY") {
     const isOpen = folderOpen[file.id] ?? isRoot;
-    const notes = file.children
-      ? file.children.filter((file) => file.type.toString() === "DOCUMENT")
-      : [];
-    const directories = file.children
-      ? file.children.filter((file) => file.type.toString() === "DIRECTORY")
-      : [];
+    const { directories, notes } = partitionChildren(file.children);
     const isLoading = loadingFolders[file.id] ?? false;
 
     return (
@@ -78,12 +98,12 @@ export default function FolderTree({
           {isLoading && (
             <div className="pl-10 py-1 text-xs text-slate-500">로딩 중...</div>
           )}
-          {directories.length > 0 && (
+          {notes.length > 0 && (
             <div className="mt-2 space-y-1 animate-in slide-in-from-top-2 duration-200">
-              {directories.map((directory) => (
+              {notes.map((note) => (
                 <FolderTree
-                  key={directory.id}
-                  file={directory}
+                  key={note.id}
+                  file={note}
                   selectedNoteId={selectedNoteId}
                   folderOpen={folderOpen}
                   onToggleFolder={onToggleFolder}
@@ -97,12 +117,12 @@ export default function FolderTree({
               ))}
             </div>
           )}
-          {notes.length > 0 && (
+          {directories.length > 0 && (
             <div className="mt-2 space-y-1 animate-in slide-in-from-top-2 duration-200">
-              {notes.map((note) => (
+              {directories.map((directory) => (
                 <FolderTree
-                  key={note.id}
-                  file={note}
+                  key={directory.id}
+                  file={directory}
                   selectedNoteId={selectedNoteId}
                   folderOpen={folderOpen}
                   onToggleFolder={onToggleFolder}
