@@ -1,62 +1,80 @@
-import {useEffect, useRef, useState} from "react";
+// 더이상 사용하지 않는 컴포넌트로 보임
+// 대신 TreeMarkdownEditor.tsx에서 같은 기능이 구현된 것으로 보임
+
+import invariant from "tiny-invariant";
+import { useEffect, useRef, useState } from "react";
 import TextareaAutosize from "react-textarea-autosize";
 //import toast from "react-hot-toast";
 
 /**
  * 마크다운 에디터
+ * @deprecated
  * @param initialContent 초기 내용
- * @param updateContent 사용자가 내용 업데이트할 때 콜백, 상위 컴포넌트에서 서버로 업데이트 해야 함
- * @param updateBlur 사용자가 에디터의 포커스를 잃었을 때 콜백
+ * @param updateContent 에디터에서 내용 업데이트할 때 콜백 (optional)
+ * @param updateBlur 사용자가 에디터의 포커스를 잃었을 때 콜백 (optional)
+ * @param lastCursorPosition 커서 위치 초기값
+ * @param cursorHandler 커서 위치를 상위 컴포넌트로 전달하는 콜백 (optional)
  * @constructor
- * TODO : 상위 컴포넌트에서 커서 state를 보내서 여기서 useEffect로 커서가 제어되어야 함
  */
-export function MarkdownEditor({initialContent, updateContent = null, updateBlur = null}: {
-  initialContent: string | null | undefined,
-  updateContent?: null | ((content: string) => void),
-  updateBlur?: null | (() => void)
+export function MarkdownEditor({
+  initialContent = null,
+  updateContent = null,
+  updateBlur = null,
+  lastCursorPosition = null,
+  cursorHandler = null,
+}: {
+  initialContent: string | null | undefined;
+  updateContent?: null | ((content: string) => void);
+  updateBlur?: null | (() => void);
+  lastCursorPosition?: number | null | undefined;
+  cursorHandler?: null | ((cursor: number) => void);
 }) {
-
-  const [, setCursor] = useState(0);
-  const [content, setContent] = useState(initialContent ? initialContent : "");
+  const [cursorPosition, setCursor] = useState(
+    lastCursorPosition ? lastCursorPosition : 0
+  );
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
 
-  const handleCursor = () => {
+  const handleSelect = () => {
     const el = textAreaRef.current;
-    if (el)
-      setCursor(el.selectionStart);
-  }
+    invariant(el, "textAreaRef is null");
+    if (!el) return;
+    setCursor(el.selectionStart);
+    if (cursorHandler) cursorHandler(el.selectionStart);
+  };
 
   useEffect(() => {
-    if (updateContent) {
-      updateContent(content);
+    if (textAreaRef.current) {
+      textAreaRef.current.focus();
+      textAreaRef.current.setSelectionRange(cursorPosition, cursorPosition);
     }
-  }, [content]);
+  }, [cursorPosition, textAreaRef]);
 
   // TODO : change 발생 시 api 로 백엔드 호출해 적용시키기, 상위 컴포넌트에서 할 것
   const handleChange = () => {
     const el = textAreaRef.current;
-    if (el) {
-      setContent(el.value);
+    if (el && updateContent) {
+      updateContent(el.value);
     }
-  }
+  };
 
   const handleBlur = () => {
-    if (updateBlur)
-      updateBlur();
-  }
+    if (updateBlur) updateBlur();
+  };
 
   return (
     <div className="w-full">
       <TextareaAutosize
-        className="w-full border p-2 rounded-xl"
+        className="w-full p-2 rounded-xl"
         minRows={5}
-        placeholder={"Type Document Here..."}
-        value={content ? content : ""}
+        placeholder={"여기에 마크다운 형식 텍스트를 입력하세요"}
+        value={initialContent ? initialContent : ""}
         onBlur={handleBlur}
         onChange={handleChange}
-        onSelect={handleCursor}
+        onSelect={handleSelect}
         ref={textAreaRef}
-        autoFocus={true}/>
+        autoFocus={true}
+        style={{ resize: "none" }} // 크기 조절 기능 제거
+      />
     </div>
   );
 }

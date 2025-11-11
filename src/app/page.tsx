@@ -1,22 +1,29 @@
-import {fetchCurrentUserServerSide} from "@/libs/server/user";
-import {redirect} from "next/navigation";
+import TopNavigationBar from "@/components/layout/Home/TopNavigationBar";
+import Main from "@/components/layout/Home/Main";
+import BasicIntroduce from "@/components/layout/Home/BasicIntroduce";
+import MoaAIIntroduce from "@/components/layout/Home/MoaAIIntroduce";
+import Footer from "@/components/layout/Home/Footer";
+import ContactLinkBar from "@/components/layout/Home/ContactLinkBar";
+import FadeInOnView from "@/components/common/FadeInOnView";
 
-const LOGIN_URL = process.env.NEXT_PUBLIC_LOGIN_URL;
+export default function RootPage() {
+  return (
+    <div className="min-h-screen w-full bg-[#f0f8fe] flex flex-col items-center">
+      <TopNavigationBar />
+      <div className="flex flex-col items-center w-full max-w-6xl px-6 gap-[59px] mt-8">
+        <FadeInOnView delay={0.35} className="w-full">
+          <Main />
+        </FadeInOnView>
 
-export default async function RootPage() {
+        <BasicIntroduce />
+        <MoaAIIntroduce />
 
-  const user = await fetchCurrentUserServerSide();
+        <FadeInOnView delay={0.35}>
+          <Footer />
+        </FadeInOnView>
 
-  if (!user) {
-    // 미로그인시 백엔드 로그인 페이지로 이동
-    if (LOGIN_URL)
-      redirect(LOGIN_URL);
-  } else {
-    // 로그인 되어있으면 /main 으로 이동
-    redirect("/main");
-  }
-
-  return <div>
-
-  </div>;
+        <ContactLinkBar />
+      </div>
+    </div>
+  );
 }
