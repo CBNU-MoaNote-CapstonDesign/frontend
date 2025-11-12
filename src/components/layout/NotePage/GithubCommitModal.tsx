@@ -23,7 +23,7 @@ export default function GithubCommitModal({
   onClose,
 }: GithubCommitModalProps) {
   const [repositories, setRepositories] = useState<GithubImportedRepositoryDTO[]>([]);
-  const [selectedRepo, setSelectedRepo] = useState<string>("");
+  const [selectedRepo, setSelectedRepo] = useState<GithubImportedRepositoryDTO | null>(null);
   const [baseBranch, setBaseBranch] = useState("main");
   const [branchName, setBranchName] = useState("");
   const [commitMessage, setCommitMessage] = useState("");
@@ -44,7 +44,7 @@ export default function GithubCommitModal({
    * Resets the modal state when it closes or re-initializes.
    */
   const resetState = useCallback(() => {
-    setSelectedRepo("");
+    setSelectedRepo(null);
     setBaseBranch("main");
     setBranchName("");
     setCommitMessage("");
@@ -67,7 +67,7 @@ export default function GithubCommitModal({
         setRepositories(list);
         setError(null);
         if (list.length > 0) {
-          setSelectedRepo(list[0].repositoryUrl);
+          setSelectedRepo(list[0]);
         }
       } catch (err) {
         console.error(err);
@@ -155,7 +155,7 @@ export default function GithubCommitModal({
   }, [fileSearch, repositoryFiles]);
 
   const handleSubmit = async () => {
-    if (isSubmitDisabled) {
+    if (isSubmitDisabled || !selectedRepo) {
       setError("필수 항목을 모두 입력해주세요.");
       return;
     }
@@ -165,7 +165,7 @@ export default function GithubCommitModal({
       setError(null);
       await createGithubBranchAndCommit({
         userId: user.id,
-        repositoryUrl: selectedRepo,
+        repositoryUrl: selectedRepo.repositoryUrl,
         baseBranch: baseBranch.trim(),
         branchName: branchName.trim(),
         commitMessage: commitMessage.trim(),
@@ -219,8 +219,13 @@ export default function GithubCommitModal({
                 </label>
                 <select
                   className="w-full border-2 border-slate-200 rounded-xl px-4 py-3 bg-slate-50 focus:outline-none focus:border-blue-400 focus:bg-white transition-all"
-                  value={selectedRepo}
-                  onChange={(event) => setSelectedRepo(event.target.value)}
+                  value={selectedRepo?.repositoryUrl ?? ""}
+                  onChange={(event) => {
+                    const repo = repositories.find(
+                      (candidate) => candidate.repositoryUrl === event.target.value
+                    );
+                    setSelectedRepo(repo ?? null);
+                  }}
                   id={repoSelectId}
                   disabled={loadingRepos || repositories.length === 0}
                 >

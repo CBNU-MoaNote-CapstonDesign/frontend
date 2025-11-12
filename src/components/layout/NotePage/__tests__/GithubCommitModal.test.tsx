@@ -68,6 +68,11 @@ describe("GithubCommitModal", () => {
     await waitFor(() => expect(mockListImportedRepositories).toHaveBeenCalled());
     await waitFor(() => expect(mockListGithubRepositoryFiles).toHaveBeenCalled());
 
+    expect(mockListGithubRepositoryFiles).toHaveBeenCalledWith("user-1", {
+      repositoryName: "frontend",
+      repositoryUrl: "https://github.com/example/frontend",
+    });
+
     expect(screen.getByText("src/index.ts")).toBeTruthy();
     expect(screen.getByText("src/utils/helpers.ts")).toBeTruthy();
 
