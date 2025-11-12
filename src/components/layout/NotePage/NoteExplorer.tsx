@@ -1,8 +1,8 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import type { MouseEvent as ReactMouseEvent } from "react";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   Menu,
   ChevronLeft,
@@ -42,6 +42,7 @@ import type { Language } from "@/types/note";
 interface NoteExplorerProps {
   user: User;
   selectedNoteId: string;
+  onSelectNote?: (noteId: string) => void;
 }
 
 type FileTreeNode = MoaFile & {
@@ -152,6 +153,7 @@ function findNode(node: FileTreeNode, id: string): FileTreeNode | null {
 export default function NoteExplorer({
   user,
   selectedNoteId,
+  onSelectNote,
 }: NoteExplorerProps) {
   const router = useRouter();
   const [open, setOpen] = useState(true);
@@ -182,6 +184,17 @@ export default function NoteExplorer({
   const loadingFoldersRef = useRef(new Set<string>());
 
   const modalTreeLoadingRef = useRef(false);
+
+  const handleNoteSelection = useCallback(
+    (noteId: string) => {
+      if (onSelectNote) {
+        onSelectNote(noteId);
+      } else {
+        router.push(`/doc/${noteId}`);
+      }
+    },
+    [onSelectNote, router]
+  );
 
   const loadModalTree = useCallback(async () => {
     try {
@@ -614,7 +627,7 @@ export default function NoteExplorer({
                   onToggleFolder={handleToggleFolder}
                   onEditFolder={openEditModal}
                   onEditNote={openNoteEditModal}
-                  onNoteClick={(noteId) => router.push(`/doc/${noteId}`)}
+                  onNoteClick={handleNoteSelection}
                   onContextMenu={handleContextMenu}
                   loadingFolders={loadingFolders}
                   isRoot
@@ -641,7 +654,11 @@ export default function NoteExplorer({
                   공유된 노트
                 </span>
               </div>
-              <SharedNoteTree user={user} selectedNoteId={selectedNoteId} />
+              <SharedNoteTree
+                user={user}
+                selectedNoteId={selectedNoteId}
+                onSelectNote={handleNoteSelection}
+              />
             </div>
           </div>
 

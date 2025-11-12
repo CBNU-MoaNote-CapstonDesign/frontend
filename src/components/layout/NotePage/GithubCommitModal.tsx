@@ -1,26 +1,20 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useId, useMemo, useState } from "react";
 import Portal from "@/components/common/Portal";
 import {
   createGithubBranchAndCommit,
+  listGithubRepositoryFiles,
   listImportedRepositories,
 } from "@/libs/client/github";
-import { GithubBranchCommitFileInput, GithubImportedRepositoryDTO } from "@/types/github";
-import { FilePlus2, GitBranch, Loader2, Plus, Trash2, X } from "lucide-react";
+import { GithubImportedRepositoryDTO, GithubRepositoryFileDTO } from "@/types/github";
+import { CheckSquare, GitBranch, Loader2, Search, Square, X } from "lucide-react";
 import toast from "react-hot-toast";
 
 interface GithubCommitModalProps {
   user: User;
   open: boolean;
   onClose: () => void;
-}
-
-function createEmptyFileInput(): GithubBranchCommitFileInput {
-  return {
-    path: "",
-    content: "",
-  };
 }
 
 export default function GithubCommitModal({
@@ -33,19 +27,36 @@ export default function GithubCommitModal({
   const [baseBranch, setBaseBranch] = useState("main");
   const [branchName, setBranchName] = useState("");
   const [commitMessage, setCommitMessage] = useState("");
-  const [files, setFiles] = useState<GithubBranchCommitFileInput[]>([createEmptyFileInput()]);
+  const [repositoryFiles, setRepositoryFiles] = useState<GithubRepositoryFileDTO[]>([]);
+  const [selectedFileIds, setSelectedFileIds] = useState<string[]>([]);
+  const [fileSearch, setFileSearch] = useState("");
   const [loadingRepos, setLoadingRepos] = useState(false);
+  const [loadingFiles, setLoadingFiles] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const repoSelectId = useId();
+  const baseBranchId = useId();
+  const branchNameId = useId();
+  const commitMessageId = useId();
+  const fileSearchId = useId();
+
+  /**
+   * Resets the modal state when it closes or re-initializes.
+   */
+  const resetState = useCallback(() => {
+    setSelectedRepo("");
+    setBaseBranch("main");
+    setBranchName("");
+    setCommitMessage("");
+    setRepositoryFiles([]);
+    setSelectedFileIds([]);
+    setFileSearch("");
+    setError(null);
+  }, []);
 
   useEffect(() => {
     if (!open) {
-      setSelectedRepo("");
-      setBaseBranch("main");
-      setBranchName("");
-      setCommitMessage("");
-      setFiles([createEmptyFileInput()]);
-      setError(null);
+      resetState();
       return;
     }
 
@@ -54,6 +65,7 @@ export default function GithubCommitModal({
         setLoadingRepos(true);
         const list = await listImportedRepositories(user.id);
         setRepositories(list);
+        setError(null);
         if (list.length > 0) {
           setSelectedRepo(list[0].repositoryUrl);
         }
@@ -66,52 +78,87 @@ export default function GithubCommitModal({
     };
 
     loadRepositories();
-  }, [open, user.id]);
+  }, [open, resetState, user.id]);
+
+  useEffect(() => {
+    if (!open || !selectedRepo) {
+      setRepositoryFiles([]);
+      setSelectedFileIds([]);
+      return;
+    }
+
+    let cancelled = false;
+
+    const loadRepositoryFiles = async () => {
+      try {
+        setLoadingFiles(true);
+        setError(null);
+        const files = await listGithubRepositoryFiles(user.id, selectedRepo);
+        if (!cancelled) {
+          setRepositoryFiles(files);
+          setSelectedFileIds([]);
+          setFileSearch("");
+        }
+      } catch (err) {
+        console.error(err);
+        if (!cancelled) {
+          setRepositoryFiles([]);
+          setSelectedFileIds([]);
+          setError((err as Error).message ?? "파일 목록을 불러오지 못했습니다.");
+        }
+      } finally {
+        if (!cancelled) {
+          setLoadingFiles(false);
+        }
+      }
+    };
+
+    loadRepositoryFiles();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [open, selectedRepo, user.id]);
 
   const isSubmitDisabled = useMemo(() => {
     if (!selectedRepo || !baseBranch.trim() || !branchName.trim() || !commitMessage.trim()) {
       return true;
     }
 
-    return files.some((file) => !file.path.trim());
-  }, [selectedRepo, baseBranch, branchName, commitMessage, files]);
+    return selectedFileIds.length === 0;
+  }, [selectedRepo, baseBranch, branchName, commitMessage, selectedFileIds]);
 
-  const handleFileChange = (
-    index: number,
-    key: keyof GithubBranchCommitFileInput,
-    value: string
-  ) => {
-    setFiles((prev) => {
-      const next = [...prev];
-      next[index] = {
-        ...next[index],
-        [key]: value,
-      };
-      return next;
-    });
+  /**
+   * Returns whether a file is currently selected for the commit.
+   *
+   * @param fileId The unique file identifier.
+   */
+  const isFileSelected = (fileId: string) => selectedFileIds.includes(fileId);
+
+  /**
+   * Toggles a file selection when the user interacts with it.
+   *
+   * @param fileId The unique file identifier to toggle.
+   */
+  const handleToggleFile = (fileId: string) => {
+    setSelectedFileIds((prev) =>
+      prev.includes(fileId) ? prev.filter((id) => id !== fileId) : [...prev, fileId]
+    );
   };
 
-  const handleAddFile = () => {
-    setFiles((prev) => [...prev, createEmptyFileInput()]);
-  };
-
-  const handleRemoveFile = (index: number) => {
-    setFiles((prev) => (prev.length === 1 ? prev : prev.filter((_, i) => i !== index)));
-  };
+  const filteredFiles = useMemo(() => {
+    const keyword = fileSearch.trim().toLowerCase();
+    if (!keyword) {
+      return repositoryFiles;
+    }
+    return repositoryFiles.filter((file) => file.path.toLowerCase().includes(keyword));
+  }, [fileSearch, repositoryFiles]);
 
   const handleSubmit = async () => {
     if (isSubmitDisabled) {
       setError("필수 항목을 모두 입력해주세요.");
       return;
     }
-
-    const payloadFiles: Record<string, string> = {};
-    files.forEach((file) => {
-      const path = file.path.trim();
-      if (path) {
-        payloadFiles[path] = file.content ?? "";
-      }
-    });
 
     try {
       setSubmitting(true);
@@ -122,7 +169,7 @@ export default function GithubCommitModal({
         baseBranch: baseBranch.trim(),
         branchName: branchName.trim(),
         commitMessage: commitMessage.trim(),
-        files: payloadFiles,
+        fileIds: selectedFileIds,
       });
       toast.success("새 브랜치에 변경 사항을 푸시했습니다.");
       onClose();
@@ -167,11 +214,14 @@ export default function GithubCommitModal({
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <label className="text-sm font-semibold text-slate-700">대상 저장소</label>
+                <label className="text-sm font-semibold text-slate-700" htmlFor={repoSelectId}>
+                  대상 저장소
+                </label>
                 <select
                   className="w-full border-2 border-slate-200 rounded-xl px-4 py-3 bg-slate-50 focus:outline-none focus:border-blue-400 focus:bg-white transition-all"
                   value={selectedRepo}
                   onChange={(event) => setSelectedRepo(event.target.value)}
+                  id={repoSelectId}
                   disabled={loadingRepos || repositories.length === 0}
                 >
                   {repositories.length === 0 && (
@@ -186,88 +236,100 @@ export default function GithubCommitModal({
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-semibold text-slate-700">기준 브랜치</label>
+                <label className="text-sm font-semibold text-slate-700" htmlFor={baseBranchId}>
+                  기준 브랜치
+                </label>
                 <input
                   className="w-full border-2 border-slate-200 rounded-xl px-4 py-3 bg-slate-50 focus:outline-none focus:border-blue-400 focus:bg-white transition-all"
                   value={baseBranch}
                   onChange={(event) => setBaseBranch(event.target.value)}
+                  id={baseBranchId}
                 />
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-semibold text-slate-700">새 브랜치 이름</label>
+                <label className="text-sm font-semibold text-slate-700" htmlFor={branchNameId}>
+                  새 브랜치 이름
+                </label>
                 <input
                   className="w-full border-2 border-slate-200 rounded-xl px-4 py-3 bg-slate-50 focus:outline-none focus:border-blue-400 focus:bg-white transition-all"
                   value={branchName}
                   onChange={(event) => setBranchName(event.target.value)}
+                  id={branchNameId}
                   placeholder="feature/my-change"
                 />
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-semibold text-slate-700">커밋 메시지</label>
+                <label className="text-sm font-semibold text-slate-700" htmlFor={commitMessageId}>
+                  커밋 메시지
+                </label>
                 <input
                   className="w-full border-2 border-slate-200 rounded-xl px-4 py-3 bg-slate-50 focus:outline-none focus:border-blue-400 focus:bg-white transition-all"
                   value={commitMessage}
                   onChange={(event) => setCommitMessage(event.target.value)}
+                  id={commitMessageId}
                   placeholder="Add new changes"
                 />
               </div>
             </div>
 
             <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h3 className="text-sm font-semibold text-slate-700 flex items-center gap-2">
-                  <FilePlus2 className="w-4 h-4 text-purple-500" />
-                  커밋할 파일
-                </h3>
-                <button
-                  className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-sm font-medium"
-                  onClick={handleAddFile}
-                  type="button"
-                >
-                  <Plus className="w-4 h-4" /> 파일 추가
-                </button>
-              </div>
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-semibold text-slate-700 flex items-center gap-2">
+                    커밋할 파일 선택
+                  </h3>
+                </div>
 
-              <div className="space-y-4">
-                {files.map((file, index) => (
-                  <div
-                    key={index}
-                    className="p-4 border border-slate-200 rounded-2xl space-y-3 bg-white shadow-sm"
-                  >
-                    <div className="flex flex-col md:flex-row md:items-center md:gap-3">
-                      <div className="flex-1 space-y-2">
-                        <label className="text-xs font-semibold text-slate-500">파일 경로</label>
-                        <input
-                          className="w-full border-2 border-slate-200 rounded-xl px-4 py-2.5 bg-slate-50 focus:outline-none focus:border-blue-400 focus:bg-white transition-all"
-                          value={file.path}
-                          onChange={(event) => handleFileChange(index, "path", event.target.value)}
-                          placeholder="docs/README.md"
-                        />
-                      </div>
-                      <button
-                        className="mt-3 md:mt-6 w-full md:w-auto inline-flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-red-50 text-red-600 hover:bg-red-100 text-sm"
-                        onClick={() => handleRemoveFile(index)}
-                        type="button"
-                        disabled={files.length === 1}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                        제거
-                      </button>
-                    </div>
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                  <input
+                    className="w-full border-2 border-slate-200 rounded-xl pl-10 pr-4 py-2.5 bg-slate-50 focus:outline-none focus:border-blue-400 focus:bg-white transition-all"
+                    value={fileSearch}
+                    onChange={(event) => setFileSearch(event.target.value)}
+                    id={fileSearchId}
+                    placeholder="파일 이름 또는 경로 검색"
+                  />
+                </div>
 
-                    <div className="space-y-2">
-                      <label className="text-xs font-semibold text-slate-500">파일 내용</label>
-                      <textarea
-                        className="w-full border-2 border-slate-200 rounded-xl px-4 py-3 bg-slate-50 focus:outline-none focus:border-blue-400 focus:bg-white transition-all min-h-[120px]"
-                        value={file.content}
-                        onChange={(event) => handleFileChange(index, "content", event.target.value)}
-                        placeholder="이곳에 커밋할 내용을 입력하세요"
-                      />
+                <div className="border border-slate-200 rounded-2xl bg-white max-h-72 overflow-y-auto divide-y divide-slate-100">
+                  {loadingFiles && (
+                    <div className="flex items-center justify-center gap-2 py-10 text-slate-500 text-sm">
+                      <Loader2 className="w-4 h-4 animate-spin" /> 파일 목록을 불러오는 중입니다
                     </div>
-                  </div>
-                ))}
+                  )}
+
+                  {!loadingFiles && filteredFiles.length === 0 && (
+                    <div className="py-10 text-center text-sm text-slate-500">
+                      커밋할 수 있는 파일이 없습니다.
+                    </div>
+                  )}
+
+                  {!loadingFiles &&
+                    filteredFiles.map((file) => {
+                      const selected = isFileSelected(file.id);
+                      return (
+                        <button
+                          key={file.id}
+                          type="button"
+                          onClick={() => handleToggleFile(file.id)}
+                          className={`w-full flex items-center justify-between px-4 py-3 text-left transition-colors ${
+                            selected ? "bg-purple-50" : "hover:bg-slate-50"
+                          }`}
+                        >
+                          <div className="flex items-center gap-3">
+                            {selected ? (
+                              <CheckSquare className="w-4 h-4 text-purple-500" />
+                            ) : (
+                              <Square className="w-4 h-4 text-slate-400" />
+                            )}
+                            <span className="text-sm text-slate-700">{file.path}</span>
+                          </div>
+                        </button>
+                      );
+                    })}
+                </div>
               </div>
             </div>
 
@@ -282,7 +344,13 @@ export default function GithubCommitModal({
               <button
                 className="px-5 py-3 rounded-xl bg-gradient-to-r from-purple-500 to-blue-600 text-white font-semibold shadow-sm hover:shadow-md disabled:opacity-60"
                 onClick={handleSubmit}
-                disabled={submitting || isSubmitDisabled || repositories.length === 0}
+                disabled={
+                  submitting ||
+                  isSubmitDisabled ||
+                  repositories.length === 0 ||
+                  loadingFiles ||
+                  loadingRepos
+                }
               >
                 {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : "브랜치 생성"}
               </button>

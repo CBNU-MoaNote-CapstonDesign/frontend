@@ -1,10 +1,11 @@
 "use client";
 
-import {useEffect, useState} from "react";
-import type {MoaFile} from "@/types/file";
-import {getSharedFiles} from "@/libs/client/file";
-import {useRouter} from "next/navigation";
-import {FileTypeDTO} from "@/types/dto";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+
+import type { MoaFile } from "@/types/file";
+import { getSharedFiles } from "@/libs/client/file";
+import { FileTypeDTO } from "@/types/dto";
 
 import FolderItem from "@/components/layout/NotePage/FolderItem";
 import NoteItem from "@/components/layout/NotePage/NoteItem";
@@ -12,9 +13,11 @@ import NoteItem from "@/components/layout/NotePage/NoteItem";
 export default function SharedNoteTree({
   user,
   selectedNoteId,
+  onSelectNote,
 }: {
   user: User;
   selectedNoteId: string;
+  onSelectNote?: (noteId: string) => void;
 }) {
   const [sharedFiles, setSharedFiles] = useState<MoaFile[]>([]);
   const [folderOpen, setFolderOpen] = useState<Record<string, boolean>>({});
@@ -66,7 +69,11 @@ export default function SharedNoteTree({
                       }}
                       selected={selectedNoteId == file.id}
                       onClick={() => {
-                        router.push(`/doc/${file.id}`);
+                        if (onSelectNote) {
+                          onSelectNote(file.id);
+                        } else {
+                          router.push(`/doc/${file.id}`);
+                        }
                       }}
                       isShared={true}
                   />

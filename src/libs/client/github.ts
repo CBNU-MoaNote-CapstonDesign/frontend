@@ -3,6 +3,7 @@
 import {
   GithubImportedRepositoryDTO,
   GithubOAuthAuthorizeResponse,
+  GithubRepositoryFileDTO,
 } from "@/types/github";
 
 const SERVER_URL = process.env.NEXT_PUBLIC_SERVER_URL;
@@ -109,17 +110,45 @@ export async function fetchGithubRepository(
   });
 }
 
+/**
+ * Requests a new GitHub branch creation and commit for the selected files.
+ *
+ * @param options Parameters required to create a branch and commit.
+ */
 export async function createGithubBranchAndCommit(options: {
   userId: string;
   repositoryUrl: string;
   baseBranch: string;
   branchName: string;
   commitMessage: string;
-  files: Record<string, string>;
+  fileIds: string[];
 }) {
   await request<null>("/api/github/branch", {
     method: "POST",
     body: JSON.stringify(options),
     parseJson: false,
   });
+}
+
+/**
+ * Retrieves the list of files available for committing in the selected repository.
+ *
+ * @param userId The ID of the authenticated user.
+ * @param repositoryUrl The GitHub repository URL to query.
+ * @returns The repository files that can be committed.
+ */
+export async function listGithubRepositoryFiles(
+  userId: string,
+  repositoryUrl: string
+): Promise<GithubRepositoryFileDTO[]> {
+  const data = await request<GithubRepositoryFileDTO[]>(
+    `/api/github/files?userId=${encodeURIComponent(
+      userId
+    )}&repositoryUrl=${encodeURIComponent(repositoryUrl)}`,
+    {
+      method: "GET",
+    }
+  );
+
+  return data ?? [];
 }
