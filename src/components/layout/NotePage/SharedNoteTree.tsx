@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import type { MoaFile } from "@/types/file";
-import { getSharedFiles } from "@/libs/client/file";
-import { useRouter } from "next/navigation";
-import { FileTypeDTO } from "@/types/dto";
+import {useEffect, useState} from "react";
+import type {MoaFile} from "@/types/file";
+import {getSharedFiles} from "@/libs/client/file";
+import {useRouter} from "next/navigation";
+import {FileTypeDTO} from "@/types/dto";
 
 import FolderItem from "@/components/layout/NotePage/FolderItem";
 import NoteItem from "@/components/layout/NotePage/NoteItem";
@@ -35,6 +35,8 @@ export default function SharedNoteTree({
     }));
   };
 
+  const sharedNotes = sharedFiles.filter((file) => file.type === FileTypeDTO.DOCUMENT);
+
   return (
     <div>
       <FolderItem
@@ -54,9 +56,9 @@ export default function SharedNoteTree({
           }}
           isShared={true}
       >
-        {sharedFiles.length > 0 && (
+        {sharedNotes.length > 0 && (
             <div className="mt-2 space-y-1 animate-in slide-in-from-top-2 duration-200">
-              {sharedFiles.map((file: MoaFile) => (
+              {sharedNotes.map((file: MoaFile) => (
                   <NoteItem
                       key={file.id}
                       note={file}
