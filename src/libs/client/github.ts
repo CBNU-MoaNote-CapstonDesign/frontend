@@ -87,6 +87,25 @@ export async function importGithubRepository(
   });
 }
 
+/**
+ * Completes the GitHub OAuth handshake by exchanging the provided code and state.
+ *
+ * @param options.userId The identifier of the user who initiated the OAuth flow.
+ * @param options.code The temporary authorization code from GitHub.
+ * @param options.state The state value issued during authorization for CSRF protection.
+ */
+export async function completeGithubOAuth(options: {
+  userId: string;
+  code: string;
+  state: string;
+}) {
+  await request<null>("/api/github/oauth/callback", {
+    method: "POST",
+    body: JSON.stringify(options),
+    parseJson: false,
+  });
+}
+
 export async function listImportedRepositories(
   userId: string
 ): Promise<GithubImportedRepositoryDTO[]> {
