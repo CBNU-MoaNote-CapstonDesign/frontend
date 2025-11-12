@@ -8,11 +8,6 @@ export interface GithubImportedRepositoryDTO {
   repositoryUrl: string;
 }
 
-export interface GithubBranchCommitFileInput {
-  path: string;
-  content: string;
-}
-
 export interface GithubSearchRepositoryItem {
   id: number;
   full_name: string;
@@ -24,4 +19,9 @@ export interface GithubSearchRepositoryItem {
     login: string;
     avatar_url: string;
   };
+}
+
+export interface GithubRepositoryFileDTO {
+  id: string;
+  path: string;
 }
