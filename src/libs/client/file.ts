@@ -135,6 +135,24 @@ function buildTreeFromDtos(fileDTOs: FileDTO[], parentId: string | null): MoaFil
     });
 }
 
+export async function getChildrenList(
+    directoryId: string,
+    user: User,
+    options?: GetFileTreeOptions
+): Promise<FileDTO[]> {
+  const recursive = options?.recursive ?? false;
+  const location = `/api/files/list/${directoryId}?user=${user.id}&recursive=${recursive}`;
+  const data = await getRequest(location);
+  let fileDTOs: FileDTO[];
+  try {
+    fileDTOs = data as FileDTO[];
+    fileDTOs.map((dto) => { dto.type = normalizeFileType(dto.type); });
+  } catch {
+    fileDTOs = [];
+  }
+  return fileDTOs;
+}
+
 /**
  * 디렉터리 하위의 파일 목록을 조회합니다.
  * @param directoryId 조회할 디렉터리 ID
@@ -146,18 +164,9 @@ export async function listDirectoryChildren(
   user: User,
   options?: GetFileTreeOptions
 ) {
-  const recursive = options?.recursive ?? false;
-  const location = `/api/files/list/${directoryId}?user=${user.id}&recursive=${recursive}`;
-  const data = await getRequest(location);
+  const fileDTOs = await getChildrenList(directoryId, user, options);
 
-  let fileDTOs: FileDTO[];
-  try {
-    fileDTOs = data as FileDTO[];
-  } catch {
-    fileDTOs = [];
-  }
-
-  if (recursive) {
+  if (options?.recursive) {
     return buildTreeFromDtos(fileDTOs, directoryId);
   }
 

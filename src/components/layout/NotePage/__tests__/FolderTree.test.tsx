@@ -1,17 +1,16 @@
-import { render, screen } from "@testing-library/react";
+import {render, screen} from "@testing-library/react";
 
-import FolderTree, {
-  partitionChildren,
-} from "@/components/layout/NotePage/FolderTree";
-import type { MoaFile } from "@/types/file";
+import FolderTree, {partitionChildren,} from "@/components/layout/NotePage/FolderTree";
+import type {MoaFile} from "@/types/file";
+import {FileTypeDTO} from "@/types/dto";
 
 describe("partitionChildren", () => {
   it("splits directories and documents while preserving order", () => {
     const children = [
-      { id: "dir-1", name: "Directory", type: "DIRECTORY" },
-      { id: "doc-1", name: "Document", type: "DOCUMENT" },
-      { id: "dir-2", name: "Second Directory", type: "DIRECTORY" },
-      { id: "doc-2", name: "Second Document", type: "DOCUMENT" },
+      { id: "dir-1", name: "Directory", type: FileTypeDTO.DIRECTORY },
+      { id: "doc-1", name: "Document", type: FileTypeDTO.DOCUMENT },
+      { id: "dir-2", name: "Second Directory", type: FileTypeDTO.DIRECTORY },
+      { id: "doc-2", name: "Second Document", type: FileTypeDTO.DOCUMENT },
     ] as unknown as MoaFile[];
 
     const { directories, notes } = partitionChildren(children);
@@ -49,22 +48,22 @@ describe("FolderTree", () => {
     const tree = {
       id: "root-folder",
       name: "루트",
-      type: "DIRECTORY",
+      type: FileTypeDTO.DIRECTORY,
       children: [
         {
           id: "note-a",
           name: "상위 노트",
-          type: "DOCUMENT",
+          type: FileTypeDTO.DOCUMENT,
         },
         {
           id: "child-folder",
           name: "하위 폴더",
-          type: "DIRECTORY",
+          type: FileTypeDTO.DIRECTORY,
           children: [
             {
               id: "child-note",
               name: "하위 노트",
-              type: "DOCUMENT",
+              type: FileTypeDTO.DOCUMENT,
             },
           ],
         },

@@ -2,22 +2,23 @@ import { fireEvent, render, screen } from "@testing-library/react";
 
 import FolderTree from "@/components/layout/NotePage/FolderTree";
 import type { MoaFile } from "@/types/file";
+import {FileTypeDTO} from "@/types/dto";
 
 describe("FolderTree context menu", () => {
   const rootFolder = {
     id: "root-folder",
     name: "루트",
-    type: "DIRECTORY",
+    type: FileTypeDTO.DIRECTORY,
     children: [
       {
         id: "child-folder",
         name: "하위 폴더",
-        type: "DIRECTORY",
+        type: FileTypeDTO.DIRECTORY,
         children: [
           {
             id: "child-note",
             name: "하위 노트",
-            type: "DOCUMENT",
+            type: FileTypeDTO.DOCUMENT,
           },
         ],
       },
