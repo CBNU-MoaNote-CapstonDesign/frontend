@@ -87,6 +87,25 @@ export async function importGithubRepository(
   });
 }
 
+/**
+ * 전달받은 code/state 값을 교환하여 GitHub OAuth 인증을 마무리합니다.
+ *
+ * @param options.userId OAuth 인증을 시작한 사용자의 식별자입니다.
+ * @param options.code GitHub에서 발급한 임시 Authorization code입니다.
+ * @param options.state CSRF 방지를 위해 발급된 state 값입니다.
+ */
+export async function completeGithubOAuth(options: {
+  userId: string;
+  code: string;
+  state: string;
+}) {
+  await request<null>("/api/github/oauth/callback", {
+    method: "POST",
+    body: JSON.stringify(options),
+    parseJson: false,
+  });
+}
+
 export async function listImportedRepositories(
   userId: string
 ): Promise<GithubImportedRepositoryDTO[]> {
@@ -113,9 +132,9 @@ export async function fetchGithubRepository(
 }
 
 /**
- * Requests a new GitHub branch creation and commit for the selected files.
+ * 선택한 파일을 기준으로 GitHub 브랜치를 생성하고 커밋을 요청합니다.
  *
- * @param options Parameters required to create a branch and commit.
+ * @param options 브랜치 생성과 커밋에 필요한 매개변수입니다.
  */
 export async function createGithubBranchAndCommit(options: {
   userId: string;
@@ -133,18 +152,11 @@ export async function createGithubBranchAndCommit(options: {
 }
 
 /**
- * Retrieves the list of files available for committing in the selected repository.
+ * 가져온 GitHub 저장소의 루트 파일 메타데이터를 조회합니다.
  *
- * @param userId The ID of the authenticated user.
- * @param repositoryUrl The GitHub repository URL to query.
- * @returns The repository files that can be committed.
- */
-/**
- * Requests the root file metadata for an imported GitHub repository.
- *
- * @param userId The ID of the authenticated user.
- * @param repositoryName The name of the imported repository.
- * @returns The repository root file metadata, if available.
+ * @param userId 인증된 사용자의 식별자입니다.
+ * @param repositoryName 가져온 저장소의 이름입니다.
+ * @returns 루트 파일 메타데이터가 존재하면 해당 정보를 반환합니다.
  */
 async function fetchGithubRepositoryRootFile(
   userId: string,
@@ -167,10 +179,10 @@ async function fetchGithubRepositoryRootFile(
 }
 
 /**
- * Builds a list of repository files with their relative paths using file metadata.
+ * 파일 메타데이터를 이용해 상대 경로가 포함된 저장소 파일 목록을 생성합니다.
  *
- * @param files The raw file metadata retrieved from the backend.
- * @param rootId The identifier of the repository root directory.
+ * @param files 백엔드에서 받아온 원본 파일 메타데이터입니다.
+ * @param rootId 저장소 루트 디렉터리의 식별자입니다.
  */
 function mapRepositoryFiles(
   files: FileDTO[],
@@ -207,11 +219,11 @@ function mapRepositoryFiles(
 }
 
 /**
- * Retrieves the list of files available for committing in the selected repository.
+ * 선택한 저장소에서 커밋 가능한 파일 목록을 조회합니다.
  *
- * @param user The authenticated user.
- * @param repository The imported repository to query.
- * @returns The repository files that can be committed.
+ * @param user 인증된 사용자 정보입니다.
+ * @param repository 조회할 가져온 저장소 정보입니다.
+ * @returns 커밋 대상이 될 수 있는 저장소 파일 목록입니다.
  */
 export async function listGithubRepositoryFiles(
   user: User,
@@ -224,7 +236,7 @@ export async function listGithubRepositoryFiles(
   }
 
   const rootId = String(root.id);
-  const directoryFiles = await getChildrenList(rootId, user, {recursive: true});
+  const directoryFiles = await getChildrenList(rootId, user, { recursive: true });
 
   if (!Array.isArray(directoryFiles)) {
     return [];
