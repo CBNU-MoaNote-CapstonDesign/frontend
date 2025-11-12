@@ -55,14 +55,12 @@ type PendingModalAction =
   | { type: "folder-edit"; targetId: string }
   | { type: "note-edit"; targetId: string };
 
-const DIRECTORY_TYPE = "DIRECTORY";
-
 /**
  * 디렉터리 여부를 판단합니다.
  * @param file 검사할 파일
  */
 function isDirectory(file: MoaFile) {
-  return file.type.toString() === DIRECTORY_TYPE;
+  return file.type == FileTypeDTO.DIRECTORY;
 }
 
 interface ConvertOptions {

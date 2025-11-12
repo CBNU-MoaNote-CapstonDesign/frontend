@@ -6,6 +6,7 @@ import type {MoaFile} from "@/types/file";
 
 import FolderItem from "@/components/layout/NotePage/FolderItem";
 import NoteItem from "@/components/layout/NotePage/NoteItem";
+import {FileTypeDTO} from "@/types/dto";
 
 /**
  * 주어진 자식 파일 목록을 디렉터리와 문서로 분리합니다.
@@ -21,9 +22,9 @@ export function partitionChildren(children?: MoaFile[]): {
 
   return children.reduce(
     (acc, child) => {
-      if (child.type.toString() === "DIRECTORY") {
+      if (child.type == FileTypeDTO.DIRECTORY) {
         acc.directories.push(child);
-      } else if (child.type.toString() === "DOCUMENT") {
+      } else if (child.type == FileTypeDTO.DOCUMENT) {
         acc.notes.push(child);
       }
       return acc;
@@ -69,7 +70,7 @@ export default function FolderTree({
   loadingFolders?: Record<string, boolean>;
   isRoot?: boolean;
 }) {
-  if (file.type.toString() == "DOCUMENT") {
+  if (file.type == FileTypeDTO.DOCUMENT) {
     return (
       <NoteItem
         key={file.id}
@@ -80,7 +81,7 @@ export default function FolderTree({
         onContextMenu={(note, event) => onContextMenu(note, event)}
       />
     );
-  } else if (file.type.toString() == "DIRECTORY") {
+  } else if (file.type == FileTypeDTO.DIRECTORY) {
     const isOpen = folderOpen[file.id] ?? isRoot;
     const { directories, notes } = partitionChildren(file.children);
     const isLoading = loadingFolders[file.id] ?? false;
