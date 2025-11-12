@@ -1,9 +1,12 @@
 "use client";
 
+import { FileDTO, FileTypeDTO } from "@/types/dto";
 import {
   GithubImportedRepositoryDTO,
   GithubOAuthAuthorizeResponse,
+  GithubRepositoryFileDTO,
 } from "@/types/github";
+import { getChildrenList } from "@/libs/client/file";
 
 const SERVER_URL = process.env.NEXT_PUBLIC_SERVER_URL;
 
@@ -109,17 +112,122 @@ export async function fetchGithubRepository(
   });
 }
 
+/**
+ * Requests a new GitHub branch creation and commit for the selected files.
+ *
+ * @param options Parameters required to create a branch and commit.
+ */
 export async function createGithubBranchAndCommit(options: {
   userId: string;
   repositoryUrl: string;
   baseBranch: string;
   branchName: string;
   commitMessage: string;
-  files: Record<string, string>;
+  fileIds: string[];
 }) {
   await request<null>("/api/github/branch", {
     method: "POST",
     body: JSON.stringify(options),
     parseJson: false,
   });
+}
+
+/**
+ * Retrieves the list of files available for committing in the selected repository.
+ *
+ * @param userId The ID of the authenticated user.
+ * @param repositoryUrl The GitHub repository URL to query.
+ * @returns The repository files that can be committed.
+ */
+/**
+ * Requests the root file metadata for an imported GitHub repository.
+ *
+ * @param userId The ID of the authenticated user.
+ * @param repositoryName The name of the imported repository.
+ * @returns The repository root file metadata, if available.
+ */
+async function fetchGithubRepositoryRootFile(
+  userId: string,
+  repositoryName: string
+): Promise<FileDTO | null> {
+  const data = await request<FileDTO | null>(
+    `/api/github/repository/file?userId=${encodeURIComponent(
+      userId
+    )}&repositoryName=${encodeURIComponent(repositoryName)}`,
+    {
+      method: "GET",
+    }
+  );
+
+  if (!data) {
+    return null;
+  }
+
+  return data;
+}
+
+/**
+ * Builds a list of repository files with their relative paths using file metadata.
+ *
+ * @param files The raw file metadata retrieved from the backend.
+ * @param rootId The identifier of the repository root directory.
+ */
+function mapRepositoryFiles(
+  files: FileDTO[],
+  rootId: string
+): GithubRepositoryFileDTO[] {
+  const byParent = new Map<string | null, FileDTO[]>();
+
+  for (const file of files) {
+    const parentId = (file.dir as unknown as string | null) ?? null;
+    const siblings = byParent.get(parentId) ?? [];
+    siblings.push(file);
+    byParent.set(parentId, siblings);
+  }
+
+  const traverse = (parentId: string, parentPath: string): GithubRepositoryFileDTO[] => {
+    const children = byParent.get(parentId) ?? [];
+    const result: GithubRepositoryFileDTO[] = [];
+
+    for (const child of children) {
+      const childId = String(child.id);
+      const currentPath = parentPath ? `${parentPath}/${child.name}` : child.name;
+
+      if (child.type === FileTypeDTO.DOCUMENT) {
+        result.push({ id: childId, path: currentPath });
+      } else if (child.type === FileTypeDTO.DIRECTORY) {
+        result.push(...traverse(childId, currentPath));
+      }
+    }
+
+    return result;
+  };
+
+  return traverse(rootId, "").sort((a, b) => a.path.localeCompare(b.path));
+}
+
+/**
+ * Retrieves the list of files available for committing in the selected repository.
+ *
+ * @param user The authenticated user.
+ * @param repository The imported repository to query.
+ * @returns The repository files that can be committed.
+ */
+export async function listGithubRepositoryFiles(
+  user: User,
+  repository: GithubImportedRepositoryDTO
+): Promise<GithubRepositoryFileDTO[]> {
+  const root = await fetchGithubRepositoryRootFile(user.id, repository.repositoryName);
+
+  if (!root) {
+    return [];
+  }
+
+  const rootId = String(root.id);
+  const directoryFiles = await getChildrenList(rootId, user, {recursive: true});
+
+  if (!Array.isArray(directoryFiles)) {
+    return [];
+  }
+  return mapRepositoryFiles(directoryFiles, rootId);
 }
