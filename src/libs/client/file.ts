@@ -79,17 +79,41 @@ export interface GetFileTreeOptions {
 }
 
 /**
+ * Normalizes raw file type values returned by the backend to the numeric enum representation.
+ * 일부 API에서는 enum의 문자열 키를, 다른 API에서는 숫자 값을 반환하므로 이를 통일합니다.
+ *
+ * @param type 서버에서 전달된 파일 타입 값
+ */
+function normalizeFileType(type: FileDTO["type"] | string): FileTypeDTO {
+  if (typeof type === "string") {
+    const enumValue = (FileTypeDTO as Record<string, FileTypeDTO | string>)[type];
+    if (typeof enumValue === "number") {
+      return enumValue;
+    }
+
+    const parsed = Number.parseInt(type, 10);
+    if (!Number.isNaN(parsed)) {
+      return parsed as FileTypeDTO;
+    }
+  }
+
+  return type as FileTypeDTO;
+}
+
+/**
  * FileDTO를 MoaFile로 변환합니다.
  * @param dto 변환할 DTO
  */
 function mapDtoToMoaFile(dto: FileDTO): MoaFile {
+  const fileTypeDTO = normalizeFileType(dto.type);
+
   return {
     id: dto.id,
     name: dto.name,
-    type: dto.type,
-    children: dto.type.toString() === "DIRECTORY" ? [] : undefined,
+    type: fileTypeDTO,
+    children: fileTypeDTO === FileTypeDTO.DIRECTORY ? [] : undefined,
     githubImported: dto.githubImported,
-  } as MoaFile;
+  } satisfies MoaFile;
 }
 
 function getParentId(dto: FileDTO) {
@@ -104,7 +128,7 @@ function buildTreeFromDtos(fileDTOs: FileDTO[], parentId: string | null): MoaFil
     })
     .map((dto) => {
       const node = mapDtoToMoaFile(dto);
-      if (dto.type.toString() === "DIRECTORY") {
+      if (node.type === FileTypeDTO.DIRECTORY) {
         node.children = buildTreeFromDtos(fileDTOs, String(dto.id));
       }
       return node;
@@ -141,11 +165,13 @@ export async function listDirectoryChildren(
   for (const fileDTO of fileDTOs) {
     if (fileDTO.id === directoryId) continue;
 
-    if (fileDTO.type.toString() === "DIRECTORY") {
+    const fileTypeDTO = normalizeFileType(fileDTO.type);
+
+    if (fileTypeDTO === FileTypeDTO.DIRECTORY) {
       const childDirectory = mapDtoToMoaFile(fileDTO);
       childDirectory.children = [];
       children.push(childDirectory);
-    } else if (fileDTO.type.toString() === "DOCUMENT") {
+    } else if (fileTypeDTO === FileTypeDTO.DOCUMENT) {
       children.push(mapDtoToMoaFile(fileDTO));
     }
   }
@@ -221,7 +247,7 @@ export async function getFile(fileId: string, user: User) {
     const fileDTO = data as FileDTO;
     return {
       id: fileDTO.id,
-      type: fileDTO.type,
+      type: normalizeFileType(fileDTO.type),
       name: fileDTO.name,
       githubImported: fileDTO.githubImported,
     } as MoaFile;
@@ -265,7 +291,7 @@ export async function createFile(
   const fileDTO = result as FileDTO;
   return {
     id: fileDTO.id,
-    type: fileDTO.type,
+    type: normalizeFileType(fileDTO.type),
     name: fileDTO.name,
   } as MoaFile;
 }
@@ -435,7 +461,7 @@ export async function getSharedFiles(user: User): Promise<MoaFile[]> {
       files.push({
         id: fileDTO.id,
         name: fileDTO.name,
-        type: fileDTO.type,
+        type: normalizeFileType(fileDTO.type),
         githubImported: fileDTO.githubImported,
       } as MoaFile);
     }
@@ -451,6 +477,5 @@ export async function addNoteSegment(fileId: string, type: number, user: User) {
   const body = {
     type: type,
   };
-  const data = await postRequest(location, JSON.stringify(body));
-  return data;
+  return await postRequest(location, JSON.stringify(body));
 }

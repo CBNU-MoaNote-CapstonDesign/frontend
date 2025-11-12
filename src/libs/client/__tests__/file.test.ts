@@ -1,15 +1,16 @@
-import { getFileTree, listDirectoryChildren, unshare } from "@/libs/client/file";
+import {
+  getFileTree,
+  getSharedFiles,
+  listDirectoryChildren,
+  unshare,
+} from "@/libs/client/file";
 import type { FileDTO } from "@/types/dto";
 import { FileTypeDTO } from "@/types/dto";
 import type { UUID } from "node:crypto";
 
 describe("file client tree loading", () => {
-  const directoryType = {
-    toString: () => "DIRECTORY",
-  } as unknown as FileTypeDTO;
-  const documentType = {
-    toString: () => "DOCUMENT",
-  } as unknown as FileTypeDTO;
+  const directoryType = "DIRECTORY" as unknown as FileTypeDTO;
+  const documentType = "DOCUMENT" as unknown as FileTypeDTO;
 
   const owner = { id: "owner-1", name: "owner" };
   const user = { id: "user-1", name: "tester" } as User;
@@ -81,6 +82,7 @@ describe("file client tree loading", () => {
     );
     expect(tree?.children).toHaveLength(2);
     const dirChild = tree?.children?.find((child) => child.id === "dir-1");
+    expect(dirChild?.type).toBe(FileTypeDTO.DIRECTORY);
     expect(dirChild?.children).toEqual([]);
   });
 
@@ -100,6 +102,7 @@ describe("file client tree loading", () => {
     );
     const directory = tree?.children?.[0];
     expect(directory?.children?.[0]?.id).toBe("doc-1");
+    expect(directory?.type).toBe(FileTypeDTO.DIRECTORY);
   });
 
   it("loads only direct children for a directory when recursive=false", async () => {
@@ -115,6 +118,7 @@ describe("file client tree loading", () => {
       expect.objectContaining({ method: "GET" })
     );
     const directoryChild = children.find((child) => child.id === "dir-2");
+    expect(directoryChild?.type).toBe(FileTypeDTO.DIRECTORY);
     expect(directoryChild?.children).toEqual([]);
   });
 
@@ -134,7 +138,32 @@ describe("file client tree loading", () => {
     );
 
     const nestedDirectory = children.find((child) => child.id === "dir-2");
+    expect(nestedDirectory?.type).toBe(FileTypeDTO.DIRECTORY);
     expect(nestedDirectory?.children?.[0]?.id).toBe("doc-2");
+
+    const documentChild = nestedDirectory?.children?.[0];
+    expect(documentChild?.type).toBe(FileTypeDTO.DOCUMENT);
+  });
+
+  it("normalizes shared file types to enum values", async () => {
+    mockFetchSequence([
+      {
+        id: "shared-doc",
+        name: "shared",
+        owner,
+        type: "DOCUMENT" as unknown as FileTypeDTO,
+        dir: null as unknown as UUID,
+        githubImported: false,
+      } as unknown as FileDTO,
+    ]);
+
+    const files = await getSharedFiles(user);
+
+    expect(global.fetch).toHaveBeenCalledWith(
+        "https://server/api/files/all/user-1",
+        expect.objectContaining({ method: "GET" })
+    );
+    expect(files[0]?.type).toBe(FileTypeDTO.DOCUMENT);
   });
 });
 
